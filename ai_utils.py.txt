@@ -1,0 +1,53 @@
+import whisper
+from transformers import pipeline
+
+# Charger les modèles
+whisper_model = whisper.load_model("base")
+sentiment_model = pipeline("sentiment-analysis")
+
+# =========================
+# Transcription audio
+# =========================
+
+def transcribe_audio(audio_path):
+
+    result = whisper_model.transcribe(audio_path)
+
+    return result["text"]
+
+
+# =========================
+# Analyse sentiment
+# =========================
+
+def analyze_sentiment(text):
+
+    result = sentiment_model(text)[0]
+
+    label = result["label"]
+    score = result["score"]
+
+    return label, score
+
+
+# =========================
+# Score agent
+# =========================
+
+def agent_score(sentiment_score):
+
+    score = sentiment_score * 100
+
+    if score > 80:
+        performance = "Excellent"
+
+    elif score > 60:
+        performance = "Bon"
+
+    elif score > 40:
+        performance = "Moyen"
+
+    else:
+        performance = "A améliorer"
+
+    return score, performance
