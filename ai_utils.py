@@ -1,45 +1,72 @@
 import whisper
 from transformers import pipeline
 
-# Charger les modèles
+# =========================
+# CHARGEMENT DES MODELES
+# =========================
+
+print("Chargement des modèles IA...")
+
 whisper_model = whisper.load_model("base")
-sentiment_model = pipeline("sentiment-analysis")
+
+sentiment_model = pipeline(
+    "sentiment-analysis",
+    model="distilbert-base-uncased-finetuned-sst-2-english"
+)
+
+print("Modèles chargés")
 
 # =========================
-# Transcription audio
+# TRANSCRIPTION AUDIO
 # =========================
 
 def transcribe_audio(audio_path):
 
-    result = whisper_model.transcribe(audio_path)
+    try:
 
-    text = result["text"]
+        result = whisper_model.transcribe(audio_path)
 
-    return text
+        text = result["text"]
+
+        return text.strip()
+
+    except Exception as e:
+
+        print("Erreur transcription :", e)
+
+        return ""
 
 
 # =========================
-# Analyse sentiment
+# ANALYSE SENTIMENT
 # =========================
 
 def analyze_sentiment(text):
 
-    # limiter la taille du texte pour éviter erreur du modèle
-    max_length = 500
+    try:
 
-    if len(text) > max_length:
-        text = text[:max_length]
+        # limiter taille texte
+        max_length = 500
 
-    result = sentiment_model(text)[0]
+        if len(text) > max_length:
+            text = text[:max_length]
 
-    sentiment = result["label"]
-    score = result["score"]
+        result = sentiment_model(text)[0]
 
-    return sentiment, score
+        sentiment = result["label"]
+        score = result["score"]
+
+        return sentiment, score
+
+    except Exception as e:
+
+        print("Erreur sentiment :", e)
+
+        return "UNKNOWN", 0
 
 
 # =========================
-# Score agent
+# SCORE AGENT
 # =========================
 
 def agent_score(sentiment_score):
@@ -59,3 +86,57 @@ def agent_score(sentiment_score):
         performance = "A améliorer"
 
     return score, performance
+
+
+# =========================
+# DETECTION PLAINTE CLIENT
+# =========================
+
+def detect_complaint(text):
+
+    keywords = [
+        "problem",
+        "issue",
+        "complaint",
+        "not happy",
+        "bad service",
+        "angry",
+        "unsatisfied",
+        "refund"
+    ]
+
+    text = text.lower()
+
+    for word in keywords:
+
+        if word in text:
+
+            return True
+
+    return False
+
+
+# =========================
+# SCORE QUALITE APPEL
+# =========================
+
+def call_quality_score(sentiment_score, transcription):
+
+    score = 50
+
+    # sentiment client
+    score += sentiment_score * 30
+
+    # pénalité plainte
+    if detect_complaint(transcription):
+
+        score -= 20
+
+    # bonus conversation longue
+    if len(transcription) > 200:
+
+        score += 10
+
+    score = max(0, min(score, 100))
+
+    return score
