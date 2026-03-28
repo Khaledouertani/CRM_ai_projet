@@ -2,11 +2,7 @@ import streamlit as st
 import pandas as pd
 import requests
 import os
-from database import insert_call, load_data
-import streamlit as st
-from database import load_data
-
-
+from models.database import insert_call, load_data
 st.markdown("""
 <style>
 section[data-testid="stSidebar"] {

@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from database import load_data
-from automation import detect_alerts, send_email, generate_report
+from models.database import load_data
+from services.automation import detect_alerts, generate_report
 st.markdown("""
 <style>
 section[data-testid="stSidebar"] {

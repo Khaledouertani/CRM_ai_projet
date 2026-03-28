@@ -1,13 +1,9 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from database import load_data
+from models.database import load_data
 
 st.title(" Analyse des Agents")
-import streamlit as st
-from database import load_data
-
-
 st.markdown("""
 <style>
 section[data-testid="stSidebar"] {

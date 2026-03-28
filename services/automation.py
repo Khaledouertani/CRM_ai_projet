@@ -1,10 +1,11 @@
-import smtplib
 from datetime import datetime
+import smtplib
+from email.mime.text import MIMEText
 
 # =========================
-# EMAIL
+# EMAIL (Gmail)
 # =========================
-def send_email(to_email, subject, message):
+def send_email_gmail(to_email, subject, message):
     try:
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
@@ -20,6 +21,32 @@ def send_email(to_email, subject, message):
         server.quit()
 
         return " Email envoyé"
+
+    except Exception as e:
+        return f" Erreur: {e}"
+
+# =========================
+# EMAIL (Mailtrap - CRM Bot)
+# =========================
+def send_email_mailtrap(to_email, subject, message):
+    try:
+        server = smtplib.SMTP("sandbox.smtp.mailtrap.io", 2525)
+        server.starttls()
+
+        email = "ea035d8b889b79"
+        app_password = "13791d0250e493"
+
+        server.login(email, app_password)
+
+        msg = MIMEText(message, "plain", "utf-8")
+        msg["Subject"] = subject
+        msg["From"] = email
+        msg["To"] = to_email
+
+        server.send_message(msg)
+        server.quit()
+
+        return f" Email envoyé à {to_email}"
 
     except Exception as e:
         return f" Erreur: {e}"

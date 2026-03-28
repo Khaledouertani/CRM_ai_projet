@@ -1,6 +1,6 @@
 import random
 from datetime import datetime, timedelta
-from database import insert_call, create_db
+from models.database import insert_call, create_db
 
 create_db()
 

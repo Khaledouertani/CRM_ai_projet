@@ -1,12 +1,9 @@
 import streamlit as st
 import pandas as pd
-from database import load_data
-from automation import generate_report
+from models.database import load_data
+from services.automation import generate_report
 
 st.title(" Analyse IA des appels")
-import streamlit as st
-from database import load_data
-
 
 st.markdown("""
 <style>
