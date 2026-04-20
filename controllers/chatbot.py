@@ -111,10 +111,14 @@ Réponse :
 # RÉPONSES STATISTIQUES RAPIDES (sans RAG)
 # =============================================================================
 
-def _stats_answer(question: str) -> str | None:
+def _stats_answer(question: str, agent_name: str | None = None) -> str | None:
     """
     Répond aux questions statistiques basiques en interrogeant la DB directement.
     Retourne None si la question ne correspond pas.
+    
+    Args:
+        question: La question de l'utilisateur
+        agent_name: Nom de l'agent pour filtrer les données (None = tous les agents)
     """
     try:
         from models.database import load_data
@@ -122,29 +126,50 @@ def _stats_answer(question: str) -> str | None:
         if df.empty:
             return "Aucune donnée disponible dans la base de données."
 
+        if agent_name:
+            df = df[df["agent_name"] == agent_name]
+            if df.empty:
+                return f"Aucune donnée disponible pour l'agent **{agent_name}**."
+
         q = question.lower()
 
         if any(w in q for w in ["top agent", "meilleur agent", "meilleur"]):
-            top = df.groupby("agent_name")["score_percentage"].mean().idxmax()
-            score = round(df.groupby("agent_name")["score_percentage"].mean().max(), 1)
-            return f" Le meilleur agent est **{top}** avec un score moyen de **{score}%**."
+            if agent_name:
+                avg = round(df["score_percentage"].mean(), 1)
+                return f"Votre score moyen est de **{avg}%** sur **{len(df)}** appels."
+            else:
+                top = df.groupby("agent_name")["score_percentage"].mean().idxmax()
+                score = round(df.groupby("agent_name")["score_percentage"].mean().max(), 1)
+                return f" Le meilleur agent est **{top}** avec un score moyen de **{score}%**."
 
         if any(w in q for w in ["score moyen", "moyenne", "score global"]):
             avg = round(df["score_percentage"].mean(), 1)
-            return f" Le score moyen global est de **{avg}%** sur **{len(df)}** appels."
+            if agent_name:
+                return f"Votre score moyen est de **{avg}%** sur **{len(df)}** appels."
+            else:
+                return f" Le score moyen global est de **{avg}%** sur **{len(df)}** appels."
 
         if any(w in q for w in ["combien d'appels", "nombre d'appels", "total appels"]):
-            return f" Il y a **{len(df)}** appels enregistrés dans la base."
+            if agent_name:
+                return f"Vous avez **{len(df)}** appels enregistrés."
+            else:
+                return f" Il y a **{len(df)}** appels enregistrés dans la base."
 
         if any(w in q for w in ["négatif", "négatifs", "problème", "réclamation"]):
             neg = len(df[df["sentiment"] == "NEGATIVE"])
             pct = round(neg / len(df) * 100, 1) if len(df) > 0 else 0
-            return f" **{neg}** appels négatifs ({pct}% du total)."
+            if agent_name:
+                return f"Vous avez **{neg}** appels négatifs ({pct}% de vos appels)."
+            else:
+                return f" **{neg}** appels négatifs ({pct}% du total)."
 
         if any(w in q for w in ["rdv", "rendez-vous", "appointment"]):
             if "appointment_confidence" in df.columns:
                 rdv = len(df[df["appointment_confidence"] > 50])
-                return f" **{rdv}** rendez-vous détectés avec haute confiance."
+                if agent_name:
+                    return f"Vous avez **{rdv}** rendez-vous détectés avec haute confiance."
+                else:
+                    return f" **{rdv}** rendez-vous détectés avec haute confiance."
 
     except Exception as e:
         print(f"[chatbot] stats_answer error: {e}")
@@ -156,7 +181,7 @@ def _stats_answer(question: str) -> str | None:
 # AGENT PRINCIPAL
 # =============================================================================
 
-def ai_agent(question: str) -> str:
+def ai_agent(question: str, agent_name: str | None = None) -> str:
     """
     Point d'entrée principal du chatbot CRM.
 
@@ -165,6 +190,10 @@ def ai_agent(question: str) -> str:
     2. Demande d'email → envoi et confirmation
     3. Question statistique simple → réponse directe DB
     4. Toute autre question → RAG (ChromaDB) + LLM
+    
+    Args:
+        question: La question de l'utilisateur
+        agent_name: Nom de l'agent pour filtrer le RAG (None = tous les agents)
     """
     global chat_history
     q_clean = question.strip()
@@ -193,7 +222,7 @@ def ai_agent(question: str) -> str:
 
     # ── 3. Statistiques rapides ───────────────────────────────────────────────
     if _is_stats_request(q_clean):
-        stats_reply = _stats_answer(q_clean)
+        stats_reply = _stats_answer(q_clean, agent_name)
         if stats_reply:
             chat_history.append({"role": "user",      "content": q_clean})
             chat_history.append({"role": "assistant", "content": stats_reply})
@@ -201,14 +230,14 @@ def ai_agent(question: str) -> str:
 
     # ── 4. RAG — Recherche sémantique dans les transcriptions ─────────────────
     try:
-        context = search_docs(q_clean)
+        context = search_docs(q_clean, agent_name)
     except Exception as e:
         print(f"[chatbot] RAG search error: {e}")
         context = ""
 
     if not context or len(context.strip()) < 20:
         # Pas de résultat RAG → tentative réponse stats ou message d'erreur
-        stats_fallback = _stats_answer(q_clean)
+        stats_fallback = _stats_answer(q_clean, agent_name)
         if stats_fallback:
             answer = stats_fallback
         else:

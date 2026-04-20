@@ -216,6 +216,8 @@ crm_ai_project/
 10. **Export** - CSV/Excel download buttons
 11. **Login System** - Agent vs Supervisor roles
 12. **RGPD Anonymization** - Auto-censorship of sensitive data
+13. **Agent-Scoped RAG Search** - Agents see only their own data in chatbot
+14. **Role-Based Data Isolation** - Agents only see their own data in all UI pages
 
 ### ❌ Pending Features (from gap_analysis.md)
 
@@ -283,6 +285,17 @@ If Ollama is unavailable, the system gracefully degrades to:
 - DistilBERT for sentiment
 - Dictionary-based keyword extraction
 
+### Role-Based Access Control
+
+The application enforces strict data isolation:
+
+| Page | Agent Access | Supervisor Access |
+|------|-------------|-------------------|
+| Home | "Mes performances" with own KPIs | Full KPIs + Top Agent |
+| Analytics | "Mes Statistiques" tab only | All 4 tabs (Vue Globale, Performance, Supervision, Géo) |
+| Gestion | Blocked (error message) | Full access |
+| Chatbot | Own stats + own transcripts | All stats + all transcripts |
+
 ### Database Requirements
 
 - **MySQL** must be running (XAMPP/WAMP or standalone)
@@ -341,7 +354,81 @@ The project includes a comprehensive `.gitignore` file to exclude:
 
 ---
 
-## 10. Quick Start
+## 10. Role-Based Data Isolation
+
+### Overview
+
+The CRM implements **complete data isolation** between agents and supervisors. Agents can only see their own data, while supervisors have access to all data.
+
+| Role | Home Page | Analytics Page | Chatbot | RAG Search |
+|------|-----------|---------------|---------|------------|
+| **Superviseur/Admin** | All KPIs + Top Agent | All 4 tabs + all agents | All stats | All transcripts |
+| **Agent** | Own KPIs only | "Mes Statistiques" tab only | Own stats only | Own transcripts only |
+
+### Implementation Locations
+
+#### 1. UI/app.py (Home Page)
+```python
+user_role = st.session_state.get("user_role", "agent")
+user_name = st.session_state.get("user_name", "")
+if user_role == "agent" and user_name:
+    data = data[data["agent_name"] == user_name]
+```
+
+#### 2. UI/Pages/analytiques.py (Analytics Page)
+```python
+if user_role == "agent" and user_name:
+    data = data[data["agent_name"] == user_name]
+
+# Tabs visibility
+if user_role == "superviseur":
+    tab1, tab2, tab3, tab4 = st.tabs([...])  # All 4 tabs
+else:
+    tab1 = st.tabs(["Mes Statistiques"])[0]  # Only 1 tab
+```
+
+#### 3. Controllers/chatbot.py (Stats Answer)
+```python
+def _stats_answer(question: str, agent_name: str | None = None):
+    df = load_data()
+    if agent_name:
+        df = df[df["agent_name"] == agent_name]  # Filter by agent
+    # Return personalized stats
+```
+
+#### 4. Services/rag.py (RAG Search)
+```python
+def search_docs(question: str, agent_name: str | None = None):
+    docs = db.similarity_search(question, k=5)
+    if agent_name:
+        filtered_docs = [d for d in docs if agent_name.lower() in d.page_content.lower()]
+        if filtered_docs:
+            docs = filtered_docs[:3]
+        else:
+            return f"Aucune transcription trouvée pour l'agent {agent_name}."
+    return "\n\n".join([d.page_content for d in docs])
+```
+
+### Flow
+
+1. **Login**: User logs in, role stored in `session_state`
+2. **Data Load**: Each page filters data based on `user_role` and `user_name`
+3. **UI Display**: Agents see only their own KPIs, stats, and transcripts
+4. **Chatbot**: Pass `agent_name` to return personalized responses
+
+### Usage in Chatbot
+
+```python
+# In ui/app.py (chat section)
+agent_name = None
+if st.session_state.get("user_role") == "agent":
+    agent_name = st.session_state.get("user_name")
+reply_text = ai_agent(user_input, agent_name)
+```
+
+---
+
+## 11. Quick Start
 
 ### Development Setup
 
@@ -382,7 +469,7 @@ python -m streamlit run ui/app.py
 
 ---
 
-## 11. Troubleshooting
+## 12. Troubleshooting
 
 ### Common Issues
 

@@ -30,9 +30,18 @@ inject_custom_css()
 check_login()
 show_navbar()
 
-st.title(" Analyse Globale")
+user_role = st.session_state.get("user_role", "agent")
+user_name = st.session_state.get("user_name", "")
+
+if user_role == "superviseur":
+    st.title(" Analyse Globale")
+else:
+    st.title(" Mes Statistiques")
 
 data = load_data()
+
+if user_role == "agent" and user_name:
+    data = data[data["agent_name"] == user_name]
 
 if data.empty:
     st.warning("Aucune donnée disponible dans la base de données.")
@@ -80,22 +89,28 @@ def export_buttons(df: pd.DataFrame, prefix: str):
 # TABS
 # =============================================================================
 
-tab1, tab2, tab3, tab4 = st.tabs([
-    "  Vue Globale",
-    "  Performance Agents",
-    "  Supervision",
-    "  Géo-Analyse"
-])
+if user_role == "superviseur":
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "  Vue Globale",
+        "  Performance Agents",
+        "  Supervision",
+        "  Géo-Analyse"
+    ])
+else:
+    tab1 = st.tabs(["  Mes Statistiques"])[0]
 
 # =============================================================================
-# TAB 1 : VUE GLOBALE
+# TAB 1 : VUE GLOBALE (or Mes Statistiques for agents)
 # =============================================================================
 with tab1:
-    agents_list    = ["Tous"] + sorted(data["agent_name"].dropna().unique().tolist())
-    selected_agent = st.selectbox("Filtrer par Agent", agents_list, key="global_agent")
+    if user_role == "superviseur":
+        agents_list    = ["Tous"] + sorted(data["agent_name"].dropna().unique().tolist())
+        selected_agent = st.selectbox("Filtrer par Agent", agents_list, key="global_agent")
 
-    filtered = data[data["agent_name"] == selected_agent] \
-               if selected_agent != "Tous" else data.copy()
+        filtered = data[data["agent_name"] == selected_agent] \
+                   if selected_agent != "Tous" else data.copy()
+    else:
+        filtered = data.copy()
 
     st.divider()
 
@@ -157,180 +172,181 @@ with tab1:
     export_buttons(filtered, "analyse_globale")
 
 # =============================================================================
-# TAB 2 : PERFORMANCE AGENTS
+# TAB 2 : PERFORMANCE AGENTS (Supervisors only)
 # =============================================================================
-with tab2:
-    col1, col2 = st.columns(2)
-    agent_filter = col1.selectbox("Agent", ["Tous"] + data["agent_name"].unique().tolist(), key="agent_tab")
-    hour_filter  = col2.slider("Plage horaire", 0, 24, (0, 24))
+if user_role == "superviseur":
+    with tab2:
+        col1, col2 = st.columns(2)
+        agent_filter = col1.selectbox("Agent", ["Tous"] + data["agent_name"].unique().tolist(), key="agent_tab")
+        hour_filter  = col2.slider("Plage horaire", 0, 24, (0, 24))
 
-    df_agent = data.copy()
-    if agent_filter != "Tous":
-        df_agent = df_agent[df_agent["agent_name"] == agent_filter]
-    df_agent = df_agent[
-        (df_agent["hour"] >= hour_filter[0]) &
-        (df_agent["hour"] <= hour_filter[1])
-    ]
-
-    st.divider()
-
-    c1, c2, c3, c4 = st.columns(4)
-    with c1: metric_card("Total Appels",  len(df_agent))
-    with c2:
-        ms = round(df_agent["score_percentage"].mean(), 2) if not df_agent.empty else 0
-        metric_card("Score Moyen",    f"{ms}%")
-    with c3:
-        metric_card("Défavorables",   len(df_agent[df_agent["sentiment"] == "NEGATIVE"]))
-    with c4:
-        top = df_agent.groupby("agent_name")["score_percentage"].mean().idxmax() \
-              if not df_agent.empty else "-"
-        metric_card("Top Agent", top)
-
-    st.divider()
-
-    col_a, col_b = st.columns(2)
-    if not df_agent.empty:
-        # Sentiment pie
-        fig1 = px.pie(df_agent, names="sentiment", hole=0.4, title="Sentiments",
-                      template="plotly_dark",
-                      color_discrete_sequence=px.colors.qualitative.Pastel)
-        fig1.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
-        col_a.plotly_chart(fig1, use_container_width=True)
-
-        # Performance bar
-        perf = df_agent.groupby("agent_name")["score_percentage"].mean().reset_index()
-        fig2 = px.bar(perf, x="agent_name", y="score_percentage",
-                      title="Performance par agent",
-                      color="score_percentage", template="plotly_dark",
-                      color_continuous_scale="Blues")
-        fig2.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
-        col_b.plotly_chart(fig2, use_container_width=True)
-
-    
-    if not df_agent.empty and "agent_talk_ratio" in df_agent.columns:
-        df_diar = df_agent[df_agent["agent_talk_ratio"] > 0]
-        if not df_diar.empty:
-            st.subheader("Temps de parole Agent vs Client")
-            diar_avg = df_diar.groupby("agent_name")[
-                ["agent_talk_ratio","client_talk_ratio"]
-            ].mean().reset_index()
-            diar_avg["Agent %"]  = (diar_avg["agent_talk_ratio"]  * 100).round(1)
-            diar_avg["Client %"] = (diar_avg["client_talk_ratio"] * 100).round(1)
-
-            fig_talk = go.Figure()
-            fig_talk.add_trace(go.Bar(
-                name="Agent",  x=diar_avg["agent_name"], y=diar_avg["Agent %"],
-                marker_color="#22c55e"
-            ))
-            fig_talk.add_trace(go.Bar(
-                name="Client", x=diar_avg["agent_name"], y=diar_avg["Client %"],
-                marker_color="#6366f1"
-            ))
-            fig_talk.update_layout(
-                barmode="stack", template="plotly_dark",
-                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                yaxis_title="% du temps de l'appel"
-            )
-            st.plotly_chart(fig_talk, use_container_width=True)
-
-    st.divider()
-    cols_agent = [c for c in [
-        "call_id","agent_name","call_time","sentiment","score_percentage",
-        "customer_intent","agent_talk_ratio","client_talk_ratio","diarization_method"
-    ] if c in df_agent.columns]
-    st.dataframe(df_agent[cols_agent], use_container_width=True)
-    st.divider()
-    export_buttons(df_agent, "performance_agents")
-
-# =============================================================================
-# TAB 3 : SUPERVISION
-# =============================================================================
-with tab3:
-    st.subheader("Trafic Horaire")
-
-    calls_by_hour = data.groupby("hour").size().reset_index(name="Appels")
-    fig3 = px.line(calls_by_hour, x="hour", y="Appels", markers=True,
-                   title="Appels par heure", template="plotly_dark",
-                   color_discrete_sequence=["#6366f1"])
-    fig3.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
-    st.plotly_chart(fig3, use_container_width=True)
-
-    
-    if "inactivity_detected" in data.columns:
-        nb_inactif = data["inactivity_detected"].sum()
-        if nb_inactif > 0:
-            st.warning(f" {int(nb_inactif)} appel(s) avec inactivité > 30s détectée")
-            df_inactif = data[data["inactivity_detected"] == 1][[
-                "agent_name","call_time","inactivity_duration","score_percentage"
-            ]]
-            st.dataframe(df_inactif, use_container_width=True)
-
-    st.divider()
-    st.subheader("Alertes Automatiques")
-
-    alerts = detect_alerts(data)
-    if alerts:
-        for alert in alerts:
-            detail_card(" Alerte Active", alert)
-    else:
-        st.success(" Toutes les métriques sont nominales.")
-
-    st.divider()
-    st.subheader("Génération de Rapport")
-
-    if st.button(" Compiler le Rapport", type="primary"):
-        with st.spinner("Analyse en cours..."):
-            report = generate_report(data)
-            st.success("Rapport généré.")
-            with st.expander("Voir le rapport"):
-                st.write(report)
-
-    st.divider()
-    export_buttons(data, "supervision_complete")
-
-# =============================================================================
-# TAB 4 : GÉO-ANALYSE
-# =============================================================================
-with tab4:
-    st.subheader(" Répartition Géographique")
-
-    geo_df = data[
-        data["postal_code"].astype(str).str.strip().str.len() > 0
-    ].copy() if not data.empty else data.copy()
-
-    if geo_df.empty:
-        st.info("Aucun code postal détecté pour le moment.")
-    else:
-        geo_df["dep"] = geo_df["postal_code"].astype(str).str[:2]
-        stats = geo_df.groupby("dep").agg(
-            Nb_Appels=("call_id", "count"),
-            Score_Moyen=("score_percentage", "mean")
-        ).reset_index().sort_values("Nb_Appels", ascending=False)
-        stats["Score_Moyen"] = stats["Score_Moyen"].round(1)
-
-        c1, c2, c3 = st.columns(3)
-        with c1: metric_card("Appels localisés", len(geo_df))
-        with c2:
-            best = stats.iloc[0]["dep"] if not stats.empty else "-"
-            metric_card("Top Département", best)
-        with c3: metric_card("Départements couverts", len(stats))
-
-        
-        fig_geo = px.bar(
-            stats, x="dep", y="Nb_Appels", text="Nb_Appels",
-            color="Score_Moyen", color_continuous_scale="Viridis",
-            labels={"dep": "Département", "Nb_Appels": "Appels"},
-            template="plotly_dark", title="Appels par département"
-        )
-        fig_geo.update_traces(textposition="outside")
-        fig_geo.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
-        st.plotly_chart(fig_geo, use_container_width=True)
-
-        st.subheader("Détails par code postal")
-        cols_geo = [c for c in [
-            "agent_name","postal_code","dep","sentiment","score_percentage","performance"
-        ] if c in geo_df.columns]
-        st.dataframe(geo_df[cols_geo], use_container_width=True)
+        df_agent = data.copy()
+        if agent_filter != "Tous":
+            df_agent = df_agent[df_agent["agent_name"] == agent_filter]
+        df_agent = df_agent[
+            (df_agent["hour"] >= hour_filter[0]) &
+            (df_agent["hour"] <= hour_filter[1])
+        ]
 
         st.divider()
-        export_buttons(geo_df[cols_geo], "geo_analyse")
+
+        c1, c2, c3, c4 = st.columns(4)
+        with c1: metric_card("Total Appels",  len(df_agent))
+        with c2:
+            ms = round(df_agent["score_percentage"].mean(), 2) if not df_agent.empty else 0
+            metric_card("Score Moyen",    f"{ms}%")
+        with c3:
+            metric_card("Défavorables",   len(df_agent[df_agent["sentiment"] == "NEGATIVE"]))
+        with c4:
+            top = df_agent.groupby("agent_name")["score_percentage"].mean().idxmax() \
+                  if not df_agent.empty else "-"
+            metric_card("Top Agent", top)
+
+        st.divider()
+
+        col_a, col_b = st.columns(2)
+        if not df_agent.empty:
+            fig1 = px.pie(df_agent, names="sentiment", hole=0.4, title="Sentiments",
+                          template="plotly_dark",
+                          color_discrete_sequence=px.colors.qualitative.Pastel)
+            fig1.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+            col_a.plotly_chart(fig1, use_container_width=True)
+
+            perf = df_agent.groupby("agent_name")["score_percentage"].mean().reset_index()
+            fig2 = px.bar(perf, x="agent_name", y="score_percentage",
+                          title="Performance par agent",
+                          color="score_percentage", template="plotly_dark",
+                          color_continuous_scale="Blues")
+            fig2.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+            col_b.plotly_chart(fig2, use_container_width=True)
+
+        
+        if not df_agent.empty and "agent_talk_ratio" in df_agent.columns:
+            df_diar = df_agent[df_agent["agent_talk_ratio"] > 0]
+            if not df_diar.empty:
+                st.subheader("Temps de parole Agent vs Client")
+                diar_avg = df_diar.groupby("agent_name")[
+                    ["agent_talk_ratio","client_talk_ratio"]
+                ].mean().reset_index()
+                diar_avg["Agent %"]  = (diar_avg["agent_talk_ratio"]  * 100).round(1)
+                diar_avg["Client %"] = (diar_avg["client_talk_ratio"] * 100).round(1)
+
+                fig_talk = go.Figure()
+                fig_talk.add_trace(go.Bar(
+                    name="Agent",  x=diar_avg["agent_name"], y=diar_avg["Agent %"],
+                    marker_color="#22c55e"
+                ))
+                fig_talk.add_trace(go.Bar(
+                    name="Client", x=diar_avg["agent_name"], y=diar_avg["Client %"],
+                    marker_color="#6366f1"
+                ))
+                fig_talk.update_layout(
+                    barmode="stack", template="plotly_dark",
+                    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                    yaxis_title="% du temps de l'appel"
+                )
+                st.plotly_chart(fig_talk, use_container_width=True)
+
+        st.divider()
+        cols_agent = [c for c in [
+            "call_id","agent_name","call_time","sentiment","score_percentage",
+            "customer_intent","agent_talk_ratio","client_talk_ratio","diarization_method"
+        ] if c in df_agent.columns]
+        st.dataframe(df_agent[cols_agent], use_container_width=True)
+        st.divider()
+        export_buttons(df_agent, "performance_agents")
+
+# =============================================================================
+# TAB 3 : SUPERVISION (Supervisors only)
+# =============================================================================
+if user_role == "superviseur":
+    with tab3:
+        st.subheader("Trafic Horaire")
+
+        calls_by_hour = data.groupby("hour").size().reset_index(name="Appels")
+        fig3 = px.line(calls_by_hour, x="hour", y="Appels", markers=True,
+                       title="Appels par heure", template="plotly_dark",
+                       color_discrete_sequence=["#6366f1"])
+        fig3.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+        st.plotly_chart(fig3, use_container_width=True)
+
+        
+        if "inactivity_detected" in data.columns:
+            nb_inactif = data["inactivity_detected"].sum()
+            if nb_inactif > 0:
+                st.warning(f" {int(nb_inactif)} appel(s) avec inactivité > 30s détectée")
+                df_inactif = data[data["inactivity_detected"] == 1][
+                    ["agent_name","call_time","inactivity_duration","score_percentage"]
+                ]
+                st.dataframe(df_inactif, use_container_width=True)
+
+        st.divider()
+        st.subheader("Alertes Automatiques")
+
+        alerts = detect_alerts(data)
+        if alerts:
+            for alert in alerts:
+                detail_card(" Alerte Active", alert)
+        else:
+            st.success(" Toutes les métriques sont nominales.")
+
+        st.divider()
+        st.subheader("Génération de Rapport")
+
+        if st.button(" Compiler le Rapport", type="primary"):
+            with st.spinner("Analyse en cours..."):
+                report = generate_report(data)
+                st.success("Rapport généré.")
+                with st.expander("Voir le rapport"):
+                    st.write(report)
+
+        st.divider()
+        export_buttons(data, "supervision_complete")
+
+# =============================================================================
+# TAB 4 : GÉO-ANALYSE (Supervisors only)
+# =============================================================================
+if user_role == "superviseur":
+    with tab4:
+        st.subheader(" Répartition Géographique")
+
+        geo_df = data[
+            data["postal_code"].astype(str).str.strip().str.len() > 0
+        ].copy() if not data.empty else data.copy()
+
+        if geo_df.empty:
+            st.info("Aucun code postal détecté pour le moment.")
+        else:
+            geo_df["dep"] = geo_df["postal_code"].astype(str).str[:2]
+            stats = geo_df.groupby("dep").agg(
+                Nb_Appels=("call_id", "count"),
+                Score_Moyen=("score_percentage", "mean")
+            ).reset_index().sort_values("Nb_Appels", ascending=False)
+            stats["Score_Moyen"] = stats["Score_Moyen"].round(1)
+
+            c1, c2, c3 = st.columns(3)
+            with c1: metric_card("Appels localisés", len(geo_df))
+            with c2:
+                best = stats.iloc[0]["dep"] if not stats.empty else "-"
+                metric_card("Top Département", best)
+            with c3: metric_card("Départements couverts", len(stats))
+
+            
+            fig_geo = px.bar(
+                stats, x="dep", y="Nb_Appels", text="Nb_Appels",
+                color="Score_Moyen", color_continuous_scale="Viridis",
+                labels={"dep": "Département", "Nb_Appels": "Appels"},
+                template="plotly_dark", title="Appels par département"
+            )
+            fig_geo.update_traces(textposition="outside")
+            fig_geo.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+            st.plotly_chart(fig_geo, use_container_width=True)
+
+            st.subheader("Détails par code postal")
+            cols_geo = [c for c in [
+                "agent_name","postal_code","dep","sentiment","score_percentage","performance"
+            ] if c in geo_df.columns]
+            st.dataframe(geo_df[cols_geo], use_container_width=True)
+
+            st.divider()
+            export_buttons(geo_df[cols_geo], "geo_analyse")

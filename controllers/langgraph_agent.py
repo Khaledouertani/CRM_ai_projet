@@ -66,9 +66,14 @@ def list_all_agents():
 
 
 @tool
-def search_call_transcripts_tool(query: str):
-    """Search CRM call transcripts using semantic search."""
-    return search_docs(query)
+def search_call_transcripts_tool(query: str, agent_name: str | None = None):
+    """Search CRM call transcripts using semantic search.
+    
+    Args:
+        query: The search query
+        agent_name: Optional agent name to filter results (None = all agents)
+    """
+    return search_docs(query, agent_name)
 
 @tool
 def send_crm_email(to_email: str, subject: str, body: str):

@@ -157,16 +157,27 @@ if not data.empty:
     data['score_percentage'] = pd.to_numeric(data['score_percentage'], errors='coerce').fillna(0)
     data['sentiment_score']  = pd.to_numeric(data['sentiment_score'],  errors='coerce').fillna(0)
 
+    user_role = st.session_state.get("user_role", "agent")
+    user_name = st.session_state.get("user_name", "")
+    if user_role == "agent" and user_name:
+        data = data[data["agent_name"] == user_name]
+
 # 5. Contenu principal
 if not data.empty:
-    st.markdown("<h1 style='text-align:center;'>CRM IA — Centre d'Appels</h1>", unsafe_allow_html=True)
+    user_role = st.session_state.get("user_role", "")
+    if user_role == "superviseur":
+        st.markdown("<h1 style='text-align:center;'>CRM IA — Centre d'Appels</h1>", unsafe_allow_html=True)
+    else:
+        st.markdown(f"<h1 style='text-align:center;'>CRM IA — Mes performances</h1>", unsafe_allow_html=True)
 
-    # KPI globaux
     total_calls = len(data)
-    avg_score   = round(data["score_percentage"].mean(), 1)
-    neg_calls   = len(data[data["sentiment"] == "NEGATIVE"])
-    top_agent   = data.groupby("agent_name")["score_percentage"].mean().idxmax() \
-                  if "agent_name" in data.columns and not data.empty else "-"
+    avg_score   = round(data["score_percentage"].mean(), 1) if not data.empty else 0
+    neg_calls   = len(data[data["sentiment"] == "NEGATIVE"]) if not data.empty else 0
+    if user_role == "superviseur":
+        top_agent = data.groupby("agent_name")["score_percentage"].mean().idxmax() \
+                    if "agent_name" in data.columns and not data.empty else "-"
+    else:
+        top_agent = "-"
 
     c1, c2, c3, c4 = st.columns(4)
     with c1: metric_card("Total Appels",   total_calls)
@@ -192,7 +203,10 @@ if not data.empty:
     if user_input:
         with st.spinner("Analyse en cours..."):
             try:
-                reply_text = ai_agent(user_input)
+                agent_name = None
+                if st.session_state.get("user_role") == "agent":
+                    agent_name = st.session_state.get("user_name")
+                reply_text = ai_agent(user_input, agent_name)
                 st.session_state.messages.append(HumanMessage(content=user_input))
                 st.session_state.messages.append(AIMessage(content=reply_text))
             except Exception as e:

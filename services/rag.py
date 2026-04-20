@@ -74,7 +74,7 @@ def load_index():
 
 
 # ================= SEARCH =================
-def search_docs(question: str):
+def search_docs(question: str, agent_name: str | None = None):
     global db
 
     if db is None:
@@ -86,7 +86,20 @@ def search_docs(question: str):
     if db is None:
         return ""
 
-    docs = db.similarity_search(question, k=2)
+    docs = db.similarity_search(question, k=5)
+
+    if not docs:
+        return ""
+
+    if agent_name:
+        filtered_docs = [
+            d for d in docs 
+            if agent_name.lower() in d.page_content.lower()
+        ]
+        if filtered_docs:
+            docs = filtered_docs[:3]
+        else:
+            return f"Aucune transcription trouvée pour l'agent **{agent_name}**."
 
     return "\n\n".join([d.page_content for d in docs])
     
