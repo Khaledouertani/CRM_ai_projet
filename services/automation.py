@@ -2,6 +2,11 @@ from datetime import datetime
 import smtplib
 from email.mime.text import MIMEText
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # =========================
 # EMAIL (Gmail)
 # =========================
@@ -10,8 +15,8 @@ def send_email_gmail(to_email, subject, message):
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
 
-        email = "khaledouertani00@gmail.com"
-        app_password = "wyblxppbwnxdagwb"
+        email = os.getenv("GMAIL_EMAIL")
+        app_password = os.getenv("GMAIL_APP_PASSWORD")
 
         server.login(email, app_password)
 
@@ -33,8 +38,8 @@ def send_email_mailtrap(to_email, subject, message):
         server = smtplib.SMTP("sandbox.smtp.mailtrap.io", 2525)
         server.starttls()
 
-        email = "ea035d8b889b79"
-        app_password = "13791d0250e493"
+        email = os.getenv("MAILTRAP_USERNAME")
+        app_password = os.getenv("MAILTRAP_PASSWORD")
 
         server.login(email, app_password)
 
