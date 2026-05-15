@@ -137,3 +137,4 @@ gap_analysis.md
 #-------------------------------- ai Agent ----------------------------------
 agent.md
 .opencode/
+node_modules

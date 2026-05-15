@@ -1,0 +1,71 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { Layout } from './components/Layout';
+import LoginPage from './pages/LoginPage';
+import DashboardPage from './pages/admin/DashboardPage';
+import AnalysisPage from './pages/admin/AnalysisPage';
+import ScoringPage from './pages/admin/ScoringPage';
+import RealTimePage from './pages/admin/RealTimePage';
+import LeadsPage from './pages/admin/LeadsPage';
+import SettingsPage from './pages/admin/SettingsPage';
+import AgentDashboard from './pages/agent/AgentDashboard';
+import ChatbotPage from './pages/ChatbotPage';
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isAdmin } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/login" />;
+  if (!isAdmin) return <Navigate to="/agent/dashboard" />;
+  return <>{children}</>;
+}
+
+function AppRoutes() {
+  const { user, isLoading } = useAuth();
+  if (isLoading) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm font-black uppercase tracking-widest text-muted-foreground animate-pulse">Initialisation CRM...</p>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+        <Route path="/agent/dashboard" element={<AgentDashboard />} />
+        <Route path="/analysis" element={<AnalysisPage />} />
+        <Route path="/chatbot" element={<ChatbotPage />} />
+      </Route>
+      <Route element={<AdminRoute><Layout /></AdminRoute>}>
+        <Route path="/admin/dashboard" element={<DashboardPage />} />
+        <Route path="/admin/scoring" element={<ScoringPage />} />
+        <Route path="/admin/realtime" element={<RealTimePage />} />
+        <Route path="/admin/leads" element={<LeadsPage />} />
+        <Route path="/admin/settings" element={<SettingsPage />} />
+      </Route>
+      <Route path="/" element={
+        user?.role === 'admin' ? <Navigate to="/admin/dashboard" /> : <Navigate to="/agent/dashboard" />
+      } />
+    </Routes>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <ThemeProvider>
+          <AppRoutes />
+        </ThemeProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
