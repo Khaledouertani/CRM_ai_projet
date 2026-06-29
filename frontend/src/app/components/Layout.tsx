@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from './Navbar';
 import { Sidebar } from './Sidebar';
 import { Outlet, useLocation } from 'react-router-dom';
@@ -7,39 +7,64 @@ import { Toaster } from 'react-hot-toast';
 
 export function Layout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isAdmin } = useAuth();
   const location = useLocation();
 
-  // 🔥 detect chatbot or messages page
   const isChatbot = location.pathname === "/chatbot";
   const isMessages = location.pathname.endsWith("/messages");
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileMenuOpen]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
 
       <Toaster position="top-right" />
 
-      {/* Sidebar */}
-      <Sidebar 
-        collapsed={sidebarCollapsed} 
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
-      />
+      {/* Mobile overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar — always visible on lg+, overlay on mobile */}
+      <div className={`
+        shrink-0 z-50
+        lg:relative lg:z-auto
+        ${mobileMenuOpen ? 'fixed inset-y-0 left-0' : 'hidden lg:block'}
+      `}>
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
+      </div>
 
       {/* Main Container */}
-      <div className="flex-1 flex flex-col overflow-hidden relative">
+      <div className="flex-1 flex flex-col overflow-hidden relative min-w-0">
 
-        {/* Navbar */}
-        <Navbar />
+        {/* Navbar — passes mobile menu toggle */}
+        <Navbar onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} mobileMenuOpen={mobileMenuOpen} />
 
-        {/* 🔥 CONTENT */}
-        <main className={`flex-1 ${isChatbot || isMessages ? 'overflow-hidden' : 'overflow-y-auto p-6'} bg-gray-50/50 dark:bg-transparent`}>
+        {/* CONTENT */}
+        <main className={`flex-1 ${isChatbot || isMessages ? 'overflow-hidden' : 'overflow-y-auto p-3 sm:p-4 md:p-6'} bg-gray-50/50 dark:bg-transparent`}>
 
           {isChatbot || isMessages ? (
-            // 🟣 chatbot or messages fullscreen
             <Outlet />
           ) : (
-            // 🔵 normal pages
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-7xl mx-auto w-full">
               <Outlet />
             </div>
           )}

@@ -157,7 +157,7 @@ export default function FollowupsPage() {
             <input 
               type="text" 
               placeholder="Rechercher un agent ou statut..." 
-              className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 text-slate-900 font-bold border-none rounded-xl text-xs uppercase tracking-widest focus:outline-none shadow-lg placeholder:text-slate-400"
+              className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold border border-slate-200 dark:border-slate-600 rounded-xl text-xs uppercase tracking-widest focus:outline-none shadow-sm focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-slate-400 dark:placeholder:text-slate-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />

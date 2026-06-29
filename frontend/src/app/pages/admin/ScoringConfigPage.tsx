@@ -164,9 +164,9 @@ export default function ScoringConfigPage() {
                 <div className="flex items-center gap-2">
                   <Input
                     type="number"
-                    value={alerts[key as keyof Alerts]}
-                    onChange={e => setAlerts(prev => ({ ...prev, [key]: parseInt(e.target.value) }))}
-                    className="w-24"
+                    value={alerts[key as keyof Alerts] as number}
+                    onChange={e => setAlerts(prev => ({ ...prev, [key]: parseInt(e.target.value) || 0 }))}
+                    className="w-24 dark:text-white dark:bg-slate-900 font-bold"
                   />
                   <span className="text-muted-foreground text-sm">{suffix}</span>
                 </div>
@@ -179,6 +179,7 @@ export default function ScoringConfigPage() {
                 type="email"
                 value={alerts.alert_email}
                 onChange={e => setAlerts(prev => ({ ...prev, alert_email: e.target.value }))}
+                className="dark:text-white dark:bg-slate-900 font-bold"
               />
             </div>
 

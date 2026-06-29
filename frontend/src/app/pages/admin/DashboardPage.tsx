@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  TrendingUp, TrendingDown, Users, Phone, Clock, 
+import {
+  TrendingUp, TrendingDown, Users, Phone, Clock,
   Trophy, Target, Download, RefreshCw, Calendar,
   ArrowUp, ArrowDown, Activity, AlertTriangle,
-  BarChart3, Brain, Zap, ArrowUpRight
+  BarChart3, Brain, Zap, ArrowUpRight, FileText
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import api from '../../services/api';
 import { useChartTheme } from '../../hooks/useChartTheme';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 interface KPIData {
   totalCalls: number;
@@ -19,40 +21,32 @@ interface KPIData {
   avgCallDuration: number;
 }
 
-interface AgentPerf {
-  id: number;
-  name: string;
-  calls: number;
-  score: number;
-  conversion: number;
-  trend: 'up' | 'down' | 'stable';
-  sentiment: number;
+interface ComparisonData {
+  day: { current: any; previous: any; evolution: number; score_evol: number };
+  week: { current: any; previous: any; evolution: number; score_evol: number };
+  month: { current: any; previous: any; evolution: number; score_evol: number };
 }
-
-const DASHBOARD_CHART_DATA = [
-  { name: 'Lun', calls: 40, convs: 24 },
-  { name: 'Mar', calls: 30, convs: 13 },
-  { name: 'Mer', calls: 20, convs: 98 },
-  { name: 'Jeu', calls: 27, convs: 39 },
-  { name: 'Ven', calls: 18, convs: 48 },
-  { name: 'Sam', calls: 23, convs: 38 },
-  { name: 'Dim', calls: 34, convs: 43 },
-];
 
 export default function DashboardPage() {
   const chartTheme = useChartTheme();
   const [loading, setLoading] = useState(true);
   const [kpis, setKpis] = useState<KPIData>({
-    totalCalls: 1247, avgScore: 78, conversionRate: 42,
-    activeAgents: 12, callsToday: 89, pendingFollowups: 23, avgCallDuration: 4.2
+    totalCalls: 0, avgScore: 0, conversionRate: 0,
+    activeAgents: 0, callsToday: 0, pendingFollowups: 0, avgCallDuration: 0
   });
+  const [comparison, setComparison] = useState<ComparisonData | null>(null);
   const [agents, setAgents] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<any[]>([]);
   const [dateRange, setDateRange] = useState('today');
-  const [chartData, setChartData] = useState<any[]>(DASHBOARD_CHART_DATA);
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [exporting, setExporting] = useState(false);
 
   // Agent Management State
   const [showModal, setShowModal] = useState(false);
   const [editingAgent, setEditingAgent] = useState<any>(null);
+  const [searchClient, setSearchClient] = useState("");
+const [selectedAgent, setSelectedAgent] = useState("");
+const [selectedProject, setSelectedProject] = useState("");
   const [formData, setFormData] = useState({
     username: '', password: '', name: '', role: 'agent', email: ''
   });
@@ -64,28 +58,37 @@ export default function DashboardPage() {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const overviewRes = await api.getAnalyticsOverview();
+      const [overviewRes, agentsRes, comparisonRes, appointmentsRes] = await Promise.all([
+        api.getAnalyticsOverview(),
+        api.getAgents(),
+        api.getGlobalComparison(),
+        api.getAppointments()
+      ]);
+
       setKpis({
         totalCalls: overviewRes.total_calls || 0,
         avgScore: overviewRes.avg_score || 0,
-        conversionRate: overviewRes.conversion_rate || 0, // Backend needs to provide this
-        activeAgents: overviewRes.active_agents || 0, // Backend needs to provide this
-        callsToday: overviewRes.calls_today || 0, // Backend needs to provide this
+        conversionRate: overviewRes.conversion_rate || 0,
+        activeAgents: overviewRes.active_agents || 0,
+        callsToday: overviewRes.calls_today || 0,
         pendingFollowups: overviewRes.pending_followups || 0,
         avgCallDuration: overviewRes.avg_duration || 0
       });
-      
+
+      setComparison(comparisonRes);
+      console.log("COMPARISON =", comparisonRes);
+      setAgents(agentsRes);
+      setAppointments(Array.isArray(appointmentsRes) ? appointmentsRes : []);
+
+      console.log("APPOINTMENTS =", appointmentsRes);
+
       if (overviewRes.hourly && overviewRes.hourly.length > 0) {
         setChartData(overviewRes.hourly.map((h: any) => ({
           name: `${h.hour}h`,
           calls: h.appels,
-          convs: Math.round(h.appels * 0.3) // Mock conversions if not in hourly
+          convs: Math.round(h.appels * 0.3)
         })));
       }
-
-      // Fetch real agents list
-      const agentRes = await api.getAgents();
-      setAgents(agentRes);
     } catch (error) {
       console.error('Fetch error:', error);
     } finally {
@@ -93,11 +96,79 @@ export default function DashboardPage() {
     }
   };
 
+  const generatePDF = async () => {
+    if (!comparison) {
+      alert('Aucune donnée disponible pour générer le PDF');
+      return;
+    }
+
+    setExporting(true);
+    try {
+      const doc = new jsPDF();
+      const now = new Date().toLocaleString('fr-FR');
+
+      // Title
+      doc.setFontSize(22);
+      doc.setTextColor(30, 41, 59);
+      doc.text("RAPPORT DE PERFORMANCE CRM AI", 14, 22);
+
+      doc.setFontSize(10);
+      doc.setTextColor(100, 116, 139);
+      doc.text(`Genere le : ${now}`, 14, 30);
+      doc.text("Analyse comparative de l'activite du centre", 14, 35);
+
+      // Summary Table
+      const tableData = [
+        ["Periode", "Appels (Actuel)", "Evolution", "Score Moyen", "Evol. Score"],
+        ["Aujourd'hui", comparison.day.current.total, `${comparison.day.evolution}%`, `${comparison.day.current.avg_score}%`, `${comparison.day.score_evol}%`],
+        ["Cette Semaine", comparison.week.current.total, `${comparison.week.evolution}%`, `${comparison.week.current.avg_score}%`, `${comparison.week.score_evol}%`],
+        ["Ce Mois", comparison.month.current.total, `${comparison.month.evolution}%`, `${comparison.month.current.avg_score}%`, `${comparison.month.score_evol}%`],
+      ];
+
+      (doc as any).autoTable({
+        startY: 45,
+        head: [tableData[0]],
+        body: tableData.slice(1),
+        theme: 'grid',
+        headStyles: { fillStyle: '#6366f1', textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+      });
+
+      // Agents Performance
+      if (agents.length > 0) {
+        doc.setFontSize(16);
+        doc.setTextColor(30, 41, 59);
+        doc.text("Performance par Agent", 14, (doc as any).lastAutoTable.finalY + 15);
+
+        const agentTableData = agents.map((a: any) => [
+          a.name || a.username || 'N/A',
+          a.role || 'agent',
+          `${a.score || 70}%`,
+          "Bon"
+        ]);
+
+        (doc as any).autoTable({
+          startY: (doc as any).lastAutoTable.finalY + 5,
+          head: [["Nom", "Role", "Score", "Statut"]],
+          body: agentTableData,
+          theme: 'striped',
+        });
+      }
+
+      doc.save(`Rapport_Performance_${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      alert('Erreur lors de la generation du PDF');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const handleEdit = (agent: any) => {
     setEditingAgent(agent);
     setFormData({
       username: agent.username,
-      password: '', // Hidden for security
+      password: '',
       name: agent.name,
       role: agent.role,
       email: agent.email || ''
@@ -128,6 +199,23 @@ export default function DashboardPage() {
       alert(err.message);
     }
   };
+  const filteredAppointments = appointments.filter((item: any) => {
+
+  const clientMatch =
+    item.client_name
+      ?.toLowerCase()
+      .includes(searchClient.toLowerCase());
+
+  const agentMatch =
+    selectedAgent === "" ||
+    item.agent_name === selectedAgent;
+
+  const projectMatch =
+    selectedProject === "" ||
+    item.project_type === selectedProject;
+
+  return clientMatch && agentMatch && projectMatch;
+});
 
   return (
     <div className="space-y-6">
@@ -137,10 +225,27 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-black italic tracking-tighter text-foreground uppercase">
             Vue d'ensemble <span className="text-primary">Dashboard</span>
           </h1>
-          <p className="text-muted-foreground text-sm font-medium mt-1">Analyse de la performance globale et KPIs critiques</p>
+
         </div>
         <div className="flex items-center gap-3">
-          <select 
+          <button
+            onClick={generatePDF}
+            disabled={exporting || loading}
+            className="h-10 px-4 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 hover:opacity-90 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {exporting ? (
+              <>
+                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Generation...
+              </>
+            ) : (
+              <>
+                <FileText className="w-3.5 h-3.5" />
+                Export PDF
+              </>
+            )}
+          </button>
+          <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
             className="h-10 px-4 bg-slate-800 border border-border rounded-xl text-xs font-black uppercase tracking-widest text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
@@ -149,7 +254,7 @@ export default function DashboardPage() {
             <option value="week" className="text-slate-900">Cette semaine</option>
             <option value="month" className="text-slate-900">Ce mois</option>
           </select>
-          <button 
+          <button
             onClick={fetchDashboardData}
             className="p-2.5 bg-card border border-border rounded-xl hover:bg-muted transition-all text-primary"
           >
@@ -179,30 +284,58 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      {/* Comparison Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {comparison && [
+          { title: 'Aujourd\'hui vs Hier', period: comparison.day },
+          { title: 'Cette Semaine vs Précédente', period: comparison.week },
+          { title: 'Ce Mois vs Précédent', period: comparison.month },
+        ].map((item, i) => (
+          <div key={i} className="bg-card border border-border p-4 rounded-2xl shadow-sm">
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">{item.title}</h4>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-xl font-black text-foreground">{item.period?.current?.total ?? 0} appels</div>
+                <div className={`flex items-center gap-1 text-xs font-bold mt-1 ${item.period.evolution >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                  {item.period.evolution >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                  {item.period.evolution > 0 ? '+' : ''}{item.period?.evolution ?? 0}% volume
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm font-bold text-primary">{item.period?.current?.avg_score ?? 0}%</div>
+                <div className={`text-[10px] font-bold mt-1 ${item.period.score_evol >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                  {item.period.score_evol > 0 ? '+' : ''}{item.period?.score_evol ?? 0}% qualité
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Chart */}
         <div className="lg:col-span-2 bg-card border border-border rounded-2xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
-             <div className="flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-primary" />
-                <h3 className="text-sm font-black uppercase tracking-widest text-foreground">Activité vs Conversions</h3>
-             </div>
-             <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest opacity-50">
-                <div className="flex items-center gap-1.5"><div className="w-2 h-2 bg-primary rounded-full" /> Appels</div>
-                <div className="flex items-center gap-1.5"><div className="w-2 h-2 bg-emerald-500 rounded-full" /> RDV</div>
-             </div>
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-primary" />
+              <h3 className="text-sm font-black uppercase tracking-widest text-foreground">Activité vs Conversions</h3>
+            </div>
+            <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest opacity-50">
+              <div className="flex items-center gap-1.5"><div className="w-2 h-2 bg-primary rounded-full" /> Appels</div>
+              <div className="flex items-center gap-1.5"><div className="w-2 h-2 bg-emerald-500 rounded-full" /> RDV</div>
+            </div>
           </div>
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="colorCalls" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} vertical={false} />
-              <XAxis dataKey="name" tick={{fontSize: 10, fill: chartTheme.textColor}} axisLine={false} tickLine={false} stroke={chartTheme.textColor} />
-              <YAxis tick={{fontSize: 10, fill: chartTheme.textColor}} axisLine={false} tickLine={false} stroke={chartTheme.textColor} />
+              <XAxis dataKey="name" tick={{ fontSize: 10, fill: chartTheme.textColor }} axisLine={false} tickLine={false} stroke={chartTheme.textColor} />
+              <YAxis tick={{ fontSize: 10, fill: chartTheme.textColor }} axisLine={false} tickLine={false} stroke={chartTheme.textColor} />
               <Tooltip contentStyle={chartTheme.tooltipStyle} />
               <Area type="monotone" dataKey="calls" stroke="hsl(var(--primary))" strokeWidth={3} fill="url(#colorCalls)" />
               <Area type="monotone" dataKey="convs" stroke="#10b981" strokeWidth={3} fill="transparent" />
@@ -212,53 +345,53 @@ export default function DashboardPage() {
 
         {/* AI Insights Sidebar */}
         <div className="space-y-4">
-           <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                 <Brain className="w-4 h-4 text-purple-400" />
-                 <h3 className="text-sm font-black uppercase tracking-widest text-foreground">AI Intelligence</h3>
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <Brain className="w-4 h-4 text-purple-400" />
+              <h3 className="text-sm font-black uppercase tracking-widest text-foreground">AI Intelligence</h3>
+            </div>
+            <div className="space-y-4">
+              <div className="p-3 bg-blue-500/5 border border-blue-500/20 rounded-xl">
+                <p className="text-[10px] font-black text-blue-400 uppercase mb-1">Prédiction</p>
+                <p className="text-xs font-medium leading-relaxed">Pic d'appels prévu demain à 14:00. Prévoyez 2 agents supplémentaires.</p>
               </div>
-              <div className="space-y-4">
-                 <div className="p-3 bg-blue-500/5 border border-blue-500/20 rounded-xl">
-                    <p className="text-[10px] font-black text-blue-400 uppercase mb-1">Prédiction</p>
-                    <p className="text-xs font-medium leading-relaxed">Pic d'appels prévu demain à 14:00. Prévoyez 2 agents supplémentaires.</p>
-                 </div>
-                 <div className="p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
-                    <p className="text-[10px] font-black text-emerald-400 uppercase mb-1">Performance</p>
-                    <p className="text-xs font-medium leading-relaxed">Taux de conversion en hausse de 4% ce matin. Très bonne dynamique d'équipe.</p>
-                 </div>
-                 <button 
-                   onClick={() => {
-                     const report = `Rapport IA du ${new Date().toLocaleDateString('fr-FR')} :
+              <div className="p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
+                <p className="text-[10px] font-black text-emerald-400 uppercase mb-1">Performance</p>
+                <p className="text-xs font-medium leading-relaxed">Taux de conversion en hausse de 4% ce matin. Très bonne dynamique d'équipe.</p>
+              </div>
+              <button
+                onClick={() => {
+                  const report = `Rapport IA du ${new Date().toLocaleDateString('fr-FR')} :
                      - Total Appels: ${kpis.totalCalls}
-                     - Meilleur Agent: ${agents.length > 0 ? agents.sort((a,b) => (b.score||0)-(a.score||0))[0].name : 'N/A'}
-                     - Pic d'activité: ${chartData.length > 0 ? chartData.sort((a,b) => b.calls - a.calls)[0].name : 'N/A'}
+                     - Meilleur Agent: ${agents.length > 0 ? agents.sort((a, b) => (b.score || 0) - (a.score || 0))[0].name : 'N/A'}
+                     - Pic d'activité: ${chartData.length > 0 ? chartData.sort((a, b) => b.calls - a.calls)[0].name : 'N/A'}
                      - Recommandation: Concentrer les effectifs sur le créneau de l'après-midi.`;
-                     alert(report);
-                   }}
-                   className="w-full py-2.5 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
-                 >
-                    Générer Rapport IA <Zap className="w-3 h-3" />
-                 </button>
-              </div>
-           </div>
+                  alert(report);
+                }}
+                className="w-full py-2.5 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
+              >
+                Générer Rapport IA <Zap className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
 
-           <div className="bg-card border border-border rounded-2xl p-6 shadow-sm flex-1">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">Récapitulatif Rapide</h3>
-              <div className="space-y-4">
-                 <div className="flex justify-between items-center">
-                    <span className="text-xs font-medium text-muted-foreground">Appels Aujourd'hui</span>
-                    <span className="text-xs font-black">{kpis.callsToday}</span>
-                 </div>
-                 <div className="flex justify-between items-center">
-                    <span className="text-xs font-medium text-muted-foreground">Durée Moyenne</span>
-                    <span className="text-xs font-black">{kpis.avgCallDuration} min</span>
-                 </div>
-                 <div className="flex justify-between items-center">
-                    <span className="text-xs font-medium text-muted-foreground">Relances en attente</span>
-                    <span className="px-2 py-0.5 bg-orange-500/10 text-orange-500 rounded text-[10px] font-black uppercase">{kpis.pendingFollowups}</span>
-                 </div>
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm flex-1">
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">Récapitulatif Rapide</h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-medium text-muted-foreground">Appels Aujourd'hui</span>
+                <span className="text-xs font-black">{kpis.callsToday}</span>
               </div>
-           </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-medium text-muted-foreground">Durée Moyenne</span>
+                <span className="text-xs font-black">{kpis.avgCallDuration} min</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-medium text-muted-foreground">Relances en attente</span>
+                <span className="px-2 py-0.5 bg-orange-500/10 text-orange-500 rounded text-[10px] font-black uppercase">{kpis.pendingFollowups}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -266,82 +399,127 @@ export default function DashboardPage() {
       <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-2">
-             <Users className="w-4 h-4 text-primary" />
-             <h3 className="text-sm font-black uppercase tracking-widest text-foreground">Gestion des Agents</h3>
+            <Users className="w-4 h-4 text-primary" />
+            <h3 className="text-sm font-black uppercase tracking-widest text-foreground">HISTORIQUE PRODUCTION</h3>
           </div>
-          <button 
-            onClick={() => {
-              setEditingAgent(null);
-              setFormData({ username: '', password: '', name: '', role: 'agent', email: '' });
-              setShowModal(true);
-            }}
-            className="px-4 py-2 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:opacity-90 transition-all flex items-center gap-2"
-          >
-            <Users className="w-3 h-3" />
-            Nouvel Agent
-          </button>
+          <div className="flex gap-3">
+
+  <input
+    type="text"
+    placeholder="🔍 Rechercher client..."
+    value={searchClient}
+    onChange={(e) => setSearchClient(e.target.value)}
+    className="px-4 py-2 rounded-xl border border-border bg-background"
+  />
+
+  <select
+    value={selectedAgent}
+    onChange={(e) => setSelectedAgent(e.target.value)}
+    className="px-4 py-2 rounded-xl border border-border bg-background"
+  >
+    <option value="">Tous les agents</option>
+
+    {[...new Set(
+      appointments.map((a: any) => a.agent_name)
+    )].map((agent: any) => (
+      <option key={agent} value={agent}>
+        {agent}
+      </option>
+    ))}
+  </select>
+
+  <select
+    value={selectedProject}
+    onChange={(e) => setSelectedProject(e.target.value)}
+    className="px-4 py-2 rounded-xl border border-border bg-background"
+  >
+    <option value="">Tous les projets</option>
+
+    {[...new Set(
+      appointments.map((a: any) => a.project_type)
+    )].map((project: any) => (
+      <option key={project} value={project}>
+        {project}
+      </option>
+    ))}
+  </select>
+
+</div>
+         
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-muted/10 text-left border-b border-border">
-                <th className="px-6 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nom & Email</th>
-                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Login</th>
-                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Rôle</th>
-                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-center">Performance</th>
-                <th className="px-6 py-3 text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">Actions</th>
+              <tr className="bg-muted/10 border-b border-border">
+
+                <th className="px-4 py-3 text-left">GSM</th>
+
+                <th className="px-4 py-3 text-left">Client</th>
+
+                <th className="px-4 py-3 text-left">Projet</th>
+
+                <th className="px-4 py-3 text-left">Date RDV</th>
+
+                <th className="px-4 py-3 text-left">Heure</th>
+
+                <th className="px-4 py-3 text-left">Agent</th>
+
+                <th className="px-4 py-3 text-left">Statut</th>
+
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {agents.map((agent) => (
-                <tr key={agent.id} className="hover:bg-muted/20 transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-[10px] text-primary">
-                        {agent.name ? agent.name.substring(0, 2).toUpperCase() : '??'}
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-foreground">{agent.name}</span>
-                        <span className="text-[10px] text-muted-foreground font-medium">{(agent as any).email || 'pas d\'email'}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 text-[11px] font-black text-muted-foreground">@{(agent as any).username || 'inconnu'}</td>
+
+              {filteredAppointments.map((item: any, index: number) => (
+
+                <tr
+                  key={item.id || index}
+                  className="hover:bg-muted/20 transition-colors"
+                >
+
                   <td className="px-4 py-4">
-                    <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
-                      agent.role === 'admin' ? 'bg-purple-500/10 text-purple-500' : 
-                      agent.role === 'qualite' ? 'bg-emerald-500/10 text-emerald-500' : 
-                      'bg-blue-500/10 text-blue-500'
-                    }`}>
-                      {agent.role === 'admin' ? '👑 Admin' : agent.role === 'qualite' ? '🛡️ Qualité' : '🎧 Agent'}
+                    {item.client_phone}
+                  </td>
+
+                  <td className="px-4 py-4 font-semibold">
+                    {item.client_name}
+                  </td>
+
+                  <td className="px-4 py-4">
+                    {item.project_type}
+                  </td>
+
+                  <td className="px-4 py-4">
+                    {item.appointment_date}
+                  </td>
+
+                  <td className="px-4 py-4">
+                    {item.appointment_time}
+                  </td>
+
+                  <td className="px-4 py-4">
+                    {item.agent_name}
+                  </td>
+
+                  <td className="px-4 py-4">
+
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-bold ${item.status === "confirme"
+                          ? "bg-emerald-500/10 text-emerald-400"
+                          : item.status === "refus"
+                            ? "bg-red-500/10 text-red-400"
+                            : "bg-yellow-500/10 text-yellow-400"
+                        }`}
+                    >
+                      {item.status}
                     </span>
+
                   </td>
-                  <td className="px-4 py-4">
-                     <div className="flex flex-col items-center gap-1">
-                        <div className="w-20 h-1 bg-muted rounded-full overflow-hidden">
-                           <div className="h-full bg-primary" style={{ width: `${agent.score || 70}%` }}></div>
-                        </div>
-                        <span className="text-[10px] font-black text-primary">{agent.score || 70}%</span>
-                     </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                       <button 
-                         onClick={() => handleEdit(agent)}
-                         className="p-2 hover:bg-primary/10 text-primary rounded-lg transition-colors"
-                       >
-                         <Zap className="w-4 h-4" />
-                       </button>
-                       <button 
-                         onClick={() => handleDelete(agent.id)}
-                         className="p-2 hover:bg-red-500/10 text-red-500 rounded-lg transition-colors"
-                       >
-                         <TrendingDown className="w-4 h-4" />
-                       </button>
-                    </div>
-                  </td>
+
                 </tr>
+
               ))}
+
             </tbody>
           </table>
         </div>
@@ -360,49 +538,124 @@ export default function DashboardPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Nom complet</label>
-                  <input 
-                    className="w-full px-4 py-2.5 bg-muted/30 border border-border rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary/20 outline-none"
+                  <input
+                    className="w-full px-4 py-2.5 bg-indigo-950/40 text-white placeholder:text-slate-400 border-primary/20 border border-border rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary/20 outline-none"
                     placeholder="Jean Dupont"
                     value={formData.name}
-                    onChange={e => setFormData({...formData, name: e.target.value})}
+                    onChange={e => setFormData({ ...formData, name: e.target.value })}
                   />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Login (Pseudo)</label>
-                  <input 
-                    className="w-full px-4 py-2.5 bg-muted/30 border border-border rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary/20 outline-none"
+                  <input
+                    className="
+w-full
+px-4
+py-3
+bg-indigo-950/40
+border
+border-primary/20
+rounded-2xl
+text-white
+text-sm
+font-bold
+placeholder:text-slate-400
+backdrop-blur-md
+focus:ring-2
+focus:ring-primary/40
+focus:border-primary
+outline-none
+transition-all
+duration-300
+"
                     placeholder="jdupont"
                     value={formData.username}
-                    onChange={e => setFormData({...formData, username: e.target.value})}
+                    onChange={e => setFormData({ ...formData, username: e.target.value })}
                   />
                 </div>
               </div>
               <div className="space-y-1.5">
                 <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Email professionnel</label>
-                <input 
+                <input
                   type="email"
-                  className="w-full px-4 py-2.5 bg-muted/30 border border-border rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary/20 outline-none"
-                  placeholder="jean.d@crm.fr"
+                  className="
+w-full
+px-4
+py-3
+bg-indigo-950/40
+border
+border-primary/20
+rounded-2xl
+text-white
+text-sm
+font-bold
+placeholder:text-slate-400
+caret-primary
+backdrop-blur-md
+focus:ring-2
+focus:ring-primary/40
+focus:border-primary
+outline-none
+transition-all
+duration-300
+"
                   value={formData.email}
-                  onChange={e => setFormData({...formData, email: e.target.value})}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
                 />
               </div>
               <div className="space-y-1.5">
                 <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Mot de passe</label>
-                <input 
+                <input
                   type="password"
-                  className="w-full px-4 py-2.5 bg-muted/30 border border-border rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary/20 outline-none"
+                  className="
+w-full
+px-4
+py-3
+bg-indigo-950/40
+border
+border-primary/20
+rounded-2xl
+text-white
+text-sm
+font-bold
+placeholder:text-slate-400
+caret-primary
+backdrop-blur-md
+focus:ring-2
+focus:ring-primary/40
+focus:border-primary
+outline-none
+transition-all
+duration-300
+"
                   placeholder={editingAgent ? "•••••••• (vide pour garder)" : "8 caractères min."}
                   value={formData.password}
-                  onChange={e => setFormData({...formData, password: e.target.value})}
+                  onChange={e => setFormData({ ...formData, password: e.target.value })}
                 />
               </div>
               <div className="space-y-1.5">
                 <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Rôle système</label>
-                <select 
-                  className="w-full px-4 py-2.5 bg-muted/30 border border-border rounded-xl text-xs font-bold outline-none cursor-pointer"
+                <select
+                  className="
+w-full
+px-4
+py-3
+bg-indigo-950/40
+border
+border-primary/20
+rounded-2xl
+text-white
+text-sm
+font-bold
+outline-none
+cursor-pointer
+focus:ring-2
+focus:ring-primary/40
+transition-all
+duration-300
+"
                   value={formData.role}
-                  onChange={e => setFormData({...formData, role: e.target.value})}
+                  onChange={e => setFormData({ ...formData, role: e.target.value })}
                 >
                   <option value="agent">Conseiller Client (Agent)</option>
                   <option value="qualite">Service Qualité (Superviseur)</option>
@@ -411,13 +664,13 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="p-6 bg-muted/20 border-t border-border flex justify-end gap-3">
-              <button 
+              <button
                 onClick={() => setShowModal(false)}
                 className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-muted rounded-xl transition-all"
               >
                 Annuler
               </button>
-              <button 
+              <button
                 onClick={handleSubmit}
                 className="px-6 py-2.5 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:opacity-90 transition-all"
               >

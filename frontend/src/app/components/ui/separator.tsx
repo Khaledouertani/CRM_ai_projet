@@ -4,10 +4,10 @@ import { cn } from "./utils";
 
 function Separator({
   className,
-  orientation = "horizontal",
+  orientation = "horizontal" as "horizontal" | "vertical",
   decorative = true,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+}: React.HTMLAttributes<HTMLDivElement> & { orientation?: "horizontal" | "vertical"; decorative?: boolean }) {
   return (
     <div
       data-slot="separator-root"

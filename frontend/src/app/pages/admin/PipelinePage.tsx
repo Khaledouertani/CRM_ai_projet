@@ -1,5 +1,5 @@
 import React from 'react';
-import { FunnelIcon, Plus } from 'lucide-react';
+import { Filter, Plus } from 'lucide-react';
 
 const pipelineStages = [
   { id: 1, name: 'Nouveau', leads: [

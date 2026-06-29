@@ -1,7 +1,7 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useChat as useChatHook } from '../../hooks/useChat';
 
-type ChatContextType = ReturnType<typeof useChatHook>;
+export type ChatContextType = ReturnType<typeof useChatHook>;
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 

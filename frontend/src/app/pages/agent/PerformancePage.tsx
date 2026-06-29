@@ -108,7 +108,6 @@ export default function PerformancePage() {
 
   const tabs = [
     { id: 'overview' as TabId, label: 'Vue Globale' },
-    { id: 'comparison' as TabId, label: 'Mois vs Mois' },
     { id: 'skills' as TabId, label: 'Compétences' },
     { id: 'history' as TabId, label: 'Historique' }
   ];

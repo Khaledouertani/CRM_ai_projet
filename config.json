@@ -1,16 +1,19 @@
 {
   "llm": {
     "model": "gemma3:4b",
-    "timeout": 45,
-    "temperature": 0.3
+    "timeout": 120,
+    "temperature": 0.3,
+    "num_predict": 256
   },
   "weights": {
-    "ecoute": 20,
-    "persuasion": 20,
-    "empathie": 15,
-    "argumentation": 15,
-    "refus": 15,
-    "vente": 15
+    "accueil": 10,
+    "energie": 15,
+    "voix": 10,
+    "ecoute": 15,
+    "client": 15,
+    "ope": 15,
+    "efficacite": 10,
+    "conclusion": 10
   },
   "alerts": {
     "min_score": 70,

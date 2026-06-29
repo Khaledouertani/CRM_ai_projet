@@ -85,7 +85,7 @@ export default function AdminPerformancePage() {
             <h1 className="text-2xl font-black italic tracking-tighter text-foreground uppercase">
               Analyse de <span className="text-primary">Performance</span>
             </h1>
-            <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mt-0.5">Suivi individuel et collectif des KPI</p>
+            
           </div>
         </div>
 
@@ -100,29 +100,17 @@ export default function AdminPerformancePage() {
               onChange={(e) => setSelectedAgentId(e.target.value === 'team' ? 'team' : Number(e.target.value))}
               className="w-full pl-10 pr-10 py-2.5 bg-slate-800 border border-border rounded-xl text-sm text-gray-900 dark:text-white font-bold appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20 transition-all"
             >
-              <option value="team" className="text-slate-900">📊 Vue Équipe (Global)</option>
+              <option value="team" className="text-slate-900"> Vue Équipe (Global)</option>
               {agents.map(agent => (
-                <option key={agent.id} value={agent.id} className="text-slate-900">👤 {agent.name}</option>
+                <option key={agent.id} value={agent.id} className="text-slate-900"> {agent.name}</option>
               ))}
             </select>
-            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-              <ChevronDown className="w-4 h-4 text-muted-foreground" />
-            </div>
+            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+  <ChevronDown className="w-5 h-5 text-primary" />
+</div>
           </div>
 
-          <div className="flex bg-muted/50 p-1 rounded-xl border border-border">
-            {['7d', '30d', '90d'].map(range => (
-              <button
-                key={range}
-                onClick={() => setTimeRange(range)}
-                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${
-                  timeRange === range ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {range}
-              </button>
-            ))}
-          </div>
+          
 
           <button
             onClick={loadAgentsPerformance}

@@ -1,5 +1,6 @@
-export { ChatProvider, useChat } from './ChatContext';
-export type { Message, Conversation, Attachment, ChatContextType } from './ChatContext';
+export { ChatProvider, useChatContext as useChat } from './ChatContext';
+export type { ChatContextType } from './ChatContext';
+export type { Message, Conversation } from '../../types/chat';
 
 export { ChatLayout } from './ChatLayout';
 export { ConversationList } from './ConversationList';

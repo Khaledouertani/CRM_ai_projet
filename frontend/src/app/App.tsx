@@ -10,6 +10,7 @@ import { Toaster } from 'react-hot-toast';
 
 // Agent
 import AgentDashboard from './pages/agent/AgentDashboard';
+
 import ContactPage from './pages/agent/ContactPage';
 import PerformancePage from './pages/agent/PerformancePage';
 import AgendaPage from './pages/agent/AgendaPage';
@@ -21,21 +22,21 @@ import DashboardPage from './pages/admin/DashboardPage';
 import ScoringPage from './pages/admin/ScoringPage';
 import RealTimePage from './pages/admin/RealTimePage';
 import LeadsPage from './pages/admin/LeadsPage';
+import AgendaPageAdmin from './pages/admin/AgendaPage';
 import SettingsPage from './pages/admin/SettingsPage';
 import MapPage from './pages/admin/MapPage';
 import AdminPerformancePage from './pages/admin/PerformancePage';
 import AdminMessagesPage from './pages/admin/MessagesPage';
 
-// Admin - Legacy (to be cleaned up or redirected)
-import AdminDashboard from './pages/admin/AdminDashboard';
+// Admin - Legacy
 import ScorecardsPage from './pages/admin/ScorecardsPage';
-import PointagePage from './pages/admin/PointagePage';
 import AnalyticsPage from './pages/admin/AnalyticsPage';
 import PipelinePage from './pages/admin/PipelinePage';
 import UsersPage from './pages/admin/UsersPage';
 import AIConfigPage from './pages/admin/AIConfigPage';
 import IntegrationsPage from './pages/admin/IntegrationsPage';
 import AgentStatsPage from './pages/admin/AgentStatsPage';
+import AgentsPage from './pages/admin/AgentsPage';
 import GDPRPage from './pages/admin/GDPRPage';
 import ReportsPage from './pages/admin/ReportsPage';
 import ImportLeadsPage from './pages/admin/ImportLeadsPage';
@@ -43,8 +44,8 @@ import FollowupsPage from './pages/admin/FollowupsPage';
 import PlanningPage from './pages/admin/PlanningPage';
 import ImportFile from './pages/admin/importfile';
 import FichierAcharge from './pages/admin/FichierAcharge';
-import ScoringConfigPage from './pages/admin/ScoringConfigPage';
 import AlertsPage from './pages/admin/AlertsPage';
+import SalaryPage from './pages/admin/SalaryPage';
 
 
 // AI
@@ -55,7 +56,12 @@ import ChatbotPage from './pages/ChatbotPage';
 import QualityDashboard from './pages/quality/QualityDashboard';
 import AgentQualityDetail from './pages/quality/AgentQualityDetail';
 import QualityComparison from './pages/quality/QualityComparison';
-
+import QualityPerformance from './pages/quality/QualityPerformance';
+import ManualEvaluationPage from './pages/quality/ManualEvaluationPage';
+import AgentTrendPage from './pages/quality/AgentTrendPage';
+import QualityAttendance from './pages/quality/QualityAttendance';
+import QualityCalendarPage from './pages/quality/QualityCalendarPage';
+import QualityAppointmentsPage from './pages/quality/QualityAppointmentsPage';
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
@@ -113,71 +119,72 @@ function AppRoutes() {
         <Route path="/agent/contact" element={<ContactPage />} />
         <Route path="/agent/performance" element={<PerformancePage />} />
         <Route path="/agent/agenda" element={<AgendaPage />} />
-        <Route path="/agent/contacts" element={<ContactsListPage />} />
-        <Route path="/agent/messages" element={<AgentMessagesPage />} />
+      <Route path="/agent/contacts" element={<ContactsListPage />} />
+      <Route path="/agent/messages" element={<AgentMessagesPage />} />
+      <Route path="/agent/audio-analysis" element={<AnalysisPage />} />
 
-        {/* AI */}
+      {/* AI */}
         <Route path="/analysis" element={<AnalysisPage />} />
         <Route path="/chatbot" element={<ChatbotPage />} />
 
       </Route>
 
-      {/* 🔐 ADMIN (with Layout too) */}
-      <Route element={<AdminRoute><Layout /></AdminRoute>}>
+{/* 🔐 ADMIN (with Layout too) */}
+<Route element={<AdminRoute><Layout /></AdminRoute>}>
 
-        {/* Modernized Admin Interface */}
-        <Route path="/admin/dashboard" element={<DashboardPage />} />
-        <Route path="/admin/realtime" element={<RealTimePage />} />
-        <Route path="/admin/performance" element={<AdminPerformancePage />} />
-        <Route path="/admin/map" element={<MapPage />} />
-        <Route path="/admin/leads" element={<LeadsPage />} />
-        <Route path="/admin/scoring" element={<ScoringPage />} />
-        <Route path="/admin/analysis" element={<AnalysisPage />} />
-        <Route path="/admin/ai-config" element={<SettingsPage />} />
-        <Route path="/admin/messages" element={<AdminMessagesPage />} />
-        <Route path="/admin/settings" element={<SettingsPage />} />
+<Route path="/admin/dashboard" element={<DashboardPage />} />
+<Route path="/admin/realtime" element={<RealTimePage />} />
+<Route path="/admin/pointage" element={<QualityAttendance />} />
+<Route path="/admin/performance" element={<AdminPerformancePage />} />
+<Route path="/admin/map" element={<MapPage />} />
+<Route path="/admin/leads" element={<LeadsPage />} />
+<Route path="/admin/agenda" element={<AgendaPageAdmin />} />
+<Route path="/admin/scoring" element={<ScoringPage />} />
+<Route path="/admin/analysis" element={<AnalysisPage />} />
+<Route path="/admin/ai-config" element={<SettingsPage />} />
+<Route path="/admin/messages" element={<AdminMessagesPage />} />
+<Route path="/admin/settings" element={<SettingsPage />} />
+<Route path="/admin/scorecards" element={<ScorecardsPage />} />
+<Route path="/admin/analytics" element={<AnalyticsPage />} />
+<Route path="/admin/pipeline" element={<PipelinePage />} />
+<Route path="/admin/users" element={<UsersPage />} />
+<Route path="/admin/integrations" element={<IntegrationsPage />} />
+      <Route path="/admin/agent-stats" element={<AgentStatsPage />} />
+      <Route path="/admin/agents" element={<AgentsPage />} />
+<Route path="/admin/gdpr" element={<GDPRPage />} />
+<Route path="/admin/reports" element={<ReportsPage />} />
+<Route path="/admin/import-leads" element={<ImportLeadsPage />} />
+<Route path="/admin/followups" element={<FollowupsPage />} />
+<Route path="/admin/planning" element={<PlanningPage />} />
+<Route path="/admin/import-leads/importfile" element={<ImportFile />} />
+<Route path="/admin/import-leads/FichierAcharge" element={<FichierAcharge />} />
+      <Route path="/admin/alerts" element={<AlertsPage />} />
+      <Route path="/admin/salaries" element={<SalaryPage />} />
 
-        {/* Existing */}
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/scorecards" element={<ScorecardsPage />} />
-        <Route path="/admin/pointage" element={<PointagePage />} />
-        <Route path="/admin/analytics" element={<AnalyticsPage />} />
-        <Route path="/admin/map" element={<MapPage />} />
-        <Route path="/admin/pipeline" element={<PipelinePage />} />
-        <Route path="/admin/users" element={<UsersPage />} />
-        <Route path="/admin/ai-config" element={<AIConfigPage />} />
-        <Route path="/admin/integrations" element={<IntegrationsPage />} />
-        <Route path="/admin/agent-stats" element={<AgentStatsPage />} />
-        <Route path="/admin/gdpr" element={<GDPRPage />} />
-        <Route path="/admin/reports" element={<ReportsPage />} />
-        <Route path="/admin/import-leads" element={<ImportLeadsPage />} />
-        <Route path="/admin/leads" element={<LeadsPage />} />
-        <Route path="/admin/followups" element={<FollowupsPage />} />
-        <Route path="/admin/planning" element={<PlanningPage />} />
-        <Route path="/admin/import-leads/importfile" element={<ImportFile />} />
-        <Route path="/admin/import-leads/FichierAcharge" element={<FichierAcharge />} />
-        <Route path="/admin/scoring" element={<ScoringConfigPage />} />
-        <Route path="/admin/alerts" element={<AlertsPage />} />
-        <Route path="/admin/performance" element={<AdminPerformancePage />} />
-        <Route path="/admin/messages" element={<AdminMessagesPage />} />
-
-
-      </Route>
+    </Route>
 
       {/* 🛡️ QUALITY & MANAGEMENT SERVICE */}
       <Route element={<ManagementRoute><Layout /></ManagementRoute>}>
         <Route path="/qualite/dashboard" element={<QualityDashboard />} />
         <Route path="/qualite/agents" element={<AgentQualityDetail />} />
-        <Route path="/qualite/compare" element={<QualityComparison />} />
-        <Route path="/qualite/analysis" element={<AnalysisPage />} />
+      <Route path="/qualite/compare" element={<QualityComparison />} />
+      <Route path="/qualite/comparison" element={<QualityComparison />} />
+      <Route path="/qualite/performance" element={<QualityPerformance />} />
+        <Route path="/qualite/trends" element={<AgentTrendPage />} />
+      <Route path="/qualite/pointage" element={<QualityAttendance />} />
+      <Route path="/qualite/evaluation" element={<ManualEvaluationPage />} />
+      <Route path="/qualite/calendar" element={<QualityCalendarPage />} />
+      <Route path="/qualite/appointments" element={<QualityAppointmentsPage />} />
+      <Route path="/qualite/chatbot" element={<ChatbotPage />} />
+      <Route path="/qualite/analysis" element={<AnalysisPage />} />
         <Route path="/qualite/messages" element={<AdminMessagesPage />} />
       </Route>
 
       {/* Redirect */}
       <Route path="/" element={
-        user?.role === 'admin'
-          ? <Navigate to="/admin/dashboard" />
-          : user?.role === 'qualite'
+  user?.role === 'admin'
+? <Navigate to="/admin/realtime" />
+: user?.role === 'qualite'
             ? <Navigate to="/qualite/dashboard" />
             : <Navigate to="/agent/dashboard" />
       } />

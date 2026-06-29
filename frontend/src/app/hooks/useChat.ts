@@ -4,7 +4,9 @@ import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
-const WS_URL = 'ws://127.0.0.1:8000/ws/messages';
+const WS_URL = 'ws://127.0.0.1:5190/ws/messages';
+const WS_MAX_RETRIES = 5;
+const WS_RETRY_DELAY = 3000;
 
 export function useChat() {
   const { user: currentUser } = useAuth();
@@ -23,11 +25,14 @@ export function useChat() {
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const selectedUserRef = useRef<number | null>(null);
 
+  const wsRetryCount = useRef(0);
+  const wsEnabled = useRef(true);
+
   const loadConversations = useCallback(async () => {
     try {
       const data = await api.getConversations();
       setConversations(prev => {
-        const merged = data.map((c: Conversation) => ({
+        const merged = data.map(c => ({
           ...c,
           is_online: prev.find(p => p.user_id === c.user_id)?.is_online ?? c.is_online ?? false,
         }));
@@ -62,60 +67,81 @@ export function useChat() {
   useEffect(() => {
     if (myId == null) return;
 
+    let closed = false;
+
     const connectWs = () => {
-      const ws = new WebSocket(`${WS_URL}/${myId}`);
-      wsRef.current = ws;
+      if (closed || !wsEnabled.current) return;
+      try {
+        const ws = new WebSocket(`${WS_URL}/${myId}`);
+        wsRef.current = ws;
 
-      ws.onmessage = (event) => {
-        try {
-          const parsed: WsMessage = JSON.parse(event.data);
-          switch (parsed.type) {
-            case 'new_message': {
-              const msg = parsed.data as Message;
-              if (
-                (msg.sender_id === myId && msg.receiver_id === selectedUserRef.current) ||
-                (msg.receiver_id === myId && msg.sender_id === selectedUserRef.current) ||
-                (msg.receiver_id === myId && msg.sender_id !== selectedUserRef.current)
-              ) {
-                if (msg.sender_id === selectedUserRef.current || msg.receiver_id === selectedUserRef.current) {
-                  setMessages(prev => [...prev, msg]);
+        ws.onmessage = (event) => {
+          try {
+            const parsed: WsMessage = JSON.parse(event.data);
+            switch (parsed.type) {
+              case 'new_message': {
+                const msg = parsed.data as Message;
+                if (
+                  (msg.sender_id === myId && msg.receiver_id === selectedUserRef.current) ||
+                  (msg.receiver_id === myId && msg.sender_id === selectedUserRef.current) ||
+                  (msg.receiver_id === myId && msg.sender_id !== selectedUserRef.current)
+                ) {
+                  if (msg.sender_id === selectedUserRef.current || msg.receiver_id === selectedUserRef.current) {
+                    setMessages(prev => [...prev, msg]);
+                  }
+                  if (msg.receiver_id === myId && msg.sender_id !== selectedUserRef.current) {
+                    toast(`${msg.sender_name}: ${msg.content.substring(0, 50)}...`, { icon: '💬' });
+                  }
                 }
-                if (msg.receiver_id === myId && msg.sender_id !== selectedUserRef.current) {
-                  toast(`${msg.sender_name}: ${msg.content.substring(0, 50)}...`, { icon: '💬' });
-                }
+                loadConversations();
+                break;
               }
-              loadConversations();
-              break;
+              case 'typing': {
+                const { user_id, user_name, is_typing } = parsed.data;
+                setTypingUsers(prev => {
+                  const next = new Map(prev);
+                  if (is_typing) next.set(user_id, user_name);
+                  else next.delete(user_id);
+                  return next;
+                });
+                break;
+              }
+              case 'user_online':
+              case 'user_offline': {
+                const { user_id } = parsed.data;
+                setConversations(prev =>
+                  prev.map(c => c.user_id === user_id ? { ...c, is_online: parsed.type === 'user_online' } : c)
+                );
+                break;
+              }
             }
-            case 'typing': {
-              const { user_id, user_name, is_typing } = parsed.data;
-              setTypingUsers(prev => {
-                const next = new Map(prev);
-                if (is_typing) next.set(user_id, user_name);
-                else next.delete(user_id);
-                return next;
-              });
-              break;
-            }
-            case 'user_online':
-            case 'user_offline': {
-              const { user_id } = parsed.data;
-              setConversations(prev =>
-                prev.map(c => c.user_id === user_id ? { ...c, is_online: parsed.type === 'user_online' } : c)
-              );
-              break;
-            }
-          }
-        } catch {}
-      };
+          } catch {}
+        };
 
-      ws.onclose = () => {
-        setTimeout(connectWs, 3000);
-      };
+        ws.onopen = () => {
+          wsRetryCount.current = 0;
+        };
+
+        ws.onclose = () => {
+          if (closed) return;
+          if (wsRetryCount.current < WS_MAX_RETRIES) {
+            wsRetryCount.current++;
+            setTimeout(connectWs, WS_RETRY_DELAY);
+          } else {
+            wsEnabled.current = false;
+          }
+        };
+
+        ws.onerror = () => {
+          ws.close();
+        };
+      } catch {
+        wsEnabled.current = false;
+      }
     };
 
     connectWs();
-    return () => { wsRef.current?.close(); };
+    return () => { closed = true; wsRef.current?.close(); };
   }, [myId, loadConversations]);
 
   // Initial load
@@ -131,23 +157,29 @@ export function useChat() {
     if (selectedUserId) loadMessages(selectedUserId);
   }, [selectedUserId, loadMessages]);
 
+  const wsSend = useCallback((data: string) => {
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN || !wsEnabled.current) return;
+    ws.send(data);
+  }, []);
+
   const sendTyping = useCallback((isTyping: boolean) => {
-    if (!wsRef.current || !selectedUserRef.current || !myId) return;
+    if (!selectedUserRef.current || !myId) return;
 
     if (isTyping) {
-      wsRef.current.send(JSON.stringify({
+      wsSend(JSON.stringify({
         type: 'typing',
         data: { user_id: myId, user_name: currentUser?.name || currentUser?.username, is_typing: true, target_id: selectedUserRef.current }
       }));
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = setTimeout(() => {
-        wsRef.current?.send(JSON.stringify({
+        wsSend(JSON.stringify({
           type: 'typing',
           data: { user_id: myId, is_typing: false, target_id: selectedUserRef.current }
         }));
       }, 2000);
     }
-  }, [myId, currentUser]);
+  }, [myId, currentUser, wsSend]);
 
   const sendMessage = useCallback(async (content: string, isUrgent: boolean = false) => {
     if (!content.trim() || !selectedUserId || sending) return;
@@ -198,10 +230,17 @@ export function useChat() {
     } catch {}
   }, []);
 
-  const filteredConversations = conversations.filter(c =>
-    c.user_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.last_message.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredConversations = conversations.filter(c => {
+    const matchesSearch = c.user_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          c.last_message.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Restriction pour les agents : ils ne voient que les admins et le service qualité
+    if (currentUser?.role === 'agent') {
+      return matchesSearch && (c.user_role === 'admin' || c.user_role === 'qualite');
+    }
+    
+    return matchesSearch;
+  });
 
   return {
     myId,

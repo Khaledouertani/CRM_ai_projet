@@ -1,33 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import api from '../../services/api';
-import { useAuth } from '../../contexts/AuthContext';
+import api from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+import type { Conversation as ApiConversation, Message as ApiMessage } from '../types/chat';
 
-export interface Message {
-  id: number;
-  sender_id: number;
-  sender_name: string;
-  receiver_id: number;
-  receiver_name: string;
-  content: string;
-  is_read: boolean;
-  is_urgent: boolean;
-  created_at: string;
-  read_at?: string;
-  attachment_url?: string;
-  attachment_type?: 'image' | 'file' | 'audio';
-  attachment_name?: string;
-}
-
-export interface Conversation {
-  user_id: number;
-  user_name: string;
-  user_role: string;
-  last_message: string;
-  last_message_time: string;
-  unread_count: number;
-  is_online: boolean;
-  avatar_url?: string;
-}
+export type Message = ApiMessage;
+export type Conversation = ApiConversation;
 
 interface UseMessagesReturn {
   conversations: Conversation[];

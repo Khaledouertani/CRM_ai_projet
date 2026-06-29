@@ -67,8 +67,8 @@ function CampaignHeader({
           <p className="text-xs font-medium">{avgProgress}%</p>
           <ProgressBar percent={avgProgress} />
         </div>
-        <Badge color={campaign.status === 'active' ? 'green' : 'amber'}>
-          {campaign.status === 'active' ? 'Active' : 'Pausée'}
+      <Badge color={campaign.status === 'active' ? 'green' : 'amber'}>
+        {campaign.status === 'active' ? 'Active' : 'En pause'}
         </Badge>
         {/* Stop propagation so clicking pause doesn't also toggle the accordion */}
         <button
@@ -199,8 +199,8 @@ function ListRow({
         />
       </div>
 
-      <Badge color={list.isActive ? 'green' : 'gray'}>
-        {list.isActive ? 'Active' : 'Pausée'}
+  <Badge color={list.isActive ? 'green' : 'gray'}>
+    {list.isActive ? 'Active' : 'En pause'}
       </Badge>
     </div>
   )
@@ -230,9 +230,9 @@ function CampaignAccordion({
         lists={lists}
         open={open}
         onToggle={() => setOpen(o => !o)}
-        onPause={() => updateCampaign(campaign.id, {
-          status: campaign.status === 'active' ? 'paused' : 'active',
-        })}
+      onPause={() => updateCampaign(campaign.id, {
+        status: campaign.status === 'active' ? 'en pause' : 'active',
+      })}
       />
 
       {open && (

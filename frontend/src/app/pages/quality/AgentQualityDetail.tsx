@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, Star, MessageSquare, Zap, 
   TrendingUp, Activity, PieChart as PieIcon, 
-  Save, Sparkles, AlertCircle, CheckCircle2, Search, ChevronDown, User
+  Save, Sparkles, AlertCircle, CheckCircle2, Search, ChevronDown, User, History
 } from 'lucide-react';
 import { 
   Radar, RadarChart, PolarGrid, PolarAngleAxis, 
@@ -17,12 +17,14 @@ import { useChartTheme } from '../../hooks/useChartTheme';
 
 // Mock data for the specific agent
 const RADAR_DATA = [
-  { subject: 'Écoute active', A: 85, fullMark: 100 },
-  { subject: 'Persuasion', A: 65, fullMark: 100 },
-  { subject: 'Empathie', A: 90, fullMark: 100 },
-  { subject: 'Argumentation', A: 70, fullMark: 100 },
-  { subject: 'Gestion Refus', A: 55, fullMark: 100 },
-  { subject: 'Closing', A: 40, fullMark: 100 },
+  { subject: 'Accueil', A: 85, fullMark: 100 },
+  { subject: 'Énergie', A: 75, fullMark: 100 },
+  { subject: 'Voix', A: 90, fullMark: 100 },
+  { subject: 'Écoute', A: 80, fullMark: 100 },
+  { subject: 'Client', A: 70, fullMark: 100 },
+  { subject: 'Ope', A: 85, fullMark: 100 },
+  { subject: 'Efficacité', A: 65, fullMark: 100 },
+  { subject: 'Conclusion', A: 60, fullMark: 100 },
 ];
 
 const QUALIF_DATA = [
@@ -46,7 +48,12 @@ export default function AgentQualityDetail() {
     const fetchAgents = async () => {
       try {
         const data = await api.getAgents();
-        const agentUsers = data.filter((u: any) => u.role === 'agent');
+
+console.log("AGENTS API =", data);
+
+const agentUsers = data.filter((u: any) => u.role === 'agent');
+
+console.log("AGENTS FILTERED =", agentUsers);
         setAgents(agentUsers);
         if (agentUsers.length > 0) {
           setSelectedAgent({ 
@@ -67,37 +74,79 @@ export default function AgentQualityDetail() {
   const filteredAgents = agents.filter(a => (a.name || a.username || '').toLowerCase().includes(searchTerm.toLowerCase()));
 
   const [scores, setScores] = useState({
-    listening: 4,
-    persuasion: 3,
-    empathy: 5,
-    objections: 2,
-    closing: 2,
+    accueil: 4,
+    energie: 3,
+    voix: 4,
+    ecoute: 5,
+    client: 4,
+    ope: 3,
+    efficacite: 3,
+    conclusion: 2,
   });
   const [comment, setComment] = useState('');
   const [isPreFilling, setIsPreFilling] = useState(false);
+  const [evaluationHistory, setEvaluationHistory] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (selectedAgent.id) {
+      fetchEvaluations();
+    }
+  }, [selectedAgent.id]);
+
+  const fetchEvaluations = async () => {
+    try {
+      const data = await api.getAgentEvaluations(selectedAgent.id);
+      setEvaluationHistory(data);
+    } catch (error) {
+      console.error("Error fetching evaluations:", error);
+    }
+  };
 
   const handleStarClick = (criterion: keyof typeof scores, val: number) => {
     setScores(prev => ({ ...prev, [criterion]: val }));
   };
 
-  const handleSave = () => {
-    toast.success('Fiche d\'évaluation enregistrée avec succès !');
+  const handleSave = async () => {
+    if (!selectedAgent.id) {
+      toast.error("Veuillez sélectionner un agent");
+      return;
+    }
+
+    try {
+      await api.saveQualityEvaluation({
+        agent_id: selectedAgent.id,
+        ...Object.keys(scores).reduce((acc, key) => ({
+          ...acc,
+          [`score_${key}`]: scores[key as keyof typeof scores]
+        }), {}),
+        commentaires: comment,
+        points_forts: comment.split('\n')[1] || '', // Simple logic to extract for now
+        points_faibles: comment.split('\n')[2] || '',
+      });
+      toast.success('Fiche d\'évaluation enregistrée avec succès !');
+      fetchEvaluations();
+    } catch (error) {
+      toast.error("Erreur lors de l'enregistrement");
+    }
   };
 
   const simulateAIPrefill = () => {
     setIsPreFilling(true);
     setTimeout(() => {
       setScores({
-        listening: 5,
-        persuasion: 4,
-        empathy: 4,
-        objections: 3,
-        closing: 3,
+        accueil: 5,
+        energie: 4,
+        voix: 4,
+        ecoute: 5,
+        client: 4,
+        ope: 4,
+        efficacite: 3,
+        conclusion: 3,
       });
       setComment(`ANALYSE IA DÉTAILLÉE :
-- POINTS FORTS : Excellente maîtrise de la reformulation (Écoute active 5/5). Utilise parfaitement le nom du client pour créer du lien.
-- POINTS DE VIGILANCE : Le passage au tarif est trop abrupt. L'agent perd son assurance (Ton de voix plus bas de 15%).
-- ACTION PLAN : Session de coaching sur "Le Silence après le Prix" recommandée.`);
+- POINTS FORTS : Excellente maîtrise de la formule d'accueil et de l'identification du client (Accueil 5/5). Énergie positive constante tout au long de l'appel.
+- POINTS DE VIGILANCE : La conclusion pourrait être plus structurée avec un résumé clair des prochaines étapes.
+- ACTION PLAN : Session de coaching sur le module 'Conclusion & Rebond' recommandée.`);
       setIsPreFilling(false);
       toast.success('Analyse IA sémantique terminée !');
     }, 1500);
@@ -273,11 +322,14 @@ export default function AgentQualityDetail() {
 
           <div className="space-y-6 flex-1">
             {[
-              { id: 'listening', label: 'Écoute Active', desc: 'Capacité à reformuler et écouter' },
-              { id: 'persuasion', label: 'Force de Persuasion', desc: 'Utilisation des leviers émotionnels' },
-              { id: 'empathy', label: 'Empathie & Ton', desc: 'Chaleur et proximité client' },
-              { id: 'objections', label: 'Gestion des Refus', desc: 'Répartie et rebond commercial' },
-              { id: 'closing', label: 'Closing & Engagement', desc: 'Conclusion de la vente' },
+              { id: 'accueil', label: 'Accueil & Identification', desc: 'Formule de politesse et identification' },
+              { id: 'energie', label: 'Énergie & Dynamisme', desc: 'Sourire et attitude proactive' },
+              { id: 'voix', label: 'Qualité Vocale', desc: 'Clarté, débit et volume' },
+              { id: 'ecoute', label: 'Écoute Active', desc: 'Reformulation et non-interruption' },
+              { id: 'client', label: 'Orientation Client', desc: 'Empathie et tact professionnel' },
+              { id: 'ope', label: 'C. Opérationnelles', desc: 'Exactitude des infos transmises' },
+              { id: 'efficacite', label: 'Efficacité', desc: 'Gestion de l\'attente et pertinence' },
+              { id: 'conclusion', label: 'Rebond & Conclusion', desc: 'Prise de congé professionnelle' },
             ].map((item) => (
               <div key={item.id} className="flex items-center justify-between p-4 bg-[#0F172A]/50 border border-blue-500/5 rounded-2xl hover:border-blue-500/20 transition-all">
                 <div>
@@ -324,7 +376,42 @@ export default function AgentQualityDetail() {
             </div>
           </div>
         </div>
+      </div>
 
+      {/* Historique des Évaluations */}
+      <div className="bg-[#1E293B] border border-blue-500/10 p-8 rounded-[32px]">
+        <h3 className="font-black text-xs uppercase tracking-widest text-gray-900 dark:text-white mb-8 flex items-center gap-2">
+          <History className="w-4 h-4 text-primary" /> Historique des Évaluations Manuelles
+        </h3>
+        
+        <div className="space-y-4">
+          {evaluationHistory.length === 0 ? (
+            <div className="p-10 text-center border border-dashed border-blue-500/20 rounded-2xl">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Aucune évaluation enregistrée pour cet agent.</p>
+            </div>
+          ) : (
+            evaluationHistory.map((eval_item, i) => (
+              <div key={i} className="p-6 bg-[#0F172A]/50 border border-blue-500/10 rounded-2xl hover:border-blue-500/30 transition-all">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="px-3 py-1 bg-blue-500/20 rounded-lg text-[10px] font-black text-blue-400 uppercase">
+                      Score: {(
+                        (eval_item.score_accueil + eval_item.score_energie + eval_item.score_voix + 
+                         eval_item.score_ecoute + eval_item.score_client + eval_item.score_ope + 
+                         eval_item.score_efficacite + eval_item.score_conclusion) / 8
+                      ).toFixed(1)}/5
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">{new Date(eval_item.evaluation_date).toLocaleDateString('fr-FR')}</span>
+                  </div>
+                  <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Par {eval_item.evaluator_name}</span>
+                </div>
+                <p className="text-xs font-medium text-slate-300 leading-relaxed italic">
+                  "{eval_item.commentaires || "Aucun commentaire"}"
+                </p>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

@@ -69,7 +69,7 @@ const Dashboard: React.FC = () => {
       {/* Welcome Header */}
       <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-xl p-6 text-gray-900 dark:text-white">
         <h1 className="text-2xl font-bold">
-          Bienvenue, {user?.name || user?.username} 👋
+          Bienvenue, {user?.name || user?.username} 
         </h1>
         <p className="text-gray-900 dark:text-white/80 mt-2">
           {isAdmin

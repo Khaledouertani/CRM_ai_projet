@@ -23,7 +23,30 @@ interface ChatHistory {
 
 const Chatbot: React.FC = () => {
   const { user } = useAuth();
-  
+
+  const quickActionsByRole: Record<string, { label: string; prompt: string }[]> = {
+    agent: [
+      { label: 'Mes RDV du jour', prompt: 'Quels sont mes rendez-vous pour aujourd\'hui ?' },
+      { label: 'Score de mes leads', prompt: 'Quel est le score moyen de mes leads cette semaine ?' },
+      { label: 'Aides éligibles', prompt: 'Quelles aides financières sont disponibles pour mes clients (CEE, Coup de Pouce) ?' },
+      { label: 'Script objection prix', prompt: 'Donne-moi le script pour répondre à l\'objection prix sur la PAC' },
+    ],
+    qualite: [
+      { label: 'Évaluations du jour', prompt: 'Résume les évaluations qualité d\'aujourd\'hui' },
+      { label: 'Agents en alerte', prompt: 'Quels agents ont un score inférieur à 70% ?' },
+      { label: 'Faux RDV détectés', prompt: 'Combien de faux RDV ont été détectés récemment ?' },
+      { label: 'Stats conformité', prompt: 'Quel est le taux de conformité global cette semaine ?' },
+    ],
+    admin: [
+      { label: 'Performance globale', prompt: 'Donne-moi un rapport de performance global de l\'équipe' },
+      { label: 'Taux de conversion', prompt: 'Quel est le taux de conversion RDV → Vente ce mois-ci ?' },
+      { label: 'Optimisation scoring', prompt: 'Quels critères de scoring IA devrais-je ajuster ?' },
+      { label: 'Alertes critiques', prompt: 'Résume les alertes critiques de la journée' },
+    ],
+  };
+
+  const roleActions = quickActionsByRole[user?.role || 'agent'] || quickActionsByRole.agent;
+
   // States
   const [activeTab, setActiveTab] = useState('conversations');
   const [currentChatId, setCurrentChatId] = useState('current');
@@ -37,7 +60,11 @@ const Chatbot: React.FC = () => {
     {
       id: 'welcome',
       role: 'assistant',
-      content: 'Bonjour ! Je suis votre assistant CRM IA. Comment puis-je vous aider aujourd\'hui ?',
+      content: user?.role === 'admin'
+        ? 'Bonjour Administrateur ! Je suis votre assistant CRM IA. Je peux vous aider avec les rapports de performance, l\'optimisation du scoring, et la supervision. Que souhaitez-vous ?'
+        : user?.role === 'qualite'
+        ? 'Bonjour Superviseur ! Je suis votre assistant CRM IA. Je peux analyser les évaluations qualité, détecter les faux RDV, et suivre la conformité. Comment puis-je vous aider ?'
+        : 'Bonjour ! Je suis votre assistant CRM IA. Je peux vous aider avec vos rendez-vous, les scores de vos leads, les aides financières, et les scripts d\'appels. Que voulez-vous savoir ?',
       timestamp: new Date(),
     },
   ]);
@@ -257,7 +284,7 @@ const Chatbot: React.FC = () => {
                     handleSend();
                   }
                 }}
-                placeholder="Ask me anything about your CRM data..."
+                placeholder="Posez une question sur votre CRM..."
                 className="flex-1 bg-transparent border-none focus:outline-none text-sm font-medium py-3 px-2 min-h-[50px] max-h-32 text-foreground placeholder:text-muted-foreground resize-none"
                 rows={1}
               />
@@ -284,17 +311,17 @@ const Chatbot: React.FC = () => {
               </div>
             </div>
             
-            <div className="flex justify-center gap-4 mt-4 overflow-x-auto py-2 no-scrollbar">
-              {['Analyze Performance', 'Active Leads', 'Recent Meetings'].map((hint, i) => (
-                <button 
-                  key={i} 
-                  onClick={() => handleSend(hint)}
-                  className="px-4 py-1.5 bg-[#1E293B]/50 border border-blue-500/10 rounded-full text-[10px] font-black uppercase tracking-widest text-blue-400 hover:bg-blue-500/10 hover:border-blue-500/30 transition-all whitespace-nowrap"
-                >
-                  {hint}
-                </button>
-              ))}
-            </div>
+      <div className="flex justify-center gap-3 mt-4 overflow-x-auto py-2 no-scrollbar flex-wrap">
+        {roleActions.map((action, i) => (
+          <button
+            key={i}
+            onClick={() => handleSend(action.prompt)}
+            className="px-4 py-1.5 bg-[#1E293B]/50 border border-[#7c3aed]/20 rounded-full text-[10px] font-black uppercase tracking-widest text-[#a78bfa] hover:bg-[#7c3aed]/10 hover:border-[#7c3aed]/40 transition-all whitespace-nowrap"
+          >
+            {action.label}
+          </button>
+        ))}
+      </div>
           </div>
         </div>
       </main>
@@ -307,16 +334,16 @@ const Chatbot: React.FC = () => {
           onClick={handleNewChat}
           className="flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-primary to-blue-600 rounded-2xl font-black text-xs uppercase tracking-widest text-white hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_20px_rgba(37,99,235,0.3)] mb-8"
         >
-          <Plus className="w-4 h-4" /> New Chat
+          <Plus className="w-4 h-4" /> Nouveau Chat
         </button>
 
         <nav className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-2">
           <div className="text-[10px] font-black uppercase tracking-widest text-blue-400/60 mb-4 px-2">Navigation</div>
           {[
-            { id: 'conversations', icon: MessageSquare, label: 'Conversations' },
-            { id: 'analytics', icon: Sparkles, label: 'AI Analytics' },
-            { id: 'logs', icon: History, label: 'Recent Logs' },
-            { id: 'settings', icon: Settings, label: 'Settings' },
+    { id: 'conversations', icon: MessageSquare, label: 'Conversations' },
+        { id: 'analytics', icon: Sparkles, label: 'Analyse IA' },
+        { id: 'logs', icon: History, label: 'Historique' },
+        { id: 'settings', icon: Settings, label: 'Paramètres' },
           ].map((item) => (
             <button 
               key={item.id} 

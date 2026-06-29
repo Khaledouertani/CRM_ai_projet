@@ -126,7 +126,7 @@ export default function FichierAcharge() {
                 placeholder="Rechercher une campagne..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full sm:w-64 pr-4 pl-1 py-1.5 bg-white dark:bg-slate-900 text-slate-900 text-xs font-black uppercase tracking-widest focus:outline-none rounded-lg border-none placeholder:text-slate-400"
+                className="w-full sm:w-64 pr-4 pl-1 py-1.5 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-black uppercase tracking-widest focus:outline-none rounded-lg border border-slate-200 dark:border-slate-600 shadow-sm focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-slate-400 dark:placeholder:text-slate-500"
               />
           </div>
         </div>

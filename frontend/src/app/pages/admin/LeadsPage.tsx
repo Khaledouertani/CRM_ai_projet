@@ -89,7 +89,7 @@ export default function LeadsPage() {
           <h1 className="text-3xl font-black italic tracking-tighter text-foreground uppercase">
             Leads & <span className="text-primary">CRM</span>
           </h1>
-          <p className="text-muted-foreground text-sm font-medium mt-1">Gestion et segmentation du portefeuille prospects</p>
+        
         </div>
         <div className="flex items-center gap-2">
            <input
@@ -190,7 +190,7 @@ export default function LeadsPage() {
               <select
                 value={statusFilter}
                 onChange={e => setStatusFilter(e.target.value)}
-                className="bg-slate-800 text-xs font-black uppercase tracking-widest text-gray-900 dark:text-white focus:outline-none cursor-pointer px-2 rounded-lg"
+
               >
                 <option value="all" className="text-slate-900">Tous les Statuts</option>
                 {qualificationOptions.map(opt => (

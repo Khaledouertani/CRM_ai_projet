@@ -275,7 +275,10 @@ export default function RealTimePage() {
             </thead>
             <tbody>
               {agents.map((agent, i) => {
-                const cfg = statusConfig[agent.status];
+                const cfg =
+                  statusConfig[agent.status as keyof typeof statusConfig] ??
+                  statusConfig.inactive;
+
                 const StatusIcon = cfg.icon;
                 return (
                   <tr key={agent.id} className={`border-b border-border/50 hover:bg-muted/20 transition-colors ${i % 2 === 0 ? '' : 'bg-muted/5'}`}>
@@ -290,7 +293,7 @@ export default function RealTimePage() {
                     <td className="px-4 py-4">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black border ${cfg.bg} ${cfg.color}`}>
                         <div className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-                        {cfg.label}
+                        {agent.status === 'break' && (agent as any).breakType ? `Pause ${(agent as any).breakType}` : cfg.label}
                       </span>
                     </td>
                     <td className="px-4 py-4 text-center">
@@ -318,7 +321,7 @@ export default function RealTimePage() {
                     </td>
                     <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
                       {agent.status === 'inactive' ? (
-                        <button 
+                        <button
                           onClick={async () => {
                             try {
                               await api.sendMessage(agent.id, "Activité détectée comme inactive. Merci de reprendre vos appels.", true);
@@ -330,7 +333,7 @@ export default function RealTimePage() {
                           Relancer
                         </button>
                       ) : (
-                        <button 
+                        <button
                           onClick={() => window.location.href = '/admin/messages?user=' + agent.id}
                           className="px-3 py-1.5 bg-muted hover:bg-muted/80 text-foreground text-xs font-bold rounded-lg transition-colors border border-border"
                         >
@@ -364,6 +367,8 @@ export default function RealTimePage() {
             Agir maintenant
           </button>
         </div>
+
+
       )}
     </div>
   );

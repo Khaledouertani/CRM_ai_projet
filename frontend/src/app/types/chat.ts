@@ -7,7 +7,7 @@ export interface Message {
   content: string;
   is_read: boolean;
   is_urgent: boolean;
-  is_broadcast: boolean;
+  is_broadcast?: boolean;
   created_at: string;
   read_at?: string;
 }
@@ -19,7 +19,8 @@ export interface Conversation {
   last_message: string;
   last_message_time: string;
   unread_count: number;
-  is_online: boolean;
+  is_online?: boolean;
+  avatar_url?: string;
 }
 
 export interface TypingIndicator {

@@ -1,0 +1,124 @@
+namespace CrmApi.DTOs.Ai;
+
+public class EligibilityRequestDto
+{
+    public float? Revenus { get; set; }
+    public string? Chauffage { get; set; }
+    public string? Toiture { get; set; }
+    public string? Isolation { get; set; }
+    public float? Consommation { get; set; }
+    public int? CreditScore { get; set; }
+    public string? SituationBancaire { get; set; }
+    public string? ProjectType { get; set; }
+}
+
+public class EligibilityResultDto
+{
+    public int Score { get; set; }
+    public string Label { get; set; } = string.Empty;
+    public string Color { get; set; } = string.Empty;
+    public string? Recommendation { get; set; }
+    public Dictionary<string, DetailDto> Details { get; set; } = new();
+    public string? ProjectType { get; set; }
+    public bool EligibleAides { get; set; }
+    public AidesDto AidesEstimees { get; set; } = new();
+}
+
+public class DetailDto
+{
+    public object? Value { get; set; }
+    public float Weight { get; set; }
+    public string Label { get; set; } = string.Empty;
+}
+
+public class AidesDto
+{
+    public int CEE { get; set; }
+    public int CoupDePouce { get; set; }
+    public int TvaReduite { get; set; }
+    public int EcoPtz { get; set; }
+}
+
+public class FakeRdvRequestDto
+{
+    public int? Id { get; set; }
+    public int? AgentId { get; set; }
+    public int? QualityScore { get; set; }
+    public string? ClientPhone { get; set; }
+    public string? AppointmentTime { get; set; }
+    public float? Revenus { get; set; }
+    public string? Chauffage { get; set; }
+    public string? Toiture { get; set; }
+}
+
+public class FakeRdvResultDto
+{
+    public int RiskScore { get; set; }
+    public string Verdict { get; set; } = string.Empty;
+    public List<string> Flags { get; set; } = new();
+    public int? AppointmentId { get; set; }
+    public int? AgentId { get; set; }
+}
+
+public class AiInsightsDto
+{
+    public int AgentId { get; set; }
+    public AppointmentStatsDto Appointments { get; set; } = new();
+    public List<DistributionDto> FinancingDistribution { get; set; } = new();
+    public List<DistributionDto> ProjectDistribution { get; set; } = new();
+    public CallStatsDto CallStats { get; set; } = new();
+    public string? Tip { get; set; }
+}
+
+public class AppointmentStatsDto
+{
+    public int Total { get; set; }
+    public double AvgScore { get; set; }
+}
+
+public class DistributionDto
+{
+    public string Label { get; set; } = string.Empty;
+    public int Count { get; set; }
+}
+
+public class CallStatsDto
+{
+    public int TotalCalls { get; set; }
+    public double AvgCallScore { get; set; }
+}
+
+public class QualificationCheckDto
+{
+    public string Qualification { get; set; } = string.Empty;
+    public string Transcript { get; set; } = string.Empty;
+}
+
+public class QualificationResultDto
+{
+    public bool Coherent { get; set; }
+    public string Details { get; set; } = string.Empty;
+}
+
+public class AppointmentDetectDto
+{
+    public string Transcript { get; set; } = string.Empty;
+}
+
+public class AppointmentDetectResultDto
+{
+    public bool Detected { get; set; }
+    public string? Date { get; set; }
+    public int Confidence { get; set; }
+    public bool RequiresValidation { get; set; } = true;
+}
+
+public class AnonymizeDto
+{
+    public string Transcript { get; set; } = string.Empty;
+}
+
+public class AnonymizeResultDto
+{
+    public string Anonymized { get; set; } = string.Empty;
+}

@@ -33,7 +33,7 @@ export function useWebSocket({
   const wsRef = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isReconnecting, setIsReconnecting] = useState(false);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const connect = useCallback(() => {
     if (!userId || typeof window === 'undefined') return;
@@ -61,7 +61,7 @@ export function useWebSocket({
               onNewMessage?.(message.data);
               break;
             case 'typing':
-              onTyping?.(message.data.user_id, message.data.is_typing);
+              onTyping?.(message.data.user_id, message.data.isTyping);
               break;
             case 'user_online':
               onUserOnline?.(message.data.user_id, message.data.is_online);
@@ -119,7 +119,7 @@ export function useWebSocket({
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({
         type: 'typing',
-        data: { is_typing },
+        data: { isTyping },
       }));
     }
   }, []);

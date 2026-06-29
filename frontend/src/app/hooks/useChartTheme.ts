@@ -7,6 +7,7 @@ export function useChartTheme() {
     theme,
     textColor: theme === 'dark' ? '#ffffff' : '#475569',
     gridColor: theme === 'dark' ? '#334155' : '#e2e8f0',
+    axisColor: theme === 'dark' ? '#ffffff' : '#475569',
     tooltipStyle: {
       backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff',
       color: theme === 'dark' ? '#ffffff' : '#0f172a',
