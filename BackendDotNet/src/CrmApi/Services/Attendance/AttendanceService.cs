@@ -15,11 +15,17 @@ public class AttendanceService : IAttendanceService
 
     public async Task<ClockResultDto> ClockInAsync(int userId)
     {
-        var existing = await _context.Attendances
+        var latest = await _context.Attendances
             .Where(a => a.UserId == userId && (a.Status == "active" || a.Status == "break"))
             .OrderByDescending(a => a.Id)
             .FirstOrDefaultAsync();
-        if (existing != null) return new ClockResultDto { Success = false, Message = "Already clocked in"};
+
+        if (latest != null)
+        {
+            if (latest.Status == "break")
+                return new ClockResultDto { Success = false, Message = "Impossible de pointer : une pause est en cours. Terminez d'abord la pause." };
+            return new ClockResultDto { Success = false, Message = "Vous êtes déjà pointé(e). Statut actuel : actif." };
+        }
 
         var attendance = new Models.Entities.Attendance
         {
@@ -30,7 +36,7 @@ public class AttendanceService : IAttendanceService
         };
         _context.Attendances.Add(attendance);
         await _context.SaveChangesAsync();
-        return new ClockResultDto { Success = true, AttendanceId = attendance.Id, Message = "Clocked in" };
+        return new ClockResultDto { Success = true, AttendanceId = attendance.Id, Message = "Pointage d'entrée enregistré" };
     }
 
     public async Task<ClockResultDto> StartBreakAsync(int userId, string breakType)
@@ -67,15 +73,20 @@ public class AttendanceService : IAttendanceService
 
         attendance.Status = "break";
 
-        var brk = new AttendanceBreak
-        {
-            AttendanceId = attendance.Id,
-            Type = breakType,
-            StartTime = DateTime.UtcNow
-        };
+       attendance.Status = "break";
 
-        _context.AttendanceBreaks.Add(brk);
-        await _context.SaveChangesAsync();
+_context.Attendances.Update(attendance);
+
+var brk = new AttendanceBreak
+{
+    AttendanceId = attendance.Id,
+    Type = breakType,
+    StartTime = DateTime.UtcNow
+};
+
+_context.AttendanceBreaks.Add(brk);
+
+await _context.SaveChangesAsync();
 
         return new ClockResultDto
         {
@@ -88,38 +99,46 @@ public class AttendanceService : IAttendanceService
     public async Task<ClockResultDto> ClockOutAsync(int userId)
     {
         var attendance = await _context.Attendances
-    .Where(a =>
-        a.UserId == userId &&
-        (a.Status == "active" || a.Status == "break"))
-    .OrderByDescending(a => a.Id)
-    .FirstOrDefaultAsync();
-        if (attendance == null) return new ClockResultDto { Success = false, Message = "No active attendance" };
+            .Where(a => a.UserId == userId && (a.Status == "active" || a.Status == "break"))
+            .OrderByDescending(a => a.Id)
+            .FirstOrDefaultAsync();
+
+        if (attendance == null)
+            return new ClockResultDto { Success = false, Message = "Aucun pointage actif trouvé. Veuillez d'abord pointer votre entrée." };
+
+        var openBreak = await _context.AttendanceBreaks
+            .Where(b => b.AttendanceId == attendance.Id && b.EndTime == null)
+            .OrderByDescending(b => b.Id)
+            .FirstOrDefaultAsync();
+
+        if (openBreak != null)
+        {
+            openBreak.EndTime = DateTime.UtcNow;
+            openBreak.DurationMinutes = (int)(openBreak.EndTime.Value - openBreak.StartTime).TotalMinutes;
+        }
+
         attendance.ClockOut = DateTime.UtcNow;
-        var brk = await _context.AttendanceBreaks
-    .Where(b =>
-        b.AttendanceId == attendance.Id &&
-        b.EndTime == null)
-    .OrderByDescending(b => b.Id)
-    .FirstOrDefaultAsync();
-
-if (brk != null)
-{
-    brk.EndTime = DateTime.UtcNow;
-    brk.DurationMinutes =
-        (int)(brk.EndTime.Value - brk.StartTime).TotalMinutes;
-}
-attendance.ClockOut = DateTime.UtcNow;
-
         attendance.Status = "completed";
         _context.Attendances.Update(attendance);
         await _context.SaveChangesAsync();
-        return new ClockResultDto { Success = true };
+        return new ClockResultDto { Success = true, Message = "Pointage de sortie enregistré" };
     }
 
    
 
     public async Task<ClockResultDto> EndBreakAsync(int userId)
     {
+        Console.WriteLine($"USER = {userId}");
+
+var all = await _context.Attendances
+    .Where(a => a.UserId == userId)
+    .OrderByDescending(a => a.Id)
+    .ToListAsync();
+
+foreach (var a in all)
+{
+    Console.WriteLine($"ID={a.Id} STATUS={a.Status}");
+}
         var attendance = await _context.Attendances
             .Where(a => a.UserId == userId && a.Status == "break")
             .OrderByDescending(a => a.Id)
@@ -165,9 +184,11 @@ attendance.ClockOut = DateTime.UtcNow;
 
     public async Task<AttendanceStatusDto> GetStatusAsync(int userId)
     {
+        var today = DateTime.UtcNow.Date;
         var attendance = await _context.Attendances
     .Where(a =>
         a.UserId == userId &&
+        a.Date == today &&
         (a.Status == "active" || a.Status == "break"))
     .OrderByDescending(a => a.Id)
     .FirstOrDefaultAsync();
@@ -189,10 +210,12 @@ attendance.ClockOut = DateTime.UtcNow;
     public async Task<bool> UpdateAttendanceAsync(int userId, UpdateAttendanceDto dto)
     {
         var attendance = await _context.Attendances
-    .Where(a => a.UserId == userId && a.Status == "active")
-    .OrderByDescending(a => a.Id)
-    .FirstOrDefaultAsync();
+            .Where(a => a.UserId == userId)
+            .OrderByDescending(a => a.Id)
+            .FirstOrDefaultAsync();
+
         if (attendance == null) return false;
+
         if (dto.Status != null) attendance.Status = dto.Status;
         _context.Attendances.Update(attendance);
         await _context.SaveChangesAsync();
@@ -269,7 +292,7 @@ attendance.ClockOut = DateTime.UtcNow;
     {
         var today = DateTime.UtcNow.Date;
         var agents = await _context.Users
-            .Where(u => u.Role == UserRole.Agent)
+            .Where(u => u.Role == UserRole.Agent || u.Role == UserRole.Admin || u.Role == UserRole.Qualite)
             .AsNoTracking()
             .ToListAsync();
 
@@ -291,12 +314,21 @@ attendance.ClockOut = DateTime.UtcNow;
             {
                 UserId = agent.Id,
                 UserName = agent.Name ?? agent.Username,
+                UserRole = agent.Role.ToString().ToLowerInvariant(),
                 Status = "offline"
             };
 
             if (latestByUser.TryGetValue(agent.Id, out var att))
             {
-                dto.Status = att.Status;
+                if (att.Status == "active")
+                {
+                    var inactiveMinutes = (DateTime.UtcNow - (att.ClockOut ?? att.ClockIn)).TotalMinutes;
+                    dto.Status = inactiveMinutes > 30 ? "offline" : "active";
+                }
+                else
+                {
+                    dto.Status = att.Status;
+                }
                 dto.ClockIn = att.ClockIn;
                 if (att.ClockIn != default)
                 {
@@ -314,7 +346,11 @@ attendance.ClockOut = DateTime.UtcNow;
                         .Where(b => b.EndTime == null)
                         .OrderByDescending(b => b.Id)
                         .FirstOrDefault();
-                    if (openBreak != null) dto.CurrentBreakType = openBreak.Type;
+                    if (openBreak != null)
+                    {
+                        dto.CurrentBreakType = openBreak.Type;
+                        dto.CurrentBreakStart = openBreak.StartTime;
+                    }
                 }
             }
 

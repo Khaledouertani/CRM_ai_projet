@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  Bell, LogOut, User, Mail, Shield, CheckCircle, Settings, HelpCircle, X,
+  Bell, LogOut, User, Mail, Shield, CheckCircle, Settings, X,
   Coffee, ChevronDown, Play, Activity, Users,
   Clock, Award, PhoneCall, Menu
 } from 'lucide-react';
@@ -9,6 +9,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useAlerts } from '../contexts/AlertContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import toast from 'react-hot-toast';
 
 type PauseType = 'cafe' | 'dejeuner' | 'priere' | 'technique' | 'personnelle' | 'reunion' | 'formation';
 type AgentStatus = 'online' | 'break' | 'offline';
@@ -29,6 +30,15 @@ interface AlertItem {
   type: 'critical' | 'warning' | 'info';
   read?: boolean;
 }
+const BREAK_MAPPING: Record<PauseType, string> = {
+  cafe: "Café",
+  dejeuner: "Déjeuner",
+  priere: "Permission",
+  technique: "Réunion",
+  personnelle: "Perso",
+  reunion: "Réunion",
+  formation: "Formation"
+};
 
 const PAUSE_OPTIONS: PauseOption[] = [
   { id: 'cafe', label: 'Cafe', icon: <Coffee size={14} />, duration: 15, color: 'amber' },
@@ -157,10 +167,6 @@ export function Navbar({ onMobileMenuToggle, mobileMenuOpen }: { onMobileMenuTog
   useEffect(() => {
   const fetchStatus = async () => {
     try {
-      if (user?.role === "admin") {
-  setAgentStatus("online");
-  return;
-}
       const data = await api.getAttendanceStatus();
 
       console.log("ATTENDANCE STATUS =", data);
@@ -209,22 +215,24 @@ export function Navbar({ onMobileMenuToggle, mobileMenuOpen }: { onMobileMenuTog
     setShowPauseMenu(false);
     startTimer();
     try {
-      const res = await api.startBreak(pauseType);
+      const res = await api.startBreak(BREAK_MAPPING[pauseType]);
       if (res?.success === false) {
         setAgentStatus(prevStatus);
         setActivePause(prevPause);
         setBreakStartTime(null);
         stopTimer();
+        toast.error(res?.message || 'Impossible de démarrer la pause');
         return;
       }
     } catch (e) {
       try {
-        const res2 = await api.startBreak(pauseType);
+        const res2 = await api.startBreak(BREAK_MAPPING[pauseType]);
         if (res2?.success === false) {
           setAgentStatus(prevStatus);
           setActivePause(prevPause);
           setBreakStartTime(null);
           stopTimer();
+          toast.error(res2?.message || 'Impossible de démarrer la pause');
           return;
         }
       } catch (e2) {
@@ -232,25 +240,41 @@ export function Navbar({ onMobileMenuToggle, mobileMenuOpen }: { onMobileMenuTog
         setActivePause(prevPause);
         setBreakStartTime(null);
         stopTimer();
+        toast.error('Erreur réseau lors du démarrage de la pause');
       }
     }
   };
 
   const endPause = async () => {
-    try {
-      await api.endBreak();
-    } catch (e) {
-      // proceed to online anyway — API may have already ended break
+    const res = await api.endBreak();
+    if (res?.success === false) {
+      // break already ended on server — proceed to online anyway
     }
-    setAgentStatus('online');
+    setAgentStatus("online");
     setActivePause(null);
     setBreakStartTime(null);
     setShowPauseMenu(false);
     stopTimer();
+  };
+
+  const handleClockIn = async () => {
     try {
-      const data = await api.getAttendanceStatus();
-      applyServerStatus(data);
-    } catch (_) {}
+      await api.clockIn();
+      setAgentStatus('online');
+      toast.success('Pointage entrée réussi');
+    } catch (e) {
+      toast.error('Erreur lors du pointage entrée');
+    }
+  };
+
+  const handleClockOut = async () => {
+    try {
+      await api.clockOut();
+      toast.success('Pointage sortie réussi');
+      setAgentStatus('offline');
+    } catch (e) {
+      toast.error('Erreur lors du pointage sortie');
+    }
   };
 
   const roleLabels: Record<string, string> = {
@@ -314,6 +338,25 @@ export function Navbar({ onMobileMenuToggle, mobileMenuOpen }: { onMobileMenuTog
 
       {/* RIGHT SECTION */}
       <div className="flex items-center gap-2">
+        {/* POINTAGE — change entre entrée et sortie selon le statut */}
+        {agentStatus === 'offline' && (
+          <button
+            onClick={handleClockIn}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-all"
+          >
+            <Clock size={14} />
+            <span className="text-xs font-medium">Pointer entrée</span>
+          </button>
+        )}
+        {agentStatus === 'online' && (
+          <button
+            onClick={handleClockOut}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-all"
+          >
+            <LogOut size={14} />
+            <span className="text-xs font-medium">Pointer sortie</span>
+          </button>
+        )}
         {/* PAUSE BUTTON */}
         <div className="relative" ref={pauseRef}>
           <button
@@ -409,19 +452,6 @@ export function Navbar({ onMobileMenuToggle, mobileMenuOpen }: { onMobileMenuTog
           )}
         </div>
 
-        {/* Settings shortcut */}
-        {(user?.role === 'qualite' || user?.role === 'admin') && (
-          <button
-            onClick={() => navigate('/admin/settings')}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border bg-card hover:bg-accent text-foreground transition-all"
-          >
-            <Settings className="w-4 h-4" />
-            <span className="text-xs font-medium hidden md:inline">Parametres</span>
-          </button>
-        )}
-
-        <ThemeToggle />
-
         {/* NOTIFICATIONS */}
         <div className="relative" ref={notifRef}>
           <button
@@ -475,6 +505,8 @@ export function Navbar({ onMobileMenuToggle, mobileMenuOpen }: { onMobileMenuTog
             </div>
           )}
         </div>
+
+        <ThemeToggle />
 
         {/* PROFILE */}
         <div className="relative pl-2 ml-2 border-l border-border" ref={profileRef}>

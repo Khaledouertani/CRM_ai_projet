@@ -126,7 +126,6 @@ const qualitySections: NavSection[] = [
     label: 'AGENTS',
     items: [
       { icon: Users, label: 'Détails Agents', path: '/qualite/agents', accent: 'blue' },
-      { icon: Bell, label: 'Évaluation Mensuelle', path: '/qualite/evaluation', accent: 'purple' },
       { icon: TrendingUp, label: 'Performance Mensuelle', path: '/qualite/performance', accent: 'green' },
       { icon: BarChart3, label: 'Comparaison de rendement', path: '/qualite/comparison', accent: 'orange' },
       { icon: Clock, label: 'Pointage', path: '/qualite/pointage', accent: 'blue' },

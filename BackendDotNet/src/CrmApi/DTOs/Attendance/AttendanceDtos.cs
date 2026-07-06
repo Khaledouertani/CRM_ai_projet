@@ -8,6 +8,7 @@ public class AttendanceStatusDto
     public DateTime? StartTime { get; set; }
 }
 
+
 public class ClockResultDto
 {
     public bool Success { get; set; }
@@ -67,6 +68,11 @@ public class TeamAttendanceDto
     public DateTime? FirstCall { get; set; }
     public DateTime? LastCall { get; set; }
     public DateTime Date { get; set; }
+    public int Actions { get; set; }
+
+public int PauseLimit { get; set; }
+
+public DateTime? LastActivity { get; set; }
 }
 
 public class TeamReportDto
@@ -90,9 +96,11 @@ public class TeamAttendanceDetailDto
 {
     public int UserId { get; set; }
     public string UserName { get; set; } = string.Empty;
+    public string UserRole { get; set; } = "agent";
     public string Status { get; set; } = "offline";
     public DateTime? ClockIn { get; set; }
     public double? WorkDurationMinutes { get; set; }
     public string? CurrentBreakType { get; set; }
+    public DateTime? CurrentBreakStart { get; set; }
     public int TotalBreakMinutes { get; set; }
 }

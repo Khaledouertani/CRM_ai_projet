@@ -43,6 +43,9 @@ export default function AgentQualityDetail() {
   const [selectedAgent, setSelectedAgent] = useState({ id: 0, name: 'Sélectionner...', matricule: '-' });
   const [agents, setAgents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [radarData, setRadarData] = useState(RADAR_DATA);
+  const [qualifData, setQualifData] = useState(QUALIF_DATA);
+  const [agentStats, setAgentStats] = useState<any>(null);
 
   useEffect(() => {
     const fetchAgents = async () => {
@@ -90,13 +93,65 @@ console.log("AGENTS FILTERED =", agentUsers);
   useEffect(() => {
     if (selectedAgent.id) {
       fetchEvaluations();
+      fetchAgentDetail();
     }
   }, [selectedAgent.id]);
+
+  const fetchAgentDetail = async () => {
+    try {
+      const detail = await api.getQualityAgentDetail(selectedAgent.id);
+      setAgentStats(detail);
+      if (detail.skills_profile && detail.skills_profile.length > 0) {
+        setRadarData(detail.skills_profile);
+      } else {
+        setRadarData(RADAR_DATA);
+      }
+      if (detail.qualification_distribution && detail.qualification_distribution.length > 0) {
+        setQualifData(detail.qualification_distribution);
+      } else {
+        setQualifData(QUALIF_DATA);
+      }
+    } catch (error) {
+      console.error("Error fetching agent detail:", error);
+    }
+  };
 
   const fetchEvaluations = async () => {
     try {
       const data = await api.getAgentEvaluations(selectedAgent.id);
-      setEvaluationHistory(data);
+      const parsedData = data.map((item: any) => {
+        let scoresObj: any = {};
+        if (item.scores_json) {
+          try {
+            scoresObj = JSON.parse(item.scores_json);
+          } catch (e) {
+            console.error("Failed to parse scores_json", e);
+          }
+        }
+        
+        // Normalize criteria keys to ensure both formats work
+        const score_accueil = (scoresObj.score_accueil ?? ((Number(scoresObj.accueil_formule || 0) + Number(scoresObj.accueil_sourire || 0)) / 2)) || 0;
+        const score_energie = scoresObj.score_energie ?? scoresObj.energie ?? 0;
+        const score_voix = scoresObj.score_voix ?? scoresObj.voix ?? 0;
+        const score_ecoute = scoresObj.score_ecoute ?? scoresObj.decouverte_ecoute ?? 0;
+        const score_client = scoresObj.score_client ?? scoresObj.decouverte_besoin ?? 0;
+        const score_ope = (scoresObj.score_ope ?? ((Number(scoresObj.argumentaire_maitrise || 0) + Number(scoresObj.argumentaire_objection || 0)) / 2)) || 0;
+        const score_efficacite = scoresObj.score_efficacite ?? scoresObj.closing_recap ?? 0;
+        const score_conclusion = scoresObj.score_conclusion ?? scoresObj.closing_conge ?? 0;
+
+        return {
+          ...item,
+          score_accueil,
+          score_energie,
+          score_voix,
+          score_ecoute,
+          score_client,
+          score_ope,
+          score_efficacite,
+          score_conclusion
+        };
+      });
+      setEvaluationHistory(parsedData);
     } catch (error) {
       console.error("Error fetching evaluations:", error);
     }
@@ -113,18 +168,23 @@ console.log("AGENTS FILTERED =", agentUsers);
     }
 
     try {
+      const sum = Object.values(scores).reduce((a, b) => a + b, 0);
+      const globalScoreVal = ((sum / 40.0) * 100);
+      const scoresPayload = Object.keys(scores).reduce((acc, key) => ({
+        ...acc,
+        [`score_${key}`]: scores[key as keyof typeof scores]
+      }), {});
+
       await api.saveQualityEvaluation({
         agent_id: selectedAgent.id,
-        ...Object.keys(scores).reduce((acc, key) => ({
-          ...acc,
-          [`score_${key}`]: scores[key as keyof typeof scores]
-        }), {}),
+        scores: scoresPayload,
         commentaires: comment,
-        points_forts: comment.split('\n')[1] || '', // Simple logic to extract for now
-        points_faibles: comment.split('\n')[2] || '',
+        decision: globalScoreVal >= 75 ? 'conforme' : globalScoreVal >= 50 ? 'coaching' : 'non-conforme',
+        global_score: globalScoreVal
       });
       toast.success('Fiche d\'évaluation enregistrée avec succès !');
       fetchEvaluations();
+      fetchAgentDetail();
     } catch (error) {
       toast.error("Erreur lors de l'enregistrement");
     }
@@ -257,7 +317,7 @@ console.log("AGENTS FILTERED =", agentUsers);
             </h3>
             <div className="h-72 w-full max-w-sm">
               <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={RADAR_DATA}>
+                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
                   <PolarGrid stroke="#1E293B" />
                   <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 'bold' }} />
                   <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
@@ -285,13 +345,13 @@ console.log("AGENTS FILTERED =", agentUsers);
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={QUALIF_DATA}
+                      data={qualifData}
                       innerRadius={50}
                       outerRadius={70}
                       paddingAngle={5}
                       dataKey="value"
                     >
-                      {QUALIF_DATA.map((entry, index) => (
+                      {qualifData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -299,7 +359,7 @@ console.log("AGENTS FILTERED =", agentUsers);
                 </ResponsiveContainer>
               </div>
               <div className="flex-1 grid grid-cols-2 gap-4">
-                {QUALIF_DATA.map((item, i) => (
+                {qualifData.map((item, i) => (
                   <div key={i} className="flex flex-col">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
@@ -360,7 +420,7 @@ console.log("AGENTS FILTERED =", agentUsers);
             </button>
             <div className="flex flex-col items-center gap-1 text-center">
               <span className="text-[10px] font-black text-slate-500 uppercase">Score Moyen</span>
-              <span className="text-lg font-black text-[#00D4FF]">3.2/5</span>
+              <span className="text-lg font-black text-[#00D4FF]">{((Object.values(scores).reduce((a, b) => a + b, 0) / 8)).toFixed(1)}/5</span>
             </div>
           </div>
 

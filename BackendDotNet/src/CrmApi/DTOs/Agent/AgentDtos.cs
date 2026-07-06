@@ -37,6 +37,7 @@ public class PerformancePeriodDto
     public double AvgCallDuration { get; set; }
     public double QualityScore { get; set; }
     public double AttendanceRate { get; set; }
+    public List<int> DailyPerformance { get; set; } = new();
 }
 
 public class PerformanceComparisonDto

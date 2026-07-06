@@ -57,9 +57,19 @@ public class AnalyticsController : ControllerBase
     [HttpGet("calls-log")]
     public async Task<IActionResult> GetCallsLog([FromQuery] int limit = 200)
     {
-        if (!UserContextHelper.IsAdminOrQualite(User)) return Forbid();
-        try { return Ok(await _analyticsService.GetCallsLogAsync(limit)); }
-        catch (Exception ex) { return Problem(ex.Message); }
+        var role = UserContextHelper.GetRole(User);
+        if (role == "agent")
+        {
+            var userName = UserContextHelper.GetUsername(User);
+            try { return Ok(await _analyticsService.GetCallsLogAsync(limit, userName)); }
+            catch (Exception ex) { return Problem(ex.Message); }
+        }
+        else if (UserContextHelper.IsAdminOrQualite(User))
+        {
+            try { return Ok(await _analyticsService.GetCallsLogAsync(limit)); }
+            catch (Exception ex) { return Problem(ex.Message); }
+        }
+        return Forbid();
     }
 
     [HttpGet("pointage")]

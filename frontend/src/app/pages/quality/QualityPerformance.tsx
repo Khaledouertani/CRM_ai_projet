@@ -25,7 +25,7 @@ export default function QualityPerformance() {
       try {
         const data = await fetchAgents();
         setAgents(data);
-        if (data.length > 0) setSelectedAgentId(data[0].agent_id);
+        if (data.length > 0) setSelectedAgentId(data[0].id);
       } catch (e) {
         console.error('Failed to fetch agents', e);
       } finally {
@@ -101,8 +101,8 @@ export default function QualityPerformance() {
               Choisir un agent...
             </option>
             {agents.map((agent, idx) => (
-              <option key={`agent-${agent.agent_id}-${idx}`} value={agent.agent_id}>
-                {agent.agent_name}
+              <option key={`agent-${agent.id}-${idx}`} value={agent.id}>
+                {agent.name}
               </option>
             ))}
           </select>

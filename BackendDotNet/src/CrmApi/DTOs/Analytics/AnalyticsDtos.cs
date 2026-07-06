@@ -112,6 +112,10 @@ public class CallsLogDto
     public string? CustomerIntent { get; set; }
     public bool InactivityDetected { get; set; }
     public string? DiarizationMethod { get; set; }
+    public int? CallDuration { get; set; }
+    public string? Summary { get; set; }
+    public string? NextSteps { get; set; }
+    public string? Qualification { get; set; }
 }
 
 public class ComparisonDto

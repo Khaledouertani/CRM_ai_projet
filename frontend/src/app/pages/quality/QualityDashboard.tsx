@@ -4,7 +4,7 @@ import {
   Users, TrendingUp, Mic, Star,
   ChevronRight, Search,
   ShieldCheck, CheckCircle2, AlertCircle,
-  Calendar, TrendingDown, Clock, Bell, BellRing,
+  Calendar, TrendingDown, Clock, BellRing,
   X, ChevronDown, ChevronUp, CalendarCheck,
   Eye, Activity, BarChart2, Filter
 } from 'lucide-react';
@@ -218,25 +218,6 @@ export default function QualityDashboard() {
           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
             Dashboard • {clock.toLocaleTimeString('fr-FR')}
           </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setActiveTab('alerts')}
-            className="relative w-10 h-10 flex items-center justify-center bg-[#1E293B] border border-blue-500/10 rounded-2xl hover:border-rose-500/40 transition-all"
-          >
-            {unreadAlerts > 0 ? <BellRing className="w-5 h-5 text-rose-400 animate-pulse" /> : <Bell className="w-5 h-5 text-slate-500" />}
-            {unreadAlerts > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[8px] font-black rounded-full flex items-center justify-center">
-                {unreadAlerts}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => navigate('/qualite/evaluation')}
-            className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:scale-105 active:scale-95 transition-all"
-          >
-            + Évaluation
-          </button>
         </div>
       </div>
 

@@ -4,7 +4,7 @@ import {
   Trash2, Download, Upload, CheckCircle, AlertTriangle,
   Lock, Globe, Clock, MessageSquare, ShieldCheck, Mic,
   Users, Target, Brain, Sparkles, Webhook, Sliders,
-  FileText, RefreshCw
+  FileText, RefreshCw, Calendar
 } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
@@ -47,6 +47,14 @@ const ROLE_PERMISSIONS: Record<string, Record<string, boolean>> = {
     messages: true, audio_analysis: true, chatbot: true, scoring: true,
     evaluations: true, supervision: true, settings: true, reports: true,
   },
+};
+
+const BADGE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/20' },
+  blue: { bg: 'bg-blue-500/10', text: 'text-blue-500', border: 'border-blue-500/20' },
+  amber: { bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-500/20' },
+  red: { bg: 'bg-red-500/10', text: 'text-red-500', border: 'border-red-500/20' },
+  purple: { bg: 'bg-purple-500/10', text: 'text-purple-500', border: 'border-purple-500/20' },
 };
 
 const PERMISSION_LABELS: Record<string, string> = {
@@ -160,6 +168,10 @@ export default function SettingsPage() {
   );
 
   return (
+    <>
+      <style>{`
+        .dark select, .dark input, .dark textarea { color-scheme: dark; }
+      `}</style>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -475,9 +487,9 @@ export default function SettingsPage() {
                 <h3 className="text-sm font-black uppercase tracking-widest text-foreground">Formule de Scoring</h3>
               </div>
               <div className="p-6 space-y-4">
-                <div className="p-4 bg-[#1a1a2e] rounded-xl border border-[#7c3aed]/20">
-                  <p className="text-[10px] font-black text-[#7c3aed] uppercase tracking-widest mb-2">Formule Active</p>
-                  <code className="text-[10px] text-slate-300 leading-relaxed block">
+                <div className="p-4 bg-muted rounded-xl border border-border">
+                  <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2">Formule Active</p>
+                  <code className="text-[10px] text-foreground leading-relaxed block opacity-70">
                     score = (revenus x 0.20) + (chauffage x 0.15) + (toiture x 0.15) + (isolation x 0.10) + (consommation x 0.15) + (credit x 0.10) + (situation_bancaire x 0.15)
                   </code>
                 </div>
@@ -487,12 +499,15 @@ export default function SettingsPage() {
                     { label: 'Bon prospect', range: '70-89', color: 'blue' },
                     { label: 'Moyen', range: '50-69', color: 'amber' },
                     { label: 'Risque', range: '<30', color: 'red' },
-                  ].map(tier => (
-                    <div key={tier.label} className={`p-3 bg-${tier.color}-500/10 border border-${tier.color}-500/20 rounded-xl text-center`}>
-                      <p className={`text-sm font-black text-${tier.color}-500`}>{tier.range}</p>
+                  ].map(tier => {
+                    const bc = BADGE_COLORS[tier.color] || BADGE_COLORS.emerald;
+                    return (
+                    <div key={tier.label} className={`p-3 ${bc.bg} border ${bc.border} rounded-xl text-center`}>
+                      <p className={`text-sm font-black ${bc.text}`}>{tier.range}</p>
                       <p className="text-[9px] font-bold text-muted-foreground uppercase">{tier.label}</p>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -653,18 +668,21 @@ export default function SettingsPage() {
               { label: 'Synchronisation CRM', desc: 'Sync bi-directionnel avec CRM externe', key: 'crmSync', icon: RefreshCw, color: 'emerald' },
               { label: 'Google Calendar', desc: 'Synchroniser les RDV automatiquement', key: 'googleCalendar', icon: Calendar, color: 'blue' },
               { label: 'Slack Notifications', desc: 'Envoyer les alertes sur Slack', key: 'slackNotif', icon: MessageSquare, color: 'purple' },
-            ].map(int => (
+            ].map(int => {
+              const bc = BADGE_COLORS[int.color] || BADGE_COLORS.emerald;
+              return (
               <div key={int.key} className="bg-card border border-border rounded-2xl p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`w-10 h-10 rounded-xl bg-${int.color}-500/10 flex items-center justify-center`}>
-                    <int.icon className={`w-5 h-5 text-${int.color}-500`} />
+                  <div className={`w-10 h-10 rounded-xl ${bc.bg} flex items-center justify-center`}>
+                    <int.icon className={`w-5 h-5 ${bc.text}`} />
                   </div>
                   <Toggle value={integrations[int.key as keyof typeof integrations] as boolean} onChange={v => setIntegrations({ ...integrations, [int.key]: v })} />
                 </div>
                 <h4 className="text-xs font-black uppercase tracking-widest text-foreground">{int.label}</h4>
                 <p className="text-[10px] text-muted-foreground mt-1">{int.desc}</p>
               </div>
-            ))}
+              );
+            })}
           </div>
           <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
             <div className="p-6 border-b border-border bg-muted/20 flex items-center gap-3">
@@ -697,5 +715,6 @@ export default function SettingsPage() {
         </div>
       )}
     </div>
+    </>
   );
 }

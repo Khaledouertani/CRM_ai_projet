@@ -21,20 +21,20 @@ const STATUS_CONFIG: Record<string, { bg: string; text: string; label: string }>
 };
 
 const formatDuration = (minutes: number | null | undefined): string => {
-  if (!minutes) return '00:00';
+  if (minutes == null) return '—';
   const h = Math.floor(minutes / 60);
   const m = Math.floor(minutes % 60);
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
 };
 
 const BREAK_LABELS: Record<string, string> = {
-  cafe: 'Café',
-  dejeuner: 'Déjeuner',
-  priere: 'Prière',
-  technique: 'Technique',
-  personnelle: 'Personnelle',
-  reunion: 'Réunion',
-  formation: 'Formation',
+  'Café': 'Café',
+  'Déjeuner': 'Déjeuner',
+  'Permission': 'Permission',
+  'Réunion': 'Réunion',
+  'Perso': 'Perso',
+  'Technique': 'Technique',
+  'Formation': 'Formation',
 };
 
 export default function AdminDashboard() {
@@ -260,7 +260,7 @@ export default function AdminDashboard() {
                     <td className="p-4">
                       {detail?.status === 'break' && breakLabel ? (
                         <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 font-black uppercase text-[9px]">
-                          {breakLabel} ({detail.total_break_minutes}min)
+                          {breakLabel} ({detail.total_break_minutes ?? 0}min)
                         </span>
                       ) : (
                         <span className="text-muted-foreground">—</span>

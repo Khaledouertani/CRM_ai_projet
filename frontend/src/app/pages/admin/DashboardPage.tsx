@@ -10,6 +10,7 @@ import api from '../../services/api';
 import { useChartTheme } from '../../hooks/useChartTheme';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import toast from 'react-hot-toast';
 
 interface KPIData {
   totalCalls: number;
@@ -91,6 +92,7 @@ const [selectedProject, setSelectedProject] = useState("");
       }
     } catch (error) {
       console.error('Fetch error:', error);
+      toast.error(`Erreur: ${error instanceof Error ? error.message : 'chargement du tableau de bord'}`);
     } finally {
       setLoading(false);
     }

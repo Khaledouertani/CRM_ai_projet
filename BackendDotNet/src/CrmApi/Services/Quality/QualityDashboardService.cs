@@ -201,7 +201,7 @@ public class QualityDashboardService : IQualityDashboardService
             TotalCallsAnalyzed = callsToday.Count,
             ActiveAlerts = alertCount,
             TotalAgents = agents.Count,
-            PresentToday = todayAttendances.Count,
+            PresentToday = presentToday,
             TotalRdvToday = rdvToday.Count,
             TotalRdvMonth = rdvMonth.Count,
             WeeklyTrends = weeklyTrends
@@ -292,7 +292,11 @@ public class QualityDashboardService : IQualityDashboardService
             .Select(g => new { AgentName = g.Key, LastCall = g.Max(c => c.CallDate!.Value) })
             .ToListAsync();
 
-        var presentAgentNames = todayAttendances.Select(a => a.User?.Name).Where(n => n != null).ToHashSet();
+        var presentAgentNames = todayAttendances
+            .Where(a => a.Status == "active" || a.Status == "break")
+            .Select(a => a.User?.Name)
+            .Where(n => n != null)
+            .ToHashSet();
         foreach (var agentName in presentAgentNames)
         {
             if (!recentCalls.Any(r => r.AgentName == agentName))
@@ -366,13 +370,13 @@ public class QualityDashboardService : IQualityDashboardService
 
         var today = DateTime.UtcNow.Date;
         var monthStart = new DateTime(
-    today.Year,
-    today.Month,
-    1,
-    0,
-    0,
-    0,
-    DateTimeKind.Utc);
+            today.Year,
+            today.Month,
+            1,
+            0,
+            0,
+            0,
+            DateTimeKind.Utc);
         var lastMonthStart = monthStart.AddMonths(-1);
         var lastMonthEnd = monthStart.AddDays(-1);
 
@@ -418,6 +422,127 @@ public class QualityDashboardService : IQualityDashboardService
             })
             .ToListAsync();
 
+        // Calculate competencies profile from manual evaluations
+        var evalsForRadar = await _context.ManualEvaluations.AsNoTracking()
+            .Where(e => e.AgentId == agentId)
+            .ToListAsync();
+
+        double sumAccueil = 0, sumEnergie = 0, sumVoix = 0, sumEcoute = 0;
+        double sumClient = 0, sumOpe = 0, sumEfficacite = 0, sumConclusion = 0;
+        int countAccueil = 0, countEnergie = 0, countVoix = 0, countEcoute = 0;
+        int countClient = 0, countOpe = 0, countEfficacite = 0, countConclusion = 0;
+
+        foreach (var ev in evalsForRadar)
+        {
+            if (string.IsNullOrEmpty(ev.ScoresJson)) continue;
+            try
+            {
+                var dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, double>>(ev.ScoresJson);
+                if (dict == null) continue;
+
+                double GetVal(params string[] keys)
+                {
+                    foreach (var k in keys)
+                    {
+                        if (dict.TryGetValue(k, out var v)) return v;
+                    }
+                    return -1;
+                }
+
+                // Accueil
+                double acc1 = GetVal("score_accueil", "accueil");
+                double acc2 = GetVal("accueil_formule");
+                double acc3 = GetVal("accueil_sourire");
+                if (acc1 >= 0) { sumAccueil += acc1; countAccueil++; }
+                else if (acc2 >= 0 || acc3 >= 0)
+                {
+                    double accSum = 0; int accC = 0;
+                    if (acc2 >= 0) { accSum += acc2; accC++; }
+                    if (acc3 >= 0) { accSum += acc3; accC++; }
+                    sumAccueil += accSum / accC;
+                    countAccueil++;
+                }
+
+                // Energie
+                double nrg = GetVal("score_energie", "energie");
+                if (nrg >= 0) { sumEnergie += nrg; countEnergie++; }
+
+                // Voix
+                double vox = GetVal("score_voix", "voix");
+                if (vox >= 0) { sumVoix += vox; countVoix++; }
+
+                // Ecoute
+                double eco1 = GetVal("score_ecoute", "ecoute");
+                double eco2 = GetVal("decouverte_ecoute");
+                if (eco1 >= 0) { sumEcoute += eco1; countEcoute++; }
+                else if (eco2 >= 0) { sumEcoute += eco2; countEcoute++; }
+
+                // Client
+                double clt = GetVal("score_client", "client", "decouverte_besoin");
+                if (clt >= 0) { sumClient += clt; countClient++; }
+
+                // Ope
+                double ope1 = GetVal("score_ope", "ope");
+                double ope2 = GetVal("argumentaire_maitrise");
+                double ope3 = GetVal("argumentaire_objection");
+                if (ope1 >= 0) { sumOpe += ope1; countOpe++; }
+                else if (ope2 >= 0 || ope3 >= 0)
+                {
+                    double sumO = 0; int cO = 0;
+                    if (ope2 >= 0) { sumO += ope2; cO++; }
+                    if (ope3 >= 0) { sumO += ope3; cO++; }
+                    sumOpe += sumO / cO;
+                    countOpe++;
+                }
+
+                // Efficacite
+                double eff = GetVal("score_efficacite", "efficacite", "closing_recap");
+                if (eff >= 0) { sumEfficacite += eff; countEfficacite++; }
+
+                // Conclusion
+                double ccl1 = GetVal("score_conclusion", "conclusion");
+                double ccl2 = GetVal("closing_conge");
+                if (ccl1 >= 0) { sumConclusion += ccl1; countConclusion++; }
+                else if (ccl2 >= 0) { sumConclusion += ccl2; countConclusion++; }
+            }
+            catch { }
+        }
+
+        var skillsProfile = new List<RadarSkillDto>
+        {
+            new() { Subject = "Accueil", A = countAccueil > 0 ? Math.Round((sumAccueil / countAccueil) * 20.0, 1) : 0 },
+            new() { Subject = "Énergie", A = countEnergie > 0 ? Math.Round((sumEnergie / countEnergie) * 20.0, 1) : 0 },
+            new() { Subject = "Voix", A = countVoix > 0 ? Math.Round((sumVoix / countVoix) * 20.0, 1) : 0 },
+            new() { Subject = "Écoute", A = countEcoute > 0 ? Math.Round((sumEcoute / countEcoute) * 20.0, 1) : 0 },
+            new() { Subject = "Client", A = countClient > 0 ? Math.Round((sumClient / countClient) * 20.0, 1) : 0 },
+            new() { Subject = "Ope", A = countOpe > 0 ? Math.Round((sumOpe / countOpe) * 20.0, 1) : 0 },
+            new() { Subject = "Efficacité", A = countEfficacite > 0 ? Math.Round((sumEfficacite / countEfficacite) * 20.0, 1) : 0 },
+            new() { Subject = "Conclusion", A = countConclusion > 0 ? Math.Round((sumConclusion / countConclusion) * 20.0, 1) : 0 }
+        };
+
+        // Calculate qualifications distribution from Calls
+        int totalCallsCount = allCalls.Count;
+        int countRdv = allCalls.Count(c => c.Qualification != null && c.Qualification.Contains("RDV"));
+        int countRefus = allCalls.Count(c => c.Qualification != null && c.Qualification.Contains("REFUS"));
+        int countRappel = allCalls.Count(c => c.Qualification != null && c.Qualification.Contains("RAPPEL"));
+        int countRepondeur = allCalls.Count(c => c.Qualification != null && c.Qualification.Contains("REPONDEUR"));
+        int countHorsCible = allCalls.Count(c => c.Qualification != null && c.Qualification.Contains("HORS_CIBLE"));
+
+        double pctRdv = totalCallsCount > 0 ? Math.Round((double)countRdv / totalCallsCount * 100, 1) : 0;
+        double pctRefus = totalCallsCount > 0 ? Math.Round((double)countRefus / totalCallsCount * 100, 1) : 0;
+        double pctRappel = totalCallsCount > 0 ? Math.Round((double)countRappel / totalCallsCount * 100, 1) : 0;
+        double pctRepondeur = totalCallsCount > 0 ? Math.Round((double)countRepondeur / totalCallsCount * 100, 1) : 0;
+        double pctHorsCible = totalCallsCount > 0 ? Math.Round((double)countHorsCible / totalCallsCount * 100, 1) : 0;
+
+        var qualifDistribution = new List<QualificationDistributionDto>
+        {
+            new() { Name = "RDV", Value = pctRdv, Color = "#10b981" },
+            new() { Name = "Refus", Value = pctRefus, Color = "#ef4444" },
+            new() { Name = "Rappel", Value = pctRappel, Color = "#f59e0b" },
+            new() { Name = "Répondeur", Value = pctRepondeur, Color = "#64748b" },
+            new() { Name = "Hors cible", Value = pctHorsCible, Color = "#3b82f6" }
+        };
+
         return new AgentDetailDto
         {
             UserId = agentId,
@@ -428,7 +553,9 @@ public class QualityDashboardService : IQualityDashboardService
             RdvThisMonth = rdvThisMonth,
             ConversionRate = conversionRate,
             Trend = trend,
-            RecentEvaluations = recentEvals
+            RecentEvaluations = recentEvals,
+            SkillsProfile = skillsProfile,
+            QualificationDistribution = qualifDistribution
         };
     }
 

@@ -84,6 +84,22 @@ public class AgentDetailDto
     public double ConversionRate { get; set; }
     public string Trend { get; set; } = "stable";
     public List<EvaluationHistoryRowDto> RecentEvaluations { get; set; } = new();
+    public List<RadarSkillDto> SkillsProfile { get; set; } = new();
+    public List<QualificationDistributionDto> QualificationDistribution { get; set; } = new();
+}
+
+public class RadarSkillDto
+{
+    public string Subject { get; set; } = string.Empty;
+    public double A { get; set; }
+    public int FullMark { get; set; } = 100;
+}
+
+public class QualificationDistributionDto
+{
+    public string Name { get; set; } = string.Empty;
+    public double Value { get; set; }
+    public string Color { get; set; } = string.Empty;
 }
 
 public class RdvJourDto

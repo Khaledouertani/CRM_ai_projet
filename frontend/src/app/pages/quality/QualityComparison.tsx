@@ -51,7 +51,7 @@ export default function QualityComparison() {
       try {
         const data = await fetchAgents();
         setAgents(data);
-        if (data.length > 0) setSelectedAgentId(data[0].agent_id);
+        if (data.length > 0) setSelectedAgentId(data[0].id);
       } catch (e) {
         console.error('Failed to fetch agents', e);
       } finally {
@@ -82,6 +82,7 @@ export default function QualityComparison() {
     if (!performance) return [];
     const c = performance.current_month;
     const p = performance.previous_month;
+    if (!c || !p) return [];
     const calc = (curr: number, prev: number) => prev === 0 ? 0 : ((curr - prev) / prev) * 100;
     return [
       { kpi: 'Appels', previous: p.calls, current: c.calls, unit: '', evolution: calc(c.calls, p.calls) },
@@ -96,6 +97,7 @@ export default function QualityComparison() {
     if (!performance) return [];
     const c = performance.current_month;
     const p = performance.previous_month;
+    if (!c || !p) return [];
     return [
       { name: 'Appels', previous: p.calls, current: c.calls },
       { name: 'RDV', previous: p.appointments, current: c.appointments },
@@ -135,8 +137,8 @@ export default function QualityComparison() {
               Choisir un agent...
             </option>
             {agents.map((agent, idx) => (
-              <option key={`agent-${agent.agent_id}-${idx}`} value={agent.agent_id}>
-                {agent.agent_name}
+              <option key={`agent-${agent.id}-${idx}`} value={agent.id}>
+                {agent.name}
               </option>
             ))}
           </select>

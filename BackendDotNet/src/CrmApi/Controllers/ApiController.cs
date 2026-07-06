@@ -24,20 +24,6 @@ public class ApiController : ControllerBase
         _rgpdService = rgpdService;
     }
 
-    [HttpGet("attendance/team-report")]
-    public async Task<IActionResult> TeamReport()
-    {
-        try { return Ok(await _attendanceService.GetTeamReportAsync()); }
-        catch (Exception ex) { return Problem(ex.Message); }
-    }
-
-    [HttpGet("attendance/team-status")]
-    public async Task<IActionResult> TeamStatus()
-    {
-        try { return Ok(await _attendanceService.GetTeamStatusAsync()); }
-        catch (Exception ex) { return Problem(ex.Message); }
-    }
-
     [HttpPost("attendance/check")]
     public async Task<IActionResult> CheckAttendance([FromBody] AttendanceCheckRequestDto dto)
     {

@@ -105,7 +105,7 @@ export const login = async (username: string, password: string): Promise<LoginRe
 
   if (!response.ok) {
     let detail = 'Login failed';
-    try { const e = await response.json(); detail = e.detail || detail; } catch {}
+    try { const e = await response.json(); detail = e.detail || detail; } catch { }
     throw new Error(detail);
   }
 
@@ -139,7 +139,7 @@ export const createUser = async (userData: any): Promise<any> => {
 
   if (!response.ok) {
     let detail = 'Failed to create user';
-    try { const e = await response.json(); detail = e.detail || detail; } catch {}
+    try { const e = await response.json(); detail = e.detail || detail; } catch { }
     throw new Error(detail);
   }
 
@@ -154,7 +154,7 @@ export const deleteUser = async (userId: number): Promise<any> => {
 
   if (!response.ok) {
     let detail = 'Failed to delete user';
-    try { const e = await response.json(); detail = e.detail || detail; } catch {}
+    try { const e = await response.json(); detail = e.detail || detail; } catch { }
     throw new Error(detail);
   }
 
@@ -173,7 +173,7 @@ export const updateUser = async (userId: number, userData: any): Promise<any> =>
 
   if (!response.ok) {
     let detail = 'Failed to update user';
-    try { const e = await response.json(); detail = e.detail || detail; } catch {}
+    try { const e = await response.json(); detail = e.detail || detail; } catch { }
     throw new Error(detail);
   }
 
@@ -188,7 +188,7 @@ export const forgotPassword = async (email: string): Promise<any> => {
 
   if (!response.ok) {
     let detail = 'Failed to send reset email';
-    try { const e = await response.json(); detail = e.detail || detail; } catch {}
+    try { const e = await response.json(); detail = e.detail || detail; } catch { }
     throw new Error(detail);
   }
 
@@ -204,7 +204,7 @@ export const resetPassword = async (token: string, new_password: string): Promis
 
   if (!response.ok) {
     let detail = 'Failed to reset password';
-    try { const e = await response.json(); detail = e.detail || detail; } catch {}
+    try { const e = await response.json(); detail = e.detail || detail; } catch { }
     throw new Error(detail);
   }
 
@@ -282,13 +282,14 @@ export const getCallDetail = async (callId: number): Promise<Call> => {
 // ============================================================
 
 export const getStats = async (agent_name?: string): Promise<Stats> => {
-  const queryParams = agent_name ? `?agent_name=${agent_name}` : '';
-  const response = await fetch(`${API_BASE}/stats${queryParams}`, {
+  const queryParams = agent_name ? `?agentName=${agent_name}` : '';
+
+  const response = await fetch(`${API_BASE}/calls/stats${queryParams}`, {
     headers: getAuthHeaders(),
   });
 
   if (!response.ok) {
-    throw new Error('Failed to get stats');
+    throw new Error("Failed to get stats");
   }
 
   return response.json();
@@ -335,7 +336,7 @@ export const getPerformanceComparison = async (month?: string, agentId?: number)
   let url = `${API_BASE}/performance/comparison?`;
   if (month) url += `month=${month}&`;
   if (agentId) url += `agent_id=${agentId}&`;
-  
+
   const response = await fetch(url, {
     headers: getAuthHeaders(),
   });
@@ -383,7 +384,7 @@ export const createSalaryRule = async (data: any): Promise<any> => {
   });
   if (!response.ok) {
     let detail = 'Failed to create rule';
-    try { const e = await response.json(); detail = e.detail || detail; } catch {}
+    try { const e = await response.json(); detail = e.detail || detail; } catch { }
     throw new Error(detail);
   }
   return response.json();
@@ -397,7 +398,7 @@ export const updateSalaryRule = async (ruleId: number, data: any): Promise<any> 
   });
   if (!response.ok) {
     let detail = 'Failed to update rule';
-    try { const e = await response.json(); detail = e.detail || detail; } catch {}
+    try { const e = await response.json(); detail = e.detail || detail; } catch { }
     throw new Error(detail);
   }
   return response.json();
@@ -561,7 +562,7 @@ export const analyzeCall = async (file: File, agentName: string): Promise<Analys
 
   if (!response.ok) {
     let detail = 'Analysis failed';
-    try { const e = await response.json(); detail = e.error || e.detail || detail; } catch {}
+    try { const e = await response.json(); detail = e.error || e.detail || detail; } catch { }
     throw new Error(detail);
   }
 
@@ -610,7 +611,10 @@ export const getAnalyticsOverview = async (): Promise<any> => {
   const response = await fetch(`${API_BASE}/analytics/overview`, {
     headers: getAuthHeaders(),
   });
-  if (!response.ok) throw new Error('Failed to get analytics');
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ detail: 'Failed to get analytics' }));
+    throw new Error(err.detail || err.title || 'Failed to get analytics');
+  }
   return response.json();
 };
 
@@ -711,7 +715,10 @@ export const startBreak = async (type: string): Promise<any> => {
     },
     body: JSON.stringify({ type }),
   });
-  if (!response.ok) throw new Error('Failed to start break');
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ error: 'Failed to start break' }));
+    return { success: false, message: err.error || 'Failed to start break' };
+  }
   return response.json();
 };
 
@@ -720,7 +727,14 @@ export const endBreak = async (): Promise<any> => {
     method: 'POST',
     headers: getAuthHeaders(),
   });
-  if (!response.ok) throw new Error('Failed to end break');
+  if (!response.ok) {
+    try {
+      const err = await response.json();
+      return { success: false, message: err.message || err.detail || err.error || 'Failed to end break' };
+    } catch {
+      return { success: false, message: 'Failed to end break' };
+    }
+  }
   return response.json();
 };
 
@@ -748,7 +762,7 @@ export const updateAttendance = async (
   );
   if (!response.ok) {
     let detail = 'Failed to update attendance';
-    try { const e = await response.json(); detail = e.error || e.detail || detail; } catch {}
+    try { const e = await response.json(); detail = e.error || e.detail || detail; } catch { }
     throw new Error(detail);
   }
   return response.json();
@@ -757,8 +771,20 @@ export const updateAttendance = async (
 export const getAttendanceReport = async (): Promise<any> => {
   const response = await fetch(`${API_BASE}/attendance/report`, {
     headers: getAuthHeaders(),
+
   });
   if (!response.ok) throw new Error('Failed to get attendance report');
+  return response.json();
+
+};
+export const getTeamAttendanceDetail = async (): Promise<any> => {
+  const response = await fetch(`${API_BASE}/attendance/team-detail`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok)
+    throw new Error("Failed to get team attendance detail");
+
   return response.json();
 };
 
@@ -808,7 +834,7 @@ export const createAppointment = async (data: any): Promise<any> => {
   });
   if (!response.ok) {
     let detail = 'Failed to create appointment';
-    try { const e = await response.json(); detail = e.error || e.detail || detail; } catch {}
+    try { const e = await response.json(); detail = e.error || e.detail || detail; } catch { }
     throw new Error(detail);
   }
   return response.json();
@@ -822,7 +848,7 @@ export const updateAppointment = async (id: number, data: any): Promise<any> => 
   });
   if (!response.ok) {
     let detail = 'Failed to update appointment';
-    try { const e = await response.json(); detail = e.error || e.detail || detail; } catch {}
+    try { const e = await response.json(); detail = e.error || e.detail || detail; } catch { }
     throw new Error(detail);
   }
   return response.json();
@@ -889,7 +915,7 @@ export const saveAgentData = async (data: any): Promise<any> => {
   });
   if (!response.ok) {
     let detail = 'Failed to save agent data';
-    try { const e = await response.json(); detail = e.detail || e.message || detail; } catch {}
+    try { const e = await response.json(); detail = e.detail || e.message || detail; } catch { }
     throw new Error(detail);
   }
   return response.json();
@@ -899,7 +925,7 @@ export const getAgentSavedData = async (): Promise<any> => {
   const response = await fetch(`${API_BASE}/agents/saved`, { headers: getAuthHeaders() });
   if (!response.ok) {
     let detail = 'Failed to get agent saved data';
-    try { const e = await response.json(); detail = e.detail || e.message || detail; } catch {}
+    try { const e = await response.json(); detail = e.detail || e.message || detail; } catch { }
     throw new Error(detail);
   }
   return response.json();
@@ -1030,7 +1056,7 @@ export const saveCall = async (callData: SaveCallRequest): Promise<any> => {
 
   if (!response.ok) {
     let detail = 'Failed to save call';
-    try { const e = await response.json(); detail = e.detail || detail; } catch {}
+    try { const e = await response.json(); detail = e.detail || detail; } catch { }
     throw new Error(detail);
   }
 
@@ -1043,7 +1069,7 @@ export const saveCall = async (callData: SaveCallRequest): Promise<any> => {
 
 export const saveWeights = async (weights: any): Promise<any> => {
   const response = await fetch(`${API_BASE}/config/weights`, {
-    method: 'POST',
+    method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
       ...getAuthHeaders(),
@@ -1133,13 +1159,13 @@ export const api = {
   resetData,
 
   // Appointments
-  
+
   getAppointments,
   getAppointmentDetail,
   createAppointment,
   updateAppointment,
   deleteAppointment,
-  
+
 
   // AI Scoring
   aiScore,

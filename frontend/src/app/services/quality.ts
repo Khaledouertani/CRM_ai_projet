@@ -22,8 +22,8 @@ export interface RdvPerAgent {
 }
 
 export interface Agent {
-  agent_id: number;
-  agent_name: string;
+  id: number;
+  name: string;
 }
 
 import { getAgents, getAuthHeaders, API_BASE } from "./api";

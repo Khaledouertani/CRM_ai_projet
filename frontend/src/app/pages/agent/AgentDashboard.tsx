@@ -91,14 +91,21 @@ function AttendanceManager() {
   };
 
   const applyServerStatus = (data: any) => {
-    if (!data) return;
-    setStatus(data);
-    if (data.status === 'break' && data.start_time) {
-      startTimer(new Date(data.start_time).getTime());
-    } else {
-      stopTimer();
-    }
-  };
+  if (!data) return;
+
+  // Convert active -> online
+  if (data.status === "active") {
+    data.status = "online";
+  }
+
+  setStatus(data);
+
+  if (data.status === "break" && data.start_time) {
+    startTimer(new Date(data.start_time).getTime());
+  } else {
+    stopTimer();
+  }
+};
 
   const fetchStatus = async () => {
     try {
@@ -185,17 +192,17 @@ function AttendanceManager() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${
-            status?.status === 'online' ? 'bg-emerald-500 text-white shadow-emerald-500/20' :
+            status?.status === 'online' || status?.status === 'active' ? 'bg-emerald-500 text-white shadow-emerald-500/20' :
             status?.status === 'break' ? 'bg-amber-500 text-white shadow-amber-500/20' :
             'bg-slate-500 text-white shadow-slate-500/20'
           }`}>
-            <Clock className={`w-7 h-7 ${status?.status === 'online' ? 'animate-pulse' : ''}`} />
+            <Clock className={`w-7 h-7 ${status?.status === 'online' || status?.status === 'active'? 'animate-pulse' : ''}`} />
           </div>
           <div>
             <h3 className="text-lg font-black uppercase italic tracking-tighter">Mon <span className="text-primary">Pointage</span></h3>
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-              Statut : <span className={status?.status === 'online' ? 'text-emerald-500' : status?.status === 'break' ? 'text-amber-500' : 'text-slate-500'}>
-                {status?.status === 'online' ? 'EN POSTE' : status?.status === 'break' ? `EN PAUSE (${breakLabel})` : 'HORS LIGNE'}
+              Statut : <span className={status?.status === 'online' || status?.status === 'active' ? 'text-emerald-500' : status?.status === 'break' ? 'text-amber-500' : 'text-slate-500'}>
+                {status?.status === 'online' || status?.status === 'active' ? 'EN POSTE' : status?.status === 'break' ? `EN PAUSE (${breakLabel})` : 'HORS LIGNE'}
               </span>
             </p>
             {status?.status === 'break' && (
@@ -213,7 +220,7 @@ function AttendanceManager() {
             </button>
           ) : (
             <>
-              {status?.status === 'online' ? (
+              {status?.status === 'online' || status?.status === 'active' ? (
                 <div className="flex flex-wrap gap-2">
                   {BREAK_OPTIONS.map(opt => (
                     <button

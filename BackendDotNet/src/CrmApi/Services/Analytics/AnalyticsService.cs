@@ -16,6 +16,20 @@ public class AnalyticsService : IAnalyticsService
         var today = DateTime.UtcNow.Date;
         var callsToday = calls.Count(c => c.CallDate.HasValue && c.CallDate.Value.Date == today);
 
+        var avgDuration = 0.0;
+        var callsWithDuration = calls.Where(c => c.CallDuration.HasValue).ToList();
+        if (callsWithDuration.Count > 0)
+            avgDuration = Math.Round(callsWithDuration.Average(c => c.CallDuration!.Value), 1);
+
+        var followups = await _context.Followups.AsNoTracking().ToListAsync();
+        var pendingFollowups = followups.Count(f => f.Status == "a_relancer");
+
+        var thisMonth = new DateTime(today.Year, today.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var monthCalls = calls.Count(c => c.CallDate.HasValue && c.CallDate.Value >= thisMonth);
+        var monthAppointments = await _context.CrmAppointments.AsNoTracking()
+            .CountAsync(r => r.AppointmentDate >= thisMonth && r.AppointmentDate <= today);
+        var conversionRate = monthCalls > 0 ? Math.Round((double)monthAppointments / monthCalls * 100, 1) : 0;
+
         return new OverviewDto
         {
             TotalCalls = calls.Count,
@@ -36,9 +50,9 @@ public class AnalyticsService : IAnalyticsService
             },
             CallsToday = callsToday,
             ActiveAgents = calls.Where(c => c.CallDate.HasValue && c.CallDate.Value.Date == today).Select(c => c.AgentName).Distinct().Count(),
-            ConversionRate = 0,
-            PendingFollowups = 0,
-            AvgDuration = 0
+            ConversionRate = conversionRate,
+            PendingFollowups = pendingFollowups,
+            AvgDuration = avgDuration
         };
     }
 
@@ -97,9 +111,12 @@ public class AnalyticsService : IAnalyticsService
         };
     }
 
-    public async Task<List<CallsLogDto>> GetCallsLogAsync(int limit)
+    public async Task<List<CallsLogDto>> GetCallsLogAsync(int limit, string? agentName = null)
     {
-        return await _context.Calls.AsNoTracking().OrderByDescending(c => c.CallDate).Take(limit).Select(c => new CallsLogDto
+        var query = _context.Calls.AsNoTracking().AsQueryable();
+        if (!string.IsNullOrEmpty(agentName))
+            query = query.Where(c => c.AgentName == agentName);
+        return await query.OrderByDescending(c => c.CallDate).Take(limit).Select(c => new CallsLogDto
         {
             CallId = c.Id,
             AgentName = c.AgentName,
@@ -109,7 +126,11 @@ public class AnalyticsService : IAnalyticsService
             Performance = c.Performance,
             CustomerIntent = c.CustomerIntent,
             InactivityDetected = c.InactivityDetected,
-            DiarizationMethod = c.DiarizationMethod
+            DiarizationMethod = c.DiarizationMethod,
+            CallDuration = c.CallDuration,
+            Summary = c.Summary,
+            NextSteps = c.NextSteps,
+            Qualification = c.Qualification
         }).ToListAsync();
     }
 
@@ -117,19 +138,76 @@ public class AnalyticsService : IAnalyticsService
     {
         var today = DateTime.UtcNow.Date;
         var calls = await _context.Calls.AsNoTracking().Where(c => c.CallDate.HasValue && c.CallDate.Value.Date == today).ToListAsync();
-        return calls.GroupBy(c => c.AgentName).Select(g => (object)new { agent = g.Key, first_call = g.Min(c => c.CallDate), last_call = g.Max(c => c.CallDate), total_calls = g.Count(), productive_time = (g.Max(c => c.CallDate) - g.Min(c => c.CallDate))?.TotalMinutes ?? 0, status = "online" }).ToList();
+
+        var allAttendances = await _context.Attendances.AsNoTracking()
+            .Include(a => a.User)
+            .Where(a => a.Date == today && (a.Status == "active" || a.Status == "break"))
+            .ToListAsync();
+        var attendances = allAttendances
+            .GroupBy(a => a.UserId)
+            .Select(g => g.OrderByDescending(a => a.Id).First())
+            .ToList();
+
+        return calls.GroupBy(c => c.AgentName).Select(g =>
+        {
+            var agentName = g.Key;
+            var attendance = attendances.FirstOrDefault(a => a.User?.Name == agentName);
+            return (object)new
+            {
+                agent = agentName,
+                first_call = g.Min(c => c.CallDate),
+                last_call = g.Max(c => c.CallDate),
+                total_calls = g.Count(),
+                productive_time = (g.Max(c => c.CallDate) - g.Min(c => c.CallDate))?.TotalMinutes ?? 0,
+                status = attendance?.Status ?? "offline"
+            };
+        }).ToList();
     }
 
     public async Task<List<object>> GetLiveAgentsAsync()
     {
-        var users = await _context.Users.AsNoTracking().Where(u => u.Role == Models.Entities.UserRole.Agent).ToListAsync();
-        return users.Select(u => (object)new { id = u.Id, name = u.Name, status = "online", calls = 0, idleTime = 0, score = 0, breakType = "" }).ToList();
+        var today = DateTime.UtcNow.Date;
+        var users = await _context.Users.AsNoTracking()
+            .Where(u => u.Role == Models.Entities.UserRole.Agent)
+            .ToListAsync();
+
+        var allAttendances = await _context.Attendances.AsNoTracking()
+            .Include(a => a.Breaks)
+            .Where(a => a.Date == today && (a.Status == "active" || a.Status == "break"))
+            .ToListAsync();
+        var latestByUser = allAttendances
+            .GroupBy(a => a.UserId)
+            .Select(g => g.OrderByDescending(a => a.Id).First())
+            .ToList();
+
+        var agentCallCounts = await _context.Calls.AsNoTracking()
+            .Where(c => c.CallDate.HasValue && c.CallDate.Value.Date == today)
+            .GroupBy(c => c.AgentName)
+            .Select(g => new { Name = g.Key, Count = g.Count(), AvgScore = Math.Round(g.Average(c => c.ScorePercentage), 1) })
+            .ToListAsync();
+
+        return users.Select(u =>
+        {
+            var att = latestByUser.FirstOrDefault(a => a.UserId == u.Id);
+            var openBreak = att?.Breaks?.Where(b => b.EndTime == null).OrderByDescending(b => b.Id).FirstOrDefault();
+            var callData = agentCallCounts.FirstOrDefault(c => c.Name == u.Name);
+            return (object)new
+            {
+                id = u.Id,
+                name = u.Name,
+                status = att?.Status ?? "offline",
+                calls = callData?.Count ?? 0,
+                idleTime = 0,
+                score = callData?.AvgScore ?? 0,
+                breakType = openBreak?.Type ?? ""
+            };
+        }).ToList();
     }
 
     public async Task<ComparisonDto> GetComparisonAsync()
     {
         var now = DateTime.UtcNow;
-        var thisMonth = new DateTime(now.Year, now.Month, 1);
+        var thisMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
         var lastMonth = thisMonth.AddMonths(-1);
         var calls = await _context.Calls.AsNoTracking().Where(c => c.CallDate.HasValue).ToListAsync();
 
@@ -165,8 +243,8 @@ public class AnalyticsService : IAnalyticsService
             {
                 Total = (int)CalcTotal(weekCalls),
                 AvgScore = weekAvg,
-                Evolution = 0,
-                ScoreEvol = 0
+                Evolution = CalcEvolution(weekCalls.Count, dayCalls.Count),
+                ScoreEvol = CalcEvolution(weekAvg, dayAvg)
             },
             Month = new ComparisonPeriodDto
             {

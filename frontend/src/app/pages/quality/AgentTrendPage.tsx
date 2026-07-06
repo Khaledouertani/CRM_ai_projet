@@ -26,7 +26,7 @@ export default function AgentTrendPage() {
       try {
         const data = await fetchAgents();
         setAgents(data);
-        if (data.length > 0) setSelectedAgentId(data[0].agent_id);
+        if (data.length > 0) setSelectedAgentId(data[0].id);
       } catch (e) {
         console.error('Failed to fetch agents', e);
       } finally {
@@ -58,7 +58,7 @@ export default function AgentTrendPage() {
     if (!loading && !performance) {
       const mockPerf: AgentPerformance = {
         agent_id: selectedAgentId ?? 0,
-        agent_name: agents.find(a => a.agent_id === selectedAgentId)?.agent_name || 'Agent Demo',
+        agent_name: agents.find(a => a.id === selectedAgentId)?.name || 'Agent Demo',
         current_month: {
           calls: 320,
           appointments: 45,
@@ -91,6 +91,7 @@ export default function AgentTrendPage() {
   const generateSummary = () => {
     if (!performance) return '';
     const { current_month, previous_month, agent_name } = performance;
+    if (!current_month || !previous_month) return '';
     const callsVar = variation(current_month.calls, previous_month.calls);
     const convVar = variation(current_month.conversion_rate, previous_month.conversion_rate);
     const scoreVar = variation(current_month.quality_score, previous_month.quality_score);
@@ -159,7 +160,7 @@ export default function AgentTrendPage() {
           >
             <option value="" disabled>Choisir un agent...</option>
             {agents.map(agent => (
-              <option key={agent.agent_id} value={agent.agent_id}>{agent.agent_name}</option>
+              <option key={agent.id} value={agent.id}>{agent.name}</option>
             ))}
           </select>
           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />

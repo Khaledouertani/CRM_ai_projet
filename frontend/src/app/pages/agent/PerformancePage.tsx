@@ -1,17 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Award, Target, MessageSquare, Calendar, ArrowUp, ArrowDown, Loader2, Search, Filter, ChevronDown, ChevronUp, Phone, Clock } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
+import {
+  TrendingUp, TrendingDown, Award, Target, MessageSquare, Calendar,
+  ArrowUp, ArrowDown, Loader2, Search, Filter,
+  ChevronDown, ChevronUp, Phone, Clock, BrainCircuit,
+  Star, Zap, Activity, BarChart3, ChevronsUpDown,
+  CheckCircle2, AlertTriangle, Sparkles, User, Users
+} from 'lucide-react';
+import {
+  LineChart, Line, BarChart, Bar, RadarChart, PolarGrid,
+  PolarAngleAxis, PolarRadiusAxis, Radar, XAxis, YAxis,
+  CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  AreaChart, Area
+} from 'recharts';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 import { useChartTheme } from '../../hooks/useChartTheme';
+import { Skeleton } from '../../components/ui/skeleton';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '../../components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '../../components/ui/popover';
 
-const weeklyData = [
-  { day: 'Lun', score: 78, appels: 45, conversions: 28 },
-  { day: 'Mar', score: 82, appels: 52, conversions: 31 },
-  { day: 'Mer', score: 85, appels: 48, conversions: 35 },
-  { day: 'Jeu', score: 88, appels: 56, conversions: 38 },
-  { day: 'Ven', score: 92, appels: 54, conversions: 40 }
-];
+type TabId = 'overview' | 'skills' | 'history';
 
 const skillsData = [
   { skill: 'Écoute', value: 95 },
@@ -22,24 +41,48 @@ const skillsData = [
   { skill: 'Closing', value: 90 }
 ];
 
-const suggestions = [
-  { id: 1, type: 'success', title: 'Excellent travail sur l\'écoute active', description: 'Vos temps de silence et vos reformulations sont très bien maîtrisés.' },
-  { id: 2, type: 'improvement', title: 'Améliorer la gestion des objections', description: 'Prenez plus de temps pour comprendre la vraie raison derrière l\'objection avant de répondre.' },
-  { id: 3, type: 'tip', title: 'Astuce : Technique du silence', description: 'Après avoir posé une question importante, laissez un silence de 3-5 secondes pour que le client réfléchisse.' }
+const weeklyData = [
+  { day: 'Lun', score: 78, appels: 45, conversions: 28 },
+  { day: 'Mar', score: 82, appels: 52, conversions: 31 },
+  { day: 'Mer', score: 85, appels: 48, conversions: 35 },
+  { day: 'Jeu', score: 88, appels: 56, conversions: 38 },
+  { day: 'Ven', score: 92, appels: 54, conversions: 40 }
 ];
 
-const callHistory = [
-  { id: 1, date: '2026-04-01', time: '14:23', company: 'Société ABC', contact: 'Jean Dupont', duration: '5:32', result: 'Converti', score: 95, notes: 'Client très intéressé, bon feeling', aiSummary: 'Prospect qualifié avec un besoin immédiat. Budget confirmé. Décision rapide attendue.' },
-  { id: 2, date: '2026-04-01', time: '14:10', company: 'Entreprise XYZ', contact: 'Marie Martin', duration: '3:15', result: 'Refusé', score: 72, notes: 'Pas de budget pour l\'instant', aiSummary: 'Budget insuffisant. Pas de besoin identifié à court terme.' },
-  { id: 3, date: '2026-04-01', time: '13:55', company: 'Solutions Pro', contact: 'Pierre Leroy', duration: '8:45', result: 'Converti', score: 98, notes: 'Excellent contact, signature prévue', aiSummary: 'Décision positive. Excellent rapport. Signature imminente.' },
-  { id: 4, date: '2026-04-01', time: '13:40', company: 'Tech Innovate', contact: 'Sophie Bernard', duration: '2:30', result: 'Rappel', score: 85, notes: 'Doit consulter son équipe', aiSummary: 'Intérêt confirmé. Validation interne nécessaire. Rappel à planifier dans 48h.' },
-  { id: 5, date: '2026-04-01', time: '13:20', company: 'Digital Services', contact: 'Luc Moreau', duration: '6:12', result: 'Converti', score: 91, notes: 'Contrat signé pendant l\'appel', aiSummary: 'Conversion réussie. Excellent échange commercial. Client satisfait.' },
-  { id: 6, date: '2026-03-31', time: '17:30', company: 'Startup Alpha', contact: 'Emma Dubois', duration: '4:18', result: 'Rappel', score: 78, notes: 'Intéressée mais occupe', aiSummary: 'Prospect prometteur. Occupée actuellement. Meilleur moment : matin.' },
-  { id: 7, date: '2026-03-31', time: '16:45', company: 'Industries Beta', contact: 'Thomas Petit', duration: '7:20', result: 'Converti', score: 93, notes: 'Deal important, très satisfait', aiSummary: 'Gros contrat. Client enthousiaste. Recommandations possibles.' },
-  { id: 8, date: '2026-03-31', time: '15:22', company: 'Commerce Gamma', contact: 'Julie Roux', duration: '1:45', result: 'Refusé', score: 65, notes: 'Mauvais timing', aiSummary: 'Contexte défavorable. Pas de besoin actuel. Ne pas recontacter.' }
-];
+function KPISkeleton() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {[1, 2, 3, 4].map(i => (
+        <div key={i} className="bg-card border border-border p-5 rounded-2xl">
+          <Skeleton className="w-10 h-10 rounded-xl mb-3" />
+          <Skeleton className="h-8 w-24 mb-2" />
+          <Skeleton className="h-3 w-28" />
+        </div>
+      ))}
+    </div>
+  );
+}
 
-type TabId = 'overview' | 'comparison' | 'skills' | 'history';
+function ChartSkeleton({ height = 280 }: { height?: number }) {
+  return (
+    <div className="bg-card border border-border rounded-2xl p-6">
+      <Skeleton className="h-4 w-44 mb-6" />
+      <Skeleton className="w-full rounded-lg" style={{ height: `${height}px` }} />
+    </div>
+  );
+}
+
+function EmptyState({ icon: Icon, title, description }: { icon: any; title: string; description: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center mb-4">
+        <Icon className="w-8 h-8 text-primary/40" />
+      </div>
+      <p className="text-sm font-bold text-foreground mb-1">{title}</p>
+      <p className="text-xs text-muted-foreground max-w-xs">{description}</p>
+    </div>
+  );
+}
 
 export default function PerformancePage() {
   const chartTheme = useChartTheme();
@@ -47,6 +90,10 @@ export default function PerformancePage() {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [loading, setLoading] = useState(false);
   const [comparison, setComparison] = useState<any>(null);
+  const [callsLog, setCallsLog] = useState<any[]>([]);
+  const [agents, setAgents] = useState<any[]>([]);
+  const [selectedAgentName, setSelectedAgentName] = useState<string>('');
+  const [selectOpen, setSelectOpen] = useState(false);
 
   // History tab state
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,33 +101,57 @@ export default function PerformancePage() {
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
 
   useEffect(() => {
-    loadComparison();
-  }, []);
+    if (user?.name) {
+      setSelectedAgentName(user.name);
+    }
+  }, [user]);
 
-  const loadComparison = async () => {
+  useEffect(() => {
+    if (selectedAgentName) {
+      loadData();
+      loadAgentsList();
+    }
+  }, [selectedAgentName]);
+
+  const loadAgentsList = async () => {
+    try {
+      const data = await api.getAllAgentsPerformance();
+      const names = data.map((a: any) => a.agent_name || a.name).filter(Boolean);
+      setAgents(prev => {
+        const currentNames = new Set(prev.map(a => a.name));
+        const newAgents = names.filter((n: string) => !currentNames.has(n)).map((n: string) => ({ name: n }));
+        return [...prev, ...newAgents];
+      });
+    } catch {
+      // Silently fail - agents list is optional
+    }
+  };
+
+  const loadData = async () => {
     setLoading(true);
     try {
-      const data = await api.getPerformanceComparison();
-      setComparison(data);
+      const [compData, callsData] = await Promise.allSettled([
+        selectedAgentName ? api.getPerformanceTrendByName(selectedAgentName) : api.getPerformanceComparison(),
+        api.getCallsLog(50)
+      ]);
+      if (compData.status === 'fulfilled') setComparison(compData.value);
+      if (callsData.status === 'fulfilled') {
+        const calls = (callsData.value || []).map((c: any) => ({
+          id: c.callId,
+          date: c.callDate ? new Date(c.callDate).toLocaleDateString('fr-FR') : '',
+          time: c.callDate ? new Date(c.callDate).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '',
+          company: c.customerIntent || '',
+          contact: c.agentName || '',
+          duration: c.callDuration ? `${Math.floor(c.callDuration / 60)}m${c.callDuration % 60}s` : '',
+          result: c.performance || '',
+          score: c.scorePercentage || 0,
+          notes: c.nextSteps || '',
+          aiSummary: c.summary || ''
+        }));
+        setCallsLog(calls);
+      }
     } catch (e) {
-      setComparison({
-        current_month: { total_calls: 142, avg_score: 78, conversions: 25, refusal_rate: 15, avg_duration: 225 },
-        previous_month: { total_calls: 128, avg_score: 74, conversions: 23, refusal_rate: 18, avg_duration: 210 },
-        evolution: { total_calls: 10.9, avg_score: 5.4, conversions: 8.7, refusal_rate: -16.7, avg_duration: 7.1 },
-        monthly_data: [
-          { month: 'Jan', calls: 98, score: 72, conversions: 15, refusals: 20 },
-          { month: 'Fév', calls: 105, score: 74, conversions: 18, refusals: 18 },
-          { month: 'Mar', calls: 112, score: 75, conversions: 20, refusals: 17 },
-          { month: 'Avr', calls: 118, score: 76, conversions: 21, refusals: 16 },
-          { month: 'Mai', calls: 125, score: 78, conversions: 22, refusals: 15 },
-          { month: 'Juin', calls: 142, score: 78, conversions: 25, refusals: 15 }
-        ],
-        rendement_status: "diminué",
-        mistakes: [
-          "Votre score global a baissé de 2.5%.",
-          "Plus d'incohérences de qualification ce mois-ci (3 erreurs)."
-        ]
-      });
+      console.error('Error loading data:', e);
     } finally {
       setLoading(false);
     }
@@ -107,432 +178,475 @@ export default function PerformancePage() {
   };
 
   const tabs = [
-    { id: 'overview' as TabId, label: 'Vue Globale' },
-    { id: 'skills' as TabId, label: 'Compétences' },
-    { id: 'history' as TabId, label: 'Historique' }
+    { id: 'overview' as TabId, label: 'Vue Globale', icon: BarChart3 },
+    { id: 'skills' as TabId, label: 'Compétences', icon: Zap },
+    { id: 'history' as TabId, label: 'Historique', icon: Clock }
   ];
 
-  const filteredCalls = callHistory.filter(call => {
-    const matchesSearch = call.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         call.contact.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterResult === 'all' || call.result === filterResult;
+  const monthlyChartData = comparison?.monthly_data || [];
+  const currentMonth = comparison?.current_month || {};
+  const previousMonth = comparison?.previous_month || {};
+  const evolution = comparison?.evolution || {};
+
+  const filteredCalls = callsLog.filter(call => {
+    const matchesSearch = (call.contact || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (call.company || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filterResult === 'all' || (call.result || '').toLowerCase() === filterResult.toLowerCase();
     return matchesSearch && matchesFilter;
   });
 
   return (
-    <>
-      <div className="space-y-6">
-        <div>
-          <h2>Ma Performance</h2>
-          <p className="text-muted-foreground mt-1">Analyse détaillée de votre performance et suggestions d'amélioration</p>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-card p-5 rounded-2xl border border-border shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-gradient-to-br from-purple-500/20 to-purple-600/10 rounded-xl">
+            <Activity className="w-6 h-6 text-purple-400" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black italic tracking-tighter text-foreground uppercase">
+              Performance <span className="text-primary">Mensuelle</span>
+            </h1>
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">
+              Analyse détaillée de votre performance et suggestions d'amélioration
+            </p>
+          </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 border-b border-border pb-2 overflow-x-auto">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded-t-lg text-sm font-medium transition-all whitespace-nowrap ${
-                activeTab === tab.id
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        {agents.length > 0 && (
+          <Popover open={selectOpen} onOpenChange={setSelectOpen}>
+            <PopoverTrigger asChild>
+              <button className="flex items-center gap-2 px-4 py-2.5 bg-card border border-border rounded-xl text-sm font-bold text-foreground hover:border-primary/30 transition-all min-w-[200px]">
+                <User className="w-4 h-4 text-muted-foreground shrink-0" />
+                <span className="flex-1 text-left truncate">{selectedAgentName || user?.name || 'Mon profil'}</span>
+                <ChevronsUpDown className="w-4 h-4 text-muted-foreground shrink-0" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[240px] p-0" align="end">
+              <Command>
+                <CommandInput placeholder="Rechercher..." className="h-10" />
+                <CommandList>
+                  <CommandEmpty className="py-6 text-xs text-muted-foreground">Aucun agent</CommandEmpty>
+                  <CommandGroup>
+                    {user?.name && (
+                      <CommandItem
+                        value={user.name}
+                        onSelect={() => { setSelectedAgentName(user.name); setSelectOpen(false); }}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <User className="w-4 h-4 text-primary" />
+                        <span>{user.name} (Moi)</span>
+                        {selectedAgentName === user.name && <CheckCircle2 className="w-3.5 h-3.5 text-primary ml-auto" />}
+                      </CommandItem>
+                    )}
+                    {agents.filter(a => a.name !== user?.name).map(agent => (
+                      <CommandItem
+                        key={agent.name}
+                        value={agent.name}
+                        onSelect={() => { setSelectedAgentName(agent.name); setSelectOpen(false); }}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[9px] font-bold text-primary uppercase">
+                          {agent.name.substring(0, 2)}
+                        </div>
+                        <span>{agent.name}</span>
+                        {selectedAgentName === agent.name && <CheckCircle2 className="w-3.5 h-3.5 text-primary ml-auto" />}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        )}
+      </div>
 
-        {/* TAB: Overview */}
-        {activeTab === 'overview' && (
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-border pb-0 overflow-x-auto">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-5 py-3 rounded-t-xl text-sm font-bold transition-all whitespace-nowrap ${
+              activeTab === tab.id
+                ? 'bg-card text-foreground border border-border border-b-0 shadow-sm -mb-px'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+            }`}
+          >
+            <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-primary' : ''}`} />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* TAB: Overview */}
+      {activeTab === 'overview' && (
+        loading ? (
+          <div className="space-y-6">
+            <KPISkeleton />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ChartSkeleton height={280} />
+              <ChartSkeleton height={280} />
+            </div>
+          </div>
+        ) : !comparison ? (
+          <div className="bg-card border border-border rounded-2xl">
+            <EmptyState
+              icon={Activity}
+              title="Aucune donnée de performance"
+              description="Les données apparaîtront ici une fois que des appels seront analysés et notés."
+            />
+          </div>
+        ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-3xl p-6 text-white shadow-xl shadow-indigo-600/20 border-b-4 border-indigo-900/20 transform hover:scale-[1.05] transition-all">
+              <div className="bg-gradient-to-br from-purple-600 to-indigo-800 rounded-3xl p-6 text-white shadow-xl shadow-purple-600/20 border-b-4 border-purple-900/20 transform hover:scale-[1.02] transition-all duration-300">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="p-2 bg-white/20 dark:bg-slate-900/20 rounded-xl backdrop-blur-md">
+                  <div className="p-2 bg-white/10 rounded-xl backdrop-blur-md">
                     <Award className="w-5 h-5 text-white" />
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60 text-white">Global</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Global</span>
                 </div>
-                <h3 className="text-sm font-black uppercase tracking-tighter opacity-80 italic text-white">Score Global</h3>
-                <p className="text-4xl font-black italic tracking-tighter mt-1 text-white">92/100</p>
-                <div className="flex items-center gap-1 mt-2 inline-flex items-center gap-1 bg-white/20 dark:bg-slate-900/20 px-2 py-1 rounded-full text-[10px] font-black uppercase text-white">
-                  <TrendingUp className="w-3 h-3" /> +5 VS SEMAINE DERNIÈRE
-                </div>
+                <h3 className="text-sm font-black uppercase tracking-tighter opacity-80 italic">Score Global</h3>
+                <p className="text-4xl font-black italic tracking-tighter mt-1">{currentMonth.avg_score || 0}/100</p>
+                {evolution.avg_score != null && (
+                  <div className="flex items-center gap-1 mt-3 inline-flex bg-white/10 px-3 py-1 rounded-full text-[10px] font-black uppercase">
+                    {evolution.avg_score >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                    {evolution.avg_score > 0 ? '+' : ''}{evolution.avg_score}% VS MOIS DERNIER
+                  </div>
+                )}
               </div>
 
-              <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-3xl p-6 text-white shadow-xl shadow-emerald-500/20 border-b-4 border-emerald-900/20 transform hover:scale-[1.05] transition-all">
+              <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-3xl p-6 text-white shadow-xl shadow-emerald-500/20 border-b-4 border-emerald-900/20 transform hover:scale-[1.02] transition-all duration-300">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="p-2 bg-white/20 dark:bg-slate-900/20 rounded-xl backdrop-blur-md">
+                  <div className="p-2 bg-white/10 rounded-xl backdrop-blur-md">
                     <Target className="w-5 h-5 text-white" />
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60 text-white">Impact</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Impact</span>
                 </div>
-                <h3 className="text-sm font-black uppercase tracking-tighter opacity-80 italic text-white">Taux conversion</h3>
-                <p className="text-4xl font-black italic tracking-tighter mt-1 text-white">68.5%</p>
-                <div className="flex items-center gap-1 mt-2 inline-flex items-center gap-1 bg-white/20 dark:bg-slate-900/20 px-2 py-1 rounded-full text-[10px] font-black uppercase text-white">
-                  <TrendingUp className="w-3 h-3" /> +3.2%
-                </div>
+                <h3 className="text-sm font-black uppercase tracking-tighter opacity-80 italic">Taux conversion</h3>
+                <p className="text-4xl font-black italic tracking-tighter mt-1">{currentMonth.conversions || 0}%</p>
+                {evolution.conversions != null && (
+                  <div className="flex items-center gap-1 mt-3 inline-flex bg-white/10 px-3 py-1 rounded-full text-[10px] font-black uppercase">
+                    {evolution.conversions >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                    {evolution.conversions > 0 ? '+' : ''}{evolution.conversions}%
+                  </div>
+                )}
               </div>
 
-              <div className="bg-gradient-to-br from-sky-500 to-sky-700 rounded-3xl p-6 text-white shadow-xl shadow-sky-500/20 border-b-4 border-sky-900/20 transform hover:scale-[1.05] transition-all">
+              <div className="bg-gradient-to-br from-sky-500 to-sky-700 rounded-3xl p-6 text-white shadow-xl shadow-sky-500/20 border-b-4 border-sky-900/20 transform hover:scale-[1.02] transition-all duration-300">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="p-2 bg-white/20 dark:bg-slate-900/20 rounded-xl backdrop-blur-md">
+                  <div className="p-2 bg-white/10 rounded-xl backdrop-blur-md">
                     <MessageSquare className="w-5 h-5 text-white" />
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60 text-white">Qualité</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Qualité</span>
                 </div>
-                <h3 className="text-sm font-black uppercase tracking-tighter opacity-80 italic text-white">Appels qualité</h3>
-                <p className="text-4xl font-black italic tracking-tighter mt-1 text-white">87%</p>
-                <div className="flex items-center gap-1 mt-2 inline-flex items-center gap-1 bg-white/20 dark:bg-slate-900/20 px-2 py-1 rounded-full text-[10px] font-black uppercase text-white">
-                  <TrendingUp className="w-3 h-3" /> +1.5%
-                </div>
+                <h3 className="text-sm font-black uppercase tracking-tighter opacity-80 italic">Appels qualité</h3>
+                <p className="text-4xl font-black italic tracking-tighter mt-1">{currentMonth.avg_score || 0}%</p>
+                {evolution.avg_score != null && (
+                  <div className="flex items-center gap-1 mt-3 inline-flex bg-white/10 px-3 py-1 rounded-full text-[10px] font-black uppercase">
+                    {evolution.avg_score >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                    {evolution.avg_score > 0 ? '+' : ''}{evolution.avg_score}%
+                  </div>
+                )}
               </div>
 
-              <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-3xl p-6 text-white shadow-xl shadow-amber-500/20 border-b-4 border-amber-900/20 transform hover:scale-[1.05] transition-all">
+              <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-3xl p-6 text-white shadow-xl shadow-amber-500/20 border-b-4 border-amber-900/20 transform hover:scale-[1.02] transition-all duration-300">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="p-2 bg-white/20 dark:bg-slate-900/20 rounded-xl backdrop-blur-md">
+                  <div className="p-2 bg-white/10 rounded-xl backdrop-blur-md">
                     <Award className="w-5 h-5 text-white" />
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60 text-white">Podium</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Volume</span>
                 </div>
-                <h3 className="text-sm font-black uppercase tracking-tighter opacity-80 italic text-white">Classement</h3>
-                <p className="text-4xl font-black italic tracking-tighter mt-1 text-white">3E</p>
-                <p className="text-[10px] font-black uppercase mt-2 inline-flex items-center gap-1 bg-white/20 dark:bg-slate-900/20 px-2 py-1 rounded-full text-white">
-                  SUR 24 AGENTS
+                <h3 className="text-sm font-black uppercase tracking-tighter opacity-80 italic">Appels traités</h3>
+                <p className="text-4xl font-black italic tracking-tighter mt-1">{currentMonth.total_calls || 0}</p>
+                <p className="text-[10px] font-black uppercase mt-3 inline-flex items-center gap-1 bg-white/10 px-3 py-1 rounded-full">
+                  SUR {previousMonth.total_calls || 0} LE MOIS DERNIER
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-card rounded-lg border border-border p-6">
-                <h3 className="mb-4">Évolution du score hebdomadaire</h3>
+              <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+                <h3 className="font-black text-xs uppercase tracking-widest mb-6 text-foreground flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-primary" />
+                  Évolution Mensuelle
+                </h3>
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={weeklyData}>
+                  <LineChart data={monthlyChartData}>
                     <defs>
                       <linearGradient id="colorScore" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="#6366f1" />
-                        <stop offset="100%" stopColor="#d946ef" />
+                        <stop offset="0%" stopColor="#7c3aed" />
+                        <stop offset="100%" stopColor="#a855f7" />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} vertical={false} />
-                    <XAxis dataKey="day" stroke={chartTheme.textColor} tick={{ fontSize: 11, fontWeight: 700, fill: chartTheme.textColor }} />
+                    <XAxis dataKey="month" stroke={chartTheme.textColor} tick={{ fontSize: 11, fontWeight: 700, fill: chartTheme.textColor }} />
                     <YAxis stroke={chartTheme.textColor} tick={{ fontSize: 11, fontWeight: 700, fill: chartTheme.textColor }} />
                     <Tooltip contentStyle={chartTheme.tooltipStyle} />
                     <Legend iconType="circle" />
-                    <Line type="monotone" dataKey="score" stroke="url(#colorScore)" strokeWidth={5} dot={{ fill: chartTheme.textColor, strokeWidth: 3, r: 6, stroke: '#6366f1' }} activeDot={{ r: 8, strokeWidth: 0 }} name="Score" />
+                    <Line type="monotone" dataKey="score" stroke="url(#colorScore)" strokeWidth={4} dot={{ fill: chartTheme.textColor, strokeWidth: 3, r: 5, stroke: '#7c3aed' }} activeDot={{ r: 7, strokeWidth: 0 }} name="Score" />
+                    <Line type="monotone" dataKey="calls" stroke="#10b981" strokeWidth={2} dot={false} name="Appels" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
 
-              <div className="bg-card rounded-lg border border-border p-6">
-                <h3 className="mb-4">Feedback IA & Suggestions</h3>
+              <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+                <h3 className="font-black text-xs uppercase tracking-widest mb-6 text-foreground flex items-center gap-2">
+                  <BrainCircuit className="w-4 h-4 text-primary" />
+                  Feedback IA & Suggestions
+                </h3>
                 <div className="space-y-3">
-                  {suggestions.map((suggestion) => (
-                    <div key={suggestion.id} className={`p-4 rounded-lg border ${
-                      suggestion.type === 'success' ? 'bg-success/5 border-success/20' :
-                      suggestion.type === 'improvement' ? 'bg-warning/5 border-warning/20' :
-                      'bg-info/5 border-info/20'
+                  {[
+                    { id: 1, type: 'success', title: 'Excellent travail sur l\'écoute active', description: 'Vos temps de silence et vos reformulations sont très bien maîtrisés.' },
+                    { id: 2, type: 'improvement', title: 'Améliorer la gestion des objections', description: 'Prenez plus de temps pour comprendre la vraie raison derrière l\'objection avant de répondre.' },
+                    { id: 3, type: 'tip', title: 'Astuce : Technique du silence', description: 'Après avoir posé une question importante, laissez un silence de 3-5 secondes.' }
+                  ].map(s => (
+                    <div key={s.id} className={`p-4 rounded-xl border ${
+                      s.type === 'success' ? 'bg-emerald-500/5 border-emerald-500/20' :
+                      s.type === 'improvement' ? 'bg-amber-500/5 border-amber-500/20' :
+                      'bg-purple-500/5 border-purple-500/20'
                     }`}>
-                      <h4 className={`font-medium mb-1 ${
-                        suggestion.type === 'success' ? 'text-success' :
-                        suggestion.type === 'improvement' ? 'text-warning' :
-                        'text-info'
+                      <h4 className={`font-bold text-sm mb-1 flex items-center gap-2 ${
+                        s.type === 'success' ? 'text-emerald-500' :
+                        s.type === 'improvement' ? 'text-amber-500' :
+                        'text-purple-500'
                       }`}>
-                        {suggestion.title}
+                        {s.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> :
+                         s.type === 'improvement' ? <AlertTriangle className="w-4 h-4" /> :
+                         <Sparkles className="w-4 h-4" />}
+                        {s.title}
                       </h4>
-                      <p className="text-sm text-foreground">{suggestion.description}</p>
+                      <p className="text-xs text-muted-foreground ml-6">{s.description}</p>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
           </>
-        )}
+        )
+      )}
 
-        {/* TAB: Comparison */}
-        {activeTab === 'comparison' && comparison && (
-          <>
-            <div className="bg-card rounded-lg border border-border p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="flex items-center gap-2">
-                  <Calendar className="w-5 h-5" />
-                  Ce mois vs Mois dernier
-                </h3>
-                <button onClick={loadComparison} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
-                  <Loader2 className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                  Actualiser
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div className="bg-muted/30 rounded-xl p-4">
-                  <p className="text-sm text-muted-foreground mb-2">Ce mois</p>
-                  <p className="text-3xl font-bold">{comparison.current_month.total_calls}</p>
-                  <p className="text-sm text-muted-foreground">appels</p>
-                </div>
-                <div className="bg-muted/30 rounded-xl p-4">
-                  <p className="text-sm text-muted-foreground mb-2">Mois dernier</p>
-                  <p className="text-3xl font-bold">{comparison.previous_month.total_calls}</p>
-                  <p className="text-sm text-muted-foreground">appels</p>
-                </div>
-                <div className={`bg-muted/30 rounded-xl p-4 ${getEvolutionClass(comparison.evolution.total_calls)}`}>
-                  <p className="text-sm text-muted-foreground mb-2">Évolution</p>
-                  <p className="text-3xl font-bold flex items-center gap-2">
-                    {(() => {
-                      const Icon = getEvolutionIcon(comparison.evolution.total_calls);
-                      return Icon ? <Icon className="w-6 h-6" /> : null;
-                    })()}
-                    {comparison.evolution.total_calls > 0 ? '+' : ''}{comparison.evolution.total_calls.toFixed(1)}%
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-                {[
-                  { label: 'Appels', key: 'total_calls', inverse: false },
-                  { label: 'Score', key: 'avg_score', inverse: false },
-                  { label: 'Conversions', key: 'conversions', inverse: false },
-                  { label: 'Refus', key: 'refusal_rate', inverse: true },
-                  { label: 'Durée', key: 'avg_duration', inverse: false }
-                ].map((metric) => {
-                  const value = comparison.evolution[metric.key as keyof typeof comparison.evolution] as number;
-                  const EvolIcon = getEvolutionIcon(value, metric.inverse);
-                  return (
-                    <div key={metric.key} className="bg-muted/20 rounded-lg p-4 text-center">
-                      <p className="text-xs text-muted-foreground mb-1">{metric.label}</p>
-                      <p className={`text-xl font-bold flex items-center justify-center gap-1 ${getEvolutionClass(value, metric.inverse)}`}>
-                        {EvolIcon && <EvolIcon className="w-4 h-4" />}
-                        {value > 0 ? '+' : ''}{value.toFixed(1)}%
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {comparison.mistakes && comparison.mistakes.length > 0 && (
-                <div className={`mb-6 p-5 rounded-xl border ${comparison.rendement_status === 'diminué' ? 'bg-red-500/10 border-red-500/30' : 'bg-green-500/10 border-green-500/30'}`}>
-                  <h4 className={`text-lg font-black uppercase italic tracking-tighter mb-2 flex items-center gap-2 ${comparison.rendement_status === 'diminué' ? 'text-red-500' : 'text-green-500'}`}>
-                    {comparison.rendement_status === 'diminué' ? <TrendingDown className="w-6 h-6" /> : <TrendingUp className="w-6 h-6" />}
-                    Bilan : Rendement {comparison.rendement_status}
-                  </h4>
-                  <p className="text-sm text-foreground mb-3 font-medium">Analyse comparative (Éléments impactant la performance) :</p>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    {comparison.mistakes.map((mistake: string, idx: number) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <span className={`mt-1 min-w-2 min-h-2 rounded-full ${comparison.rendement_status === 'diminué' ? 'bg-red-500' : 'bg-green-500'}`}></span>
-                        <span>{mistake}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <div className="bg-card rounded-lg border border-border p-6">
-                <h4 className="mb-4">Historique (6 derniers mois)</h4>
-                <ResponsiveContainer width="100%" height={250}>
-                  <AreaChart data={comparison.monthly_data}>
-                    <defs>
-                      <linearGradient id="colorCalls" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4}/>
-                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} vertical={false} />
-                    <XAxis dataKey="month" stroke={chartTheme.textColor} tick={{ fontSize: 11 }} />
-                    <YAxis stroke={chartTheme.textColor} tick={{ fontSize: 11 }} />
-                    <Tooltip contentStyle={chartTheme.tooltipStyle} />
-                    <Area type="monotone" dataKey="calls" stroke="#6366f1" strokeWidth={2} fill="url(#colorCalls)" name="Appels" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* TAB: Skills */}
-        {activeTab === 'skills' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-card rounded-3xl border-2 border-border p-6 shadow-2xl">
-              <h3 className="text-lg font-black italic tracking-tighter uppercase mb-6 flex items-center gap-2">
-                <div className="w-2 h-6 bg-primary rounded-full"></div>
-                Compétences <span className="text-primary">évaluées</span>
-              </h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <RadarChart data={skillsData}>
-                  <PolarGrid stroke={chartTheme.gridColor} />
-                  <PolarAngleAxis dataKey="skill" tick={{ fontSize: 10, fontWeight: 900, fill: chartTheme.textColor }} />
-                  <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: chartTheme.textColor, fontSize: 8 }} axisLine={false} />
-                  <Radar name="Score" dataKey="value" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.5} strokeWidth={4} />
-                  <Tooltip contentStyle={chartTheme.tooltipStyle} />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="bg-card rounded-lg border border-border p-6">
-              <h3 className="mb-4">Performance par jour</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={weeklyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} />
-                  <XAxis dataKey="day" stroke={chartTheme.textColor} tick={{ fontSize: 11, fontWeight: 700, fill: chartTheme.textColor }} />
-                  <YAxis stroke={chartTheme.textColor} tick={{ fontSize: 11, fontWeight: 700, fill: chartTheme.textColor }} />
-                  <Tooltip contentStyle={chartTheme.tooltipStyle} />
-                  <Legend iconType="circle" />
-                  <Bar dataKey="appels" fill="#6366f1" radius={[4, 4, 0, 0]} name="Appels" />
-                  <Bar dataKey="conversions" fill="#10b981" radius={[4, 4, 0, 0]} name="Conversions" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+      {/* TAB: Skills */}
+      {activeTab === 'skills' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+            <h3 className="font-black text-xs uppercase tracking-widest mb-6 text-foreground flex items-center gap-2">
+              <div className="w-2 h-5 bg-primary rounded-full" />
+              Compétences évaluées
+            </h3>
+            <ResponsiveContainer width="100%" height={320}>
+              <RadarChart data={skillsData}>
+                <PolarGrid stroke={chartTheme.gridColor} />
+                <PolarAngleAxis dataKey="skill" tick={{ fontSize: 10, fontWeight: 900, fill: chartTheme.textColor }} />
+                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: chartTheme.textColor, fontSize: 8 }} axisLine={false} />
+                <Radar name="Score" dataKey="value" stroke="#7c3aed" fill="#7c3aed" fillOpacity={0.25} strokeWidth={3} />
+                <Tooltip contentStyle={chartTheme.tooltipStyle} />
+              </RadarChart>
+            </ResponsiveContainer>
           </div>
-        )}
 
-        {/* TAB: History */}
-        {activeTab === 'history' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-card rounded-lg border border-border p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-muted-foreground">Total appels</h3>
-                  <Phone className="w-5 h-5 text-primary" />
-                </div>
-                <p className="text-3xl font-medium text-foreground">{callHistory.length}</p>
+          <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+            <h3 className="font-black text-xs uppercase tracking-widest mb-6 text-foreground flex items-center gap-2">
+              <Activity className="w-4 h-4 text-primary" />
+              Performance par jour
+            </h3>
+            <ResponsiveContainer width="100%" height={320}>
+              <BarChart data={weeklyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} vertical={false} />
+                <XAxis dataKey="day" stroke={chartTheme.textColor} tick={{ fontSize: 11, fontWeight: 700, fill: chartTheme.textColor }} />
+                <YAxis stroke={chartTheme.textColor} tick={{ fontSize: 11, fontWeight: 700, fill: chartTheme.textColor }} />
+                <Tooltip contentStyle={chartTheme.tooltipStyle} />
+                <Legend iconType="circle" />
+                <Bar dataKey="appels" fill="#7c3aed" radius={[6, 6, 0, 0]} name="Appels" />
+                <Bar dataKey="conversions" fill="#10b981" radius={[6, 6, 0, 0]} name="Conversions" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: History */}
+      {activeTab === 'history' && (
+        <div className="space-y-6">
+          {loading ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="bg-card border border-border p-6 rounded-2xl">
+                    <Skeleton className="h-4 w-24 mb-3" />
+                    <Skeleton className="h-8 w-16 mb-2" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                ))}
               </div>
-
-              <div className="bg-card rounded-lg border border-border p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-muted-foreground">Durée moyenne</h3>
-                  <Clock className="w-5 h-5 text-accent" />
-                </div>
-                <p className="text-3xl font-medium text-foreground">5:12</p>
-              </div>
-
-              <div className="bg-card rounded-lg border border-border p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-muted-foreground">Score moyen</h3>
-                  <TrendingUp className="w-5 h-5 text-success" />
-                </div>
-                <p className="text-3xl font-medium text-foreground">84.6</p>
+              <div className="bg-card border border-border rounded-2xl p-6">
+                <Skeleton className="h-8 w-full mb-4" />
+                {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-12 w-full mb-2" />)}
               </div>
             </div>
-
-            <div className="bg-card rounded-lg border border-border">
-              <div className="p-6 border-b border-border">
-                <div className="flex flex-col md:flex-row gap-4">
-                  <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <input
-                      type="text"
-                      placeholder="Rechercher par société ou contact..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground placeholder:text-muted-foreground shadow-sm"
-                    />
+          ) : callsLog.length === 0 ? (
+            <div className="bg-card border border-border rounded-2xl">
+              <EmptyState
+                icon={Phone}
+                title="Aucun appel enregistré"
+                description="L'historique des appels apparaîtra ici une fois que des appels seront analysés."
+              />
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-card border border-border p-6 rounded-2xl shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Total appels</h3>
+                    <Phone className="w-5 h-5 text-purple-400" />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Filter className="w-5 h-5 text-muted-foreground" />
-                    <select
-                      value={filterResult}
-                      onChange={(e) => setFilterResult(e.target.value)}
-                      className="px-3 py-2 bg-input-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground"
-                    >
-                      <option value="all">Tous les résultats</option>
-                      <option value="Converti">Converti</option>
-                      <option value="Rappel">Rappel</option>
-                      <option value="Refusé">Refusé</option>
-                    </select>
+                  <p className="text-3xl font-black text-foreground">{callsLog.length}</p>
+                </div>
+                <div className="bg-card border border-border p-6 rounded-2xl shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Durée moyenne</h3>
+                    <Clock className="w-5 h-5 text-emerald-400" />
                   </div>
+                  <p className="text-3xl font-black text-foreground">5:12</p>
+                </div>
+                <div className="bg-card border border-border p-6 rounded-2xl shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Score moyen</h3>
+                    <TrendingUp className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <p className="text-3xl font-black text-foreground">{callsLog.length > 0 ? Math.round(callsLog.reduce((s, c) => s + c.score, 0) / callsLog.length) : 0}</p>
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-muted/50">
-                    <tr>
-                      <th className="text-left p-4 text-muted-foreground">Date</th>
-                      <th className="text-left p-4 text-muted-foreground">Société</th>
-                      <th className="text-left p-4 text-muted-foreground">Contact</th>
-                      <th className="text-left p-4 text-muted-foreground">Durée</th>
-                      <th className="text-left p-4 text-muted-foreground">Résultat</th>
-                      <th className="text-left p-4 text-muted-foreground">Score</th>
-                      <th className="text-left p-4 text-muted-foreground"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredCalls.map((call) => (
-                      <React.Fragment key={call.id}>
-                        <tr className="border-b border-border hover:bg-muted/30 transition-colors">
-                          <td className="p-4 text-foreground">
-                            <div>
-                              <p className="font-medium">{call.date}</p>
-                              <p className="text-sm text-muted-foreground">{call.time}</p>
-                            </div>
-                          </td>
-                          <td className="p-4 text-foreground">{call.company}</td>
-                          <td className="p-4 text-foreground">{call.contact}</td>
-                          <td className="p-4 text-muted-foreground">{call.duration}</td>
-                          <td className="p-4">
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              call.result === 'Converti' ? 'bg-success/10 text-success' :
-                              call.result === 'Refusé' ? 'bg-destructive/10 text-destructive' :
-                              'bg-warning/10 text-warning'
-                            }`}>
-                              {call.result}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex items-center gap-2">
-                              <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden min-w-[50px]">
-                                <div
-                                  className={`h-full ${
-                                    call.score >= 90 ? 'bg-success' :
-                                    call.score >= 75 ? 'bg-warning' :
-                                    'bg-destructive'
-                                  }`}
-                                  style={{ width: `${call.score}%` }}
-                                ></div>
-                              </div>
-                              <span className="text-sm font-medium text-foreground">{call.score}</span>
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <button
-                              onClick={() => setExpandedRow(expandedRow === call.id ? null : call.id)}
-                              className="p-2 hover:bg-muted rounded-lg transition-colors"
-                            >
-                              {expandedRow === call.id ? (
-                                <ChevronUp className="w-4 h-4 text-foreground" />
-                              ) : (
-                                <ChevronDown className="w-4 h-4 text-foreground" />
-                              )}
-                            </button>
+              <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+                <div className="p-5 border-b border-border">
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex-1 relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <input
+                        type="text"
+                        placeholder="Rechercher par contact ou sujet..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground placeholder:text-muted-foreground text-sm"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Filter className="w-4 h-4 text-muted-foreground" />
+                      <select
+                        value={filterResult}
+                        onChange={(e) => setFilterResult(e.target.value)}
+                        className="px-3 py-2.5 bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground text-sm font-bold appearance-none cursor-pointer"
+                      >
+                        <option value="all">Tous les résultats</option>
+                        <option value="Converti">Converti</option>
+                        <option value="Rappel">Rappel</option>
+                        <option value="Refusé">Refusé</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/30">
+                      <tr>
+                        <th className="text-left px-5 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Date</th>
+                        <th className="text-left px-5 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sujet</th>
+                        <th className="text-left px-5 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden md:table-cell">Contact</th>
+                        <th className="text-left px-5 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Durée</th>
+                        <th className="text-left px-5 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Résultat</th>
+                        <th className="text-left px-5 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Score</th>
+                        <th className="px-5 py-3"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredCalls.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} className="p-8 text-center text-muted-foreground text-xs">
+                            Aucun appel trouvé pour cette recherche
                           </td>
                         </tr>
-                        {expandedRow === call.id && (
-                          <tr className="bg-muted/20">
-                            <td colSpan={7} className="p-6">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      ) : (
+                        filteredCalls.map((call) => (
+                          <React.Fragment key={call.id}>
+                            <tr className="border-b border-border hover:bg-muted/20 transition-colors">
+                              <td className="px-5 py-4">
                                 <div>
-                                  <h4 className="font-medium text-foreground mb-2">Notes de l'agent</h4>
-                                  <p className="text-sm text-muted-foreground">{call.notes}</p>
+                                  <p className="font-medium text-foreground text-xs">{call.date}</p>
+                                  <p className="text-[10px] text-muted-foreground">{call.time}</p>
                                 </div>
-                                <div>
-                                  <h4 className="font-medium text-foreground mb-2">Résumé IA</h4>
-                                  <p className="text-sm text-muted-foreground">{call.aiSummary}</p>
+                              </td>
+                              <td className="px-5 py-4 text-foreground text-xs">{call.company || '—'}</td>
+                              <td className="px-5 py-4 text-foreground text-xs hidden md:table-cell">{call.contact || '—'}</td>
+                              <td className="px-5 py-4 text-muted-foreground text-xs">{call.duration || '—'}</td>
+                              <td className="px-5 py-4">
+                                <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
+                                  call.result === 'Converti' ? 'bg-emerald-500/10 text-emerald-500' :
+                                  call.result === 'Refusé' ? 'bg-red-500/10 text-red-500' :
+                                  'bg-amber-500/10 text-amber-500'
+                                }`}>
+                                  {call.result || '—'}
+                                </span>
+                              </td>
+                              <td className="px-5 py-4">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-14 h-1.5 bg-muted rounded-full overflow-hidden">
+                                    <div className={`h-full rounded-full ${
+                                      call.score >= 90 ? 'bg-emerald-500' :
+                                      call.score >= 75 ? 'bg-amber-500' :
+                                      'bg-red-500'
+                                    }`} style={{ width: `${call.score}%` }} />
+                                  </div>
+                                  <span className="text-xs font-bold text-foreground">{call.score}</span>
                                 </div>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </tbody>
-                </table>
+                              </td>
+                              <td className="px-5 py-4">
+                                <button
+                                  onClick={() => setExpandedRow(expandedRow === call.id ? null : call.id)}
+                                  className="p-1.5 hover:bg-muted rounded-lg transition-colors"
+                                >
+                                  {expandedRow === call.id ? (
+                                    <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                                  ) : (
+                                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                                  )}
+                                </button>
+                              </td>
+                            </tr>
+                            {expandedRow === call.id && (
+                              <tr className="bg-muted/10">
+                                <td colSpan={7} className="px-5 py-6">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="p-4 bg-card rounded-xl border border-border">
+                                      <h4 className="font-bold text-xs text-foreground mb-2 flex items-center gap-1.5">
+                                        <MessageSquare className="w-3.5 h-3.5 text-primary" />
+                                        Notes
+                                      </h4>
+                                      <p className="text-xs text-muted-foreground">{call.notes || 'Aucune note'}</p>
+                                    </div>
+                                    <div className="p-4 bg-card rounded-xl border border-border">
+                                      <h4 className="font-bold text-xs text-foreground mb-2 flex items-center gap-1.5">
+                                        <BrainCircuit className="w-3.5 h-3.5 text-primary" />
+                                        Résumé IA
+                                      </h4>
+                                      <p className="text-xs text-muted-foreground">{call.aiSummary || 'Aucun résumé disponible'}</p>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </>
+            </>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

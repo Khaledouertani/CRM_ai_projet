@@ -138,3 +138,7 @@ gap_analysis.md
 agent.md
 .opencode/
 node_modules
+
+# .NET build artifacts
+BackendDotNet/**/bin/
+BackendDotNet/**/obj/

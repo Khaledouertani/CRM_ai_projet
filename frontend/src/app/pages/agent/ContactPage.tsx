@@ -337,8 +337,44 @@ const ContactPage: React.FC = () => {
   const triggerAI = () => { setAiLoading(true); setTimeout(() => setAiLoading(false), 900); };
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
-  const startCall = () => { setCallActive(true); setCallDuration(0); setMessages([]); setIsOnHold(false); };
-  const endCall = () => { setCallActive(false); setIsOnHold(false); };
+  const startCall = async () => {
+    setCallActive(true);
+    setCallDuration(0);
+    setMessages([]);
+    setIsOnHold(false);
+  };
+  const endCall = async () => {
+    setCallActive(false);
+    setIsOnHold(false);
+    try {
+      const statut = crmStatus === "Converti" ? "Converti" : crmStatus === "Refusé" ? "Refusé" : "Rappel";
+      await api.saveCall({
+        contact_id: 1,
+        contact_name: contact.contact,
+        contact_company: contact.company,
+        phone: contact.phone,
+        email: contact.email,
+        duration: callDuration,
+        besoin: form.chauffage || "",
+        budget: form.budget || "",
+        interet: form.interet || "",
+        notes: agentNote,
+        statut,
+        call_date: new Date().toISOString()
+      });
+      if (crmStatus.includes("RDV")) {
+        await api.createAppointment({
+          client_name: contact.contact,
+          client_phone: contact.phone,
+          appointment_date: rdvDate,
+          appointment_time: rdvTime,
+          commercial: rdvCommercial
+        });
+      }
+    } catch (e) {
+      console.error("Auto-save error:", e);
+    }
+  };
   const toggleHold = () => { setIsOnHold(!isOnHold); };
   const toggleMute = () => { setIsMuted(!isMuted); };
   const startPause = (type: string) => { setAgentStatus("break"); setActivePause(type); setShowPauseMenu(false); };
