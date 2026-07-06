@@ -1,6 +1,5 @@
 using CrmApi.Data;
 using CrmApi.Helpers;
-using CrmApi.Services.Rgpd;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,9 +12,8 @@ namespace CrmApi.Controllers;
 public class MaintenanceController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
-    private readonly IRgpdService _rgpdService;
 
-    public MaintenanceController(ApplicationDbContext context, IRgpdService rgpdService) { _context = context; _rgpdService = rgpdService; }
+    public MaintenanceController(ApplicationDbContext context) { _context = context; }
 
     [HttpGet("export")]
     public async Task<IActionResult> Export()

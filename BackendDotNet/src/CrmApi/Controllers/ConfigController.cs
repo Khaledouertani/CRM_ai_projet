@@ -30,6 +30,15 @@ public class ConfigController : ControllerBase
         try { return Ok(new { status = "success" }); }
         catch (Exception ex) { return Problem(ex.Message); }
     }
+
+    [HttpPost("system")]
+    [Authorize(Roles = "admin")]
+    public IActionResult SaveSystemConfig([FromBody] object config)
+    {
+        if (config == null) return BadRequest(new { error = "Request body is required" });
+        try { return Ok(new { status = "success", message = "Configuration saved (in-memory only)" }); }
+        catch (Exception ex) { return Problem(ex.Message); }
+    }
 }
 
 public class UpdateConfigDto

@@ -77,7 +77,9 @@ public class AiService : IAiService
 
     public Task<AnonymizeResultDto> AnonymizeTranscriptAsync(AnonymizeDto dto)
     {
-        var service = new Services.Rgpd.RgpdService(_context);
-        return Task.FromResult(new AnonymizeResultDto { Anonymized = service.AnonymizeTranscript(dto.Transcript) });
+        var text = dto.Transcript;
+        text = System.Text.RegularExpressions.Regex.Replace(text, @"\b\d{16}\b", "****-****-****-****");
+        text = System.Text.RegularExpressions.Regex.Replace(text, @"\b\d{2}\s?\d{2}\s?\d{2}\s?\d{2}\s?\d{2}\b", "** ** ** ** **");
+        return Task.FromResult(new AnonymizeResultDto { Anonymized = text });
     }
 }

@@ -296,7 +296,7 @@ export const getStats = async (agent_name?: string): Promise<Stats> => {
 };
 
 export const getAgentsCallsSummary = async (): Promise<any[]> => {
-  const response = await fetch(`${API_BASE}/agents/calls`, {
+  const response = await fetch(`${API_BASE}/calls/agents-summary`, {
     headers: getAuthHeaders(),
   });
 
@@ -777,17 +777,6 @@ export const getAttendanceReport = async (): Promise<any> => {
   return response.json();
 
 };
-export const getTeamAttendanceDetail = async (): Promise<any> => {
-  const response = await fetch(`${API_BASE}/attendance/team-detail`, {
-    headers: getAuthHeaders(),
-  });
-
-  if (!response.ok)
-    throw new Error("Failed to get team attendance detail");
-
-  return response.json();
-};
-
 export const getAttendanceTeamStatus = async (): Promise<any> => {
   const response = await fetch(`${API_BASE}/attendance/team-status`, { headers: getAuthHeaders() });
   if (!response.ok) throw new Error('Failed to get team status');

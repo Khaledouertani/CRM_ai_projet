@@ -33,7 +33,6 @@ import ScorecardsPage from './pages/admin/ScorecardsPage';
 import AnalyticsPage from './pages/admin/AnalyticsPage';
 import PipelinePage from './pages/admin/PipelinePage';
 import UsersPage from './pages/admin/UsersPage';
-import AIConfigPage from './pages/admin/AIConfigPage';
 import IntegrationsPage from './pages/admin/IntegrationsPage';
 import AgentStatsPage from './pages/admin/AgentStatsPage';
 import AgentsPage from './pages/admin/AgentsPage';

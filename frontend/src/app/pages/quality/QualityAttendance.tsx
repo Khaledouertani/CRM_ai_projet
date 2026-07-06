@@ -4,7 +4,7 @@ import {
   PauseCircle, Timer, Wifi, WifiOff, UserCheck, UserX,
   ArrowUpDown, RefreshCw, AlertCircle
 } from 'lucide-react';
-import api, { getTeamAttendanceDetail } from '../../services/api';
+import api from '../../services/api';
 import toast from 'react-hot-toast';
 
 
@@ -73,7 +73,7 @@ export default function QualityAttendance() {
   const [showEditModal, setShowEditModal] = useState(false);
   const fetchAttendance = useCallback(async () => {
     try {
-      const data = await getTeamAttendanceDetail();
+      const data = await api.getAttendanceTeamDetail();
 
       console.log("TEAM DETAIL =", data);
       console.log(data[0]);
