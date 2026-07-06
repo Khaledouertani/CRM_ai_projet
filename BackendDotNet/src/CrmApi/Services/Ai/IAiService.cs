@@ -11,4 +11,6 @@ public interface IAiService
     Task<QualificationResultDto> CheckQualificationAsync(QualificationCheckDto dto);
     Task<AppointmentDetectResultDto> DetectAppointmentAsync(AppointmentDetectDto dto);
     Task<AnonymizeResultDto> AnonymizeTranscriptAsync(AnonymizeDto dto);
+    Task<InactivityResultDto> AnalyzeInactivityAsync(InactivityRequestDto dto);
+    Task<RefusalResultDto> DetectRefusalAsync(RefusalCheckDto dto);
 }

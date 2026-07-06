@@ -15,6 +15,7 @@ public class OverviewDto
     public double ConversionRate { get; set; }
     public int PendingFollowups { get; set; }
     public double AvgDuration { get; set; }
+    public string? SchedulingTip { get; set; }
 }
 
 public class HourlyDataDto

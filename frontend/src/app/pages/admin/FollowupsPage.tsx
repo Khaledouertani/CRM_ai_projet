@@ -36,30 +36,7 @@ export default function FollowupsPage() {
     setLoading(true);
     try {
       const res = await api.getFollowupsData();
-      // Si les données sont vides, on injecte de la démo pour le PFE
-      if (!res.followups || res.followups.length === 0) {
-        setData({
-          stats: { total: 42, a_relancer: 12, convertis: 28, taux_conversion: 66 },
-          by_status: [
-            { status: 'converti', count: 28 },
-            { status: 'a_relancer', count: 12 },
-            { status: 'refus', count: 2 }
-          ],
-          by_agent: [
-            { agent: 'Sarah', count: 15 },
-            { agent: 'Kevin', count: 12 },
-            { agent: 'Amine', count: 10 },
-            { agent: 'Julie', count: 5 }
-          ],
-          followups: [
-            { agent_name: 'Sarah', appointment_date: '2026-04-20', status: 'converti', relance_count: 1, updated_at: new Date().toISOString() },
-            { agent_name: 'Kevin', appointment_date: '2026-04-21', status: 'a_relancer', relance_count: 3, updated_at: new Date().toISOString() },
-            { agent_name: 'Amine', appointment_date: '2026-04-22', status: 'a_relancer', relance_count: 0, updated_at: new Date().toISOString() },
-          ]
-        });
-      } else {
-        setData(res);
-      }
+      setData(res);
     } catch (e) {
       console.error('Followups load error:', e);
     } finally {

@@ -19,19 +19,16 @@ function QualHistory({ contact, qualifications, onClose }: {
 }) {
   const find = (id: number | null) => qualifications.find(q => q.id === id)
  
-  // Mock log entries — replace with real data from API
-  const mockLogs = [
-    { at: '10/04 14:32', from: 3, to: contact.qualificationId ?? 1, by: 'Ahmed B.' },
-    { at: '10/04 09:15', from: null, to: 3, by: 'Ahmed B.' },
-  ]
- 
+  // Real data expected from GET /api/contacts/{id}/qualification-logs
+  const logs: { at: string; from: number | null; to: number | null; by: string }[] = []
+
   return (
     <div className="mt-3 p-3 bg-muted/30 rounded-lg border border-border">
       <div className="flex items-center justify-between mb-2">
         <p className="text-xs font-medium">Historique — {contact.companyName}</p>
         <button onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground">✕</button>
       </div>
-      {mockLogs.map((log, i) => {
+      {logs.map((log, i) => {
         const fromQual = find(log.from)
         const toQual   = find(log.to)
         return (

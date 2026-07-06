@@ -1,29 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { updateAppointment } from '../../services/api';
-
 import { useNavigate } from 'react-router-dom';
 import { 
   Phone, Mail, MapPin, Building, User, Search, 
   Filter, MoreVertical, Star, StarOff, Briefcase,
   MessageCircle, Clock, Award, TrendingUp,
   ChevronRight, Eye, Edit, Trash2, Download,
-  Grid, List, X, CheckCircle, AlertCircle
+  Grid, List, X, CheckCircle, AlertCircle, Loader2
 } from 'lucide-react';
+import api from '../../services/api';
 
-const contacts = [
-  { id: 1, company: 'Société ABC', contact: 'Jean Dupont', role: 'Directeur Commercial', phone: '+33 6 12 34 56 78', email: 'j.dupont@societeabc.fr', city: 'Paris', industry: 'Tech', status: 'actif', lastContact: '2026-03-25', deals: 3, revenue: 125000 },
-  { id: 2, company: 'Entreprise XYZ', contact: 'Marie Martin', role: 'CEO', phone: '+33 6 23 45 67 89', email: 'm.martin@xyz.fr', city: 'Lyon', industry: 'Finance', status: 'actif', lastContact: '2026-03-28', deals: 2, revenue: 89000 },
-  { id: 3, company: 'Solutions Pro', contact: 'Pierre Leroy', role: 'Responsable Achats', phone: '+33 6 34 56 78 90', email: 'p.leroy@solutions-pro.fr', city: 'Marseille', industry: 'Services', status: 'inactif', lastContact: '2026-03-20', deals: 1, revenue: 45000 },
-  { id: 4, company: 'Tech Innovate', contact: 'Sophie Bernard', role: 'Directrice IT', phone: '+33 6 45 67 89 01', email: 's.bernard@techinnovate.fr', city: 'Toulouse', industry: 'Tech', status: 'actif', lastContact: '2026-03-29', deals: 5, revenue: 250000 },
-  { id: 5, company: 'Digital Services', contact: 'Luc Moreau', role: 'Manager', phone: '+33 6 56 78 90 12', email: 'l.moreau@digital-services.fr', city: 'Nantes', industry: 'Digital', status: 'actif', lastContact: '2026-03-27', deals: 2, revenue: 67000 },
-  { id: 6, company: 'Startup Alpha', contact: 'Emma Dubois', role: 'Fondatrice', phone: '+33 6 67 89 01 23', email: 'e.dubois@startup-alpha.fr', city: 'Bordeaux', industry: 'Tech', status: 'nouveau', lastContact: '2026-03-30', deals: 0, revenue: 0 },
-  { id: 7, company: 'Industries Beta', contact: 'Thomas Petit', role: 'DG', phone: '+33 6 78 90 12 34', email: 't.petit@industries-beta.fr', city: 'Lille', industry: 'Industrie', status: 'actif', lastContact: '2026-03-26', deals: 4, revenue: 180000 },
-  { id: 8, company: 'Commerce Gamma', contact: 'Julie Roux', role: 'Responsable', phone: '+33 6 89 01 23 45', email: 'j.roux@commerce-gamma.fr', city: 'Strasbourg', industry: 'Commerce', status: 'inactif', lastContact: '2026-03-15', deals: 1, revenue: 32000 },
-  { id: 9, company: 'Services Delta', contact: 'Marc Blanc', role: 'Directeur', phone: '+33 6 90 12 34 56', email: 'm.blanc@services-delta.fr', city: 'Nice', industry: 'Services', status: 'actif', lastContact: '2026-03-24', deals: 3, revenue: 95000 },
-  { id: 10, company: 'Consulting Epsilon', contact: 'Nadia Kacem', role: 'Associée', phone: '+33 6 01 23 45 67', email: 'n.kacem@consulting-epsilon.fr', city: 'Montpellier', industry: 'Consulting', status: 'actif', lastContact: '2026-03-22', deals: 2, revenue: 78000 }
-];
-
-type Contact = typeof contacts[number];
+interface Contact {
+  id: number;
+  company: string;
+  contact: string;
+  role: string;
+  phone: string;
+  email: string;
+  city: string;
+  industry: string;
+  status: string;
+  lastContact: string;
+  deals: number;
+  revenue: number;
+}
 
 // ── Helper: ligne info en mode lecture ────────────────────────────────────────
 function InfoRow({ icon, label, value, highlight }: { icon: React.ReactNode; label: string; value: string; highlight?: boolean }) {
@@ -49,10 +48,11 @@ export default function ContactsListPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState<Contact | null>(null);
-  const [contactsList, setContactsList] = useState(contacts);
+  const [contactsList, setContactsList] = useState<Contact[]>([]);
   const [favorites, setFavorites] = useState<number[]>([]);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   
   const [newContact, setNewContact] = useState({
@@ -62,12 +62,38 @@ export default function ContactsListPage() {
 });
 
   useEffect(() => {
-    // Load favorites from localStorage
+    loadContacts();
     const savedFavorites = localStorage.getItem('favoriteContacts');
     if (savedFavorites) {
       setFavorites(JSON.parse(savedFavorites));
     }
   }, []);
+
+  const loadContacts = async () => {
+    setLoading(true);
+    try {
+      const data = await api.getLeads();
+      const mapped: Contact[] = (data || []).map((lead: any, idx: number) => ({
+        id: lead.id || idx + 1,
+        company: lead.name || lead.company || '',
+        contact: lead.name || lead.contact || '',
+        role: lead.role || '',
+        phone: lead.phone || '',
+        email: lead.email || '',
+        city: lead.city || '',
+        industry: lead.industry || '',
+        status: lead.status === 'actif' ? 'actif' : lead.status === 'inactif' ? 'inactif' : 'nouveau',
+        lastContact: lead.last_contact || lead.lastContact || new Date().toISOString().split('T')[0],
+        deals: lead.deals ?? 0,
+        revenue: lead.revenue ?? 0,
+      }));
+      setContactsList(mapped);
+    } catch (e) {
+      console.error('Error loading contacts:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const industries = ['all', ...new Set(contactsList.map(c => c.industry))];
   const statuses = ['all', 'actif', 'inactif', 'nouveau'];
@@ -314,10 +340,21 @@ export default function ContactsListPage() {
 
   const stats = {
     total: contactsList.length,
-    actifs: contacts.filter(c => c.status === 'actif').length,
-    revenuTotal: contacts.reduce((sum, c) => sum + c.revenue, 0),
-    affairesTotal: contacts.reduce((sum, c) => sum + c.deals, 0)
+    actifs: contactsList.filter(c => c.status === 'actif').length,
+    revenuTotal: contactsList.reduce((sum, c) => sum + c.revenue, 0),
+    affairesTotal: contactsList.reduce((sum, c) => sum + c.deals, 0)
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-8 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-10 h-10 text-primary animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground font-medium">Chargement des contacts...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
   <>

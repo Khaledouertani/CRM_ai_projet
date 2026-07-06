@@ -1,31 +1,65 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   MapPin, TrendingUp, Filter, Globe, Map as MapIcon,
-  Navigation, MousePointer2, Target, Users, ArrowUpRight
+  Navigation, MousePointer2, Target, Users, ArrowUpRight,
+  Loader2
 } from 'lucide-react';
+import api from '../../services/api';
 
-const regionsData = [
-  { id: 1, region: 'Tunis', appels: 1560, conversions: 980, taux: 62.8, color: '#6366f1' },
-  { id: 2, region: 'Sfax', appels: 890, conversions: 520, taux: 58.4, color: '#8b5cf6' },
-  { id: 3, region: 'Sousse', appels: 720, conversions: 450, taux: 62.5, color: '#ec4899' },
-  { id: 4, region: 'Paris', appels: 1240, conversions: 820, taux: 66.1, color: '#3b82f6' },
-  { id: 5, region: 'Lyon', appels: 980, conversions: 620, taux: 63.3, color: '#10b981' },
-  { id: 6, region: 'Marseille', appels: 860, conversions: 480, taux: 55.8, color: '#f59e0b' },
-  { id: 7, region: 'Nabeul', appels: 450, conversions: 280, taux: 62.2, color: '#06b6d4' },
-  { id: 8, region: 'Bizerte', appels: 380, conversions: 220, taux: 57.9, color: '#f43f5e' }
-];
+const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#06b6d4', '#f43f5e'];
+
+interface RegionData {
+  id: number;
+  region: string;
+  appels: number;
+  conversions: number;
+  taux: number;
+  color: string;
+}
 
 export default function MapPage() {
-  const [selectedCountry, setSelectedCountry] = useState('all');
   const [hoveredRegion, setHoveredRegion] = useState<any>(null);
+  const [regions, setRegions] = useState<RegionData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredData = selectedCountry === 'all' ? regionsData :
-    selectedCountry === 'tunisia' ? regionsData.filter(r => ['Tunis', 'Sfax', 'Sousse', 'Nabeul', 'Bizerte'].includes(r.region)) :
-    regionsData.filter(r => ['Paris', 'Lyon', 'Marseille'].includes(r.region));
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const res = await api.getGeoAnalysis();
+      const depts: RegionData[] = (res.departments || []).map((d: any, idx: number) => ({
+        id: idx + 1,
+        region: `Dépt. ${d.dept}`,
+        appels: d.total,
+        conversions: Math.round((d.total || 0) * (d.avg_score || 0) / 100),
+        taux: d.avg_score || 0,
+        color: COLORS[idx % COLORS.length],
+      }));
+      setRegions(depts);
+    } catch (e) {
+      console.error('Error loading geo data:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredData = regions;
 
   const totalCalls = filteredData.reduce((sum, r) => sum + r.appels, 0);
   const totalConvs = filteredData.reduce((sum, r) => sum + r.conversions, 0);
-  const avgTaux = (filteredData.reduce((sum, r) => sum + r.taux, 0) / filteredData.length).toFixed(1);
+  const avgTaux = filteredData.length > 0 ? (filteredData.reduce((sum, r) => sum + r.taux, 0) / filteredData.length).toFixed(1) : '0';
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <span className="ml-3 text-muted-foreground">Chargement des données géographiques...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -46,22 +80,9 @@ export default function MapPage() {
           <p className="text-muted-foreground text-xs font-medium mt-1">Analyse des flux de conversion par zone géographique</p>
         </div>
         
-        <div className="flex items-center gap-3 bg-muted/50 p-1.5 rounded-xl border border-border relative z-10">
-          <div className="pl-3">
-            <Filter className="w-4 h-4 text-muted-foreground" />
-          </div>
-          <select
-            value={selectedCountry}
-            onChange={(e) => setSelectedCountry(e.target.value)}
-            className="pr-10 pl-2 py-2 bg-transparent text-slate-900 text-xs font-black uppercase tracking-widest focus:outline-none cursor-pointer appearance-none"
-          >
-            <option value="all">Zones Globales</option>
-            <option value="tunisia">Tunisie (MENA)</option>
-            <option value="france">France (EU)</option>
-          </select>
-          <div className="pr-3 pointer-events-none">
-            <MousePointer2 className="w-3 h-3 text-muted-foreground" />
-          </div>
+        <div className="flex items-center gap-2 bg-muted/50 px-4 py-2 rounded-xl border border-border relative z-10">
+          <Globe className="w-4 h-4 text-primary" />
+          <span className="text-xs font-black uppercase tracking-widest text-foreground">Toutes les zones</span>
         </div>
       </div>
 

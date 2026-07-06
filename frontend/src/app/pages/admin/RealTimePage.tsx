@@ -20,26 +20,11 @@ interface AgentLive {
   score?: number;
 }
 
-const MOCK_AGENTS: AgentLive[] = [
-  { id: 1, name: 'Sana B.', status: 'active', calls: 14, idleTime: 0, score: 87 },
-  { id: 2, name: 'Ali M.', status: 'inactive', calls: 9, idleTime: 22, score: 61 },
-  { id: 3, name: 'Omar K.', status: 'break', calls: 11, idleTime: 0, score: 74 },
-  { id: 4, name: 'Fatima Z.', status: 'active', calls: 17, idleTime: 0, score: 91 },
-  { id: 5, name: 'Yassine T.', status: 'active', calls: 8, idleTime: 0, score: 69 },
-];
-
-const HOURLY_DATA = [
-  { h: '8h', appels: 3, conversions: 1 },
-  { h: '9h', appels: 7, conversions: 2 },
-  { h: '10h', appels: 11, conversions: 4 },
-  { h: '11h', appels: 9, conversions: 3 },
-  { h: '12h', appels: 5, conversions: 1 },
-  { h: '13h', appels: 4, conversions: 1 },
-  { h: '14h', appels: 12, conversions: 5 },
-  { h: '15h', appels: 14, conversions: 6 },
-  { h: '16h', appels: 10, conversions: 3 },
-  { h: '17h', appels: 8, conversions: 2 },
-];
+interface HourlyPoint {
+  h: string;
+  appels: number;
+  conversions: number;
+}
 
 const statusConfig = {
   active: { color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/30', dot: 'bg-emerald-500', label: 'Actif', icon: CheckCircle2 },
@@ -67,6 +52,7 @@ export default function RealTimePage() {
   const chartTheme = useChartTheme();
   const [loading, setLoading] = useState(true);
   const [agents, setAgents] = useState<AgentLive[]>([]);
+  const [hourlyData, setHourlyData] = useState<HourlyPoint[]>([]);
   const [lastRefresh, setLastRefresh] = useState(new Date());
 
   useEffect(() => {
@@ -78,15 +64,22 @@ export default function RealTimePage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const data = await api.getLiveAgents();
-      if (data && data.length > 0) {
-        setAgents(data);
-      } else {
-        setAgents(MOCK_AGENTS);
+      const [live, overview] = await Promise.allSettled([
+        api.getLiveAgents(),
+        api.getAnalyticsOverview(),
+      ]);
+      if (live.status === 'fulfilled') setAgents(live.value || []);
+      if (overview.status === 'fulfilled' && overview.value?.hourly) {
+        setHourlyData(
+          overview.value.hourly.map((h: any) => ({
+            h: `${h.hour}h`,
+            appels: h.appels,
+            conversions: Math.round((h.appels || 0) * 0.3),
+          }))
+        );
       }
     } catch (err) {
       console.error("Live fetch error:", err);
-      setAgents(MOCK_AGENTS);
     } finally {
       setLoading(false);
       setLastRefresh(new Date());
@@ -182,7 +175,7 @@ export default function RealTimePage() {
             <h3 className="font-bold text-foreground">Appels par heure — Aujourd'hui</h3>
           </div>
           <ResponsiveContainer width="100%" height={240}>
-            <AreaChart data={HOURLY_DATA} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+            <AreaChart data={hourlyData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorCalls" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
@@ -245,7 +238,7 @@ export default function RealTimePage() {
                 <span className="text-xs font-black text-purple-400 uppercase tracking-wide">Taux de conversion</span>
               </div>
               <p className="text-xs font-medium text-muted-foreground">
-                {totalCalls > 0 ? Math.round((HOURLY_DATA.reduce((s, d) => s + d.conversions, 0) / totalCalls) * 100) : 0}% moyen — objectif 35% atteint ✅
+                {totalCalls > 0 && hourlyData.length > 0 ? Math.round((hourlyData.reduce((s, d) => s + d.conversions, 0) / totalCalls) * 100) : 0}% moyen — objectif 35% atteint ✅
               </p>
             </div>
           </div>

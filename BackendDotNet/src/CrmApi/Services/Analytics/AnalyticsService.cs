@@ -30,6 +30,10 @@ public class AnalyticsService : IAnalyticsService
             .CountAsync(r => r.AppointmentDate >= thisMonth && r.AppointmentDate <= today);
         var conversionRate = monthCalls > 0 ? Math.Round((double)monthAppointments / monthCalls * 100, 1) : 0;
 
+        var hourly = calls.Where(c => c.CallDate.HasValue).GroupBy(c => c.CallDate!.Value.Hour).Select(g => new HourlyDataDto { Hour = g.Key, Appels = g.Count() }).OrderBy(h => h.Hour).ToList();
+
+        var schedulingTip = GenerateSchedulingTip(hourly);
+
         return new OverviewDto
         {
             TotalCalls = calls.Count,
@@ -38,7 +42,7 @@ public class AnalyticsService : IAnalyticsService
             Performances = calls.GroupBy(c => c.Performance ?? "N/A").ToDictionary(g => g.Key, g => g.Count()),
             BestAgent = calls.GroupBy(c => c.AgentName).OrderByDescending(g => g.Average(c => c.ScorePercentage)).FirstOrDefault()?.Key,
             WorstAgent = calls.GroupBy(c => c.AgentName).OrderBy(g => g.Average(c => c.ScorePercentage)).FirstOrDefault()?.Key,
-            Hourly = calls.Where(c => c.CallDate.HasValue).GroupBy(c => c.CallDate!.Value.Hour).Select(g => new HourlyDataDto { Hour = g.Key, Appels = g.Count() }).OrderBy(h => h.Hour).ToList(),
+            Hourly = hourly,
             Radar = new List<RadarDataDto>
             {
                 new() { Critere = "Ecoute", Score = calls.Count > 0 ? calls.Average(c => c.ScoreEcoute) : 0 },
@@ -52,7 +56,8 @@ public class AnalyticsService : IAnalyticsService
             ActiveAgents = calls.Where(c => c.CallDate.HasValue && c.CallDate.Value.Date == today).Select(c => c.AgentName).Distinct().Count(),
             ConversionRate = conversionRate,
             PendingFollowups = pendingFollowups,
-            AvgDuration = avgDuration
+            AvgDuration = avgDuration,
+            SchedulingTip = schedulingTip
         };
     }
 
@@ -202,6 +207,38 @@ public class AnalyticsService : IAnalyticsService
                 breakType = openBreak?.Type ?? ""
             };
         }).ToList();
+    }
+
+    private static string? GenerateSchedulingTip(List<HourlyDataDto> hourly)
+    {
+        if (hourly.Count == 0) return null;
+
+        var peak = hourly.MaxBy(h => h.Appels);
+        var low = hourly.Where(h => h.Appels > 0).MinBy(h => h.Appels);
+        var avg = hourly.Average(h => h.Appels);
+        var aboveAvg = hourly.Where(h => h.Appels > avg).ToList();
+        var peakWindow = aboveAvg.Count >= 2
+            ? $"{aboveAvg.Min(h => h.Hour)}h-{aboveAvg.Max(h => h.Hour)}h"
+            : null;
+
+        var tips = new List<string>();
+
+        if (peak != null && peak.Appels > avg * 1.5)
+            tips.Add($"Heure de pointe détectée à {peak.Hour}h ({peak.Appels} appels). Prévoyez {Math.Max(1, peak.Appels / 10 + 1)} agent(s) supplémentaire(s) sur cette tranche.");
+
+        if (low != null && low.Appels < avg * 0.5 && low.Hour != peak?.Hour)
+            tips.Add($"Faible activité à {low.Hour}h ({low.Appels} appels) — envisagez de réduire les effectifs ou de programmer des tâches administratives.");
+
+        if (peakWindow != null)
+            tips.Add($"Fenêtre de forte activité: {peakWindow}. Planifiez les pauses en dehors de cette plage pour maintenir la couverture.");
+
+        if (hourly.Count(h => h.Appels == 0) > 0)
+        {
+            var zeroHours = hourly.Where(h => h.Appels == 0).Select(h => $"{h.Hour}h");
+            tips.Add($"Créneaux sans appel: {string.Join(", ", zeroHours)}. Possibilité de regrouper les formations ou briefings d'équipe.");
+        }
+
+        return tips.Count > 0 ? string.Join(" ", tips) : null;
     }
 
     public async Task<ComparisonDto> GetComparisonAsync()

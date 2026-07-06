@@ -93,20 +93,8 @@ export default function ScoringPage() {
     try {
       const agentData = await api.getAgentsPerformance();
       setAgents(agentData || []);
-      
-      // Mock history since API might be missing it
-      setAlertHistory([
-        { id: 1, agent_name: 'Ali M.', message: 'Score de persuasion critique (42%)', type: 'critical', timestamp: 'Il y a 5 min' },
-        { id: 2, agent_name: 'Sana B.', message: 'Inactivité prolongée détectée (18 min)', type: 'warning', timestamp: 'Il y a 12 min' },
-        { id: 3, agent_name: 'Omar K.', message: 'Performance exceptionnelle (98%)', type: 'info', timestamp: 'Il y a 45 min' },
-        { id: 4, agent_name: 'Mariam Z.', message: 'Rupture de script détectée', type: 'warning', timestamp: 'Il y a 1h' },
-      ]);
     } catch {
-      setAgents([
-        { id: 1, name: 'Sana B.', score: 92, qualification: 'RDV Client Confirmé' },
-        { id: 2, name: 'Ali M.', score: 88, qualification: 'RDV Client Confirmé' },
-        { id: 3, name: 'Omar K.', score: 75, qualification: 'Refus - Argumenté' }
-      ]);
+      console.error('Error loading agents performance');
     }
   };
 

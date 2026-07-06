@@ -125,6 +125,7 @@ builder.Services.AddHttpClient("Ollama");
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
 builder.Services.AddHostedService<DatabaseSeedService>();
+builder.Services.AddHostedService<CrmApi.Services.Followup.FollowupBackgroundService>();
 
 var app = builder.Build();
 app.UseWebSockets();

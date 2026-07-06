@@ -98,6 +98,22 @@ public class QualificationResultDto
 {
     public bool Coherent { get; set; }
     public string Details { get; set; } = string.Empty;
+    public bool RefusalDetected { get; set; }
+}
+
+public class RefusalCheckDto
+{
+    public string Transcript { get; set; } = string.Empty;
+}
+
+public class RefusalResultDto
+{
+    public bool RefusalDetected { get; set; }
+    public int Confidence { get; set; }
+    public List<string> RefusalKeywords { get; set; } = new();
+    public List<string> Categories { get; set; } = new();
+    public string PrimaryMotive { get; set; } = "none";
+    public string SuggestedResponse { get; set; } = string.Empty;
 }
 
 public class AppointmentDetectDto
@@ -121,4 +137,17 @@ public class AnonymizeDto
 public class AnonymizeResultDto
 {
     public string Anonymized { get; set; } = string.Empty;
+}
+
+public class InactivityRequestDto
+{
+    public int? CallDuration { get; set; }
+    public string? Transcription { get; set; }
+}
+
+public class InactivityResultDto
+{
+    public bool InactivityDetected { get; set; }
+    public float InactivityDuration { get; set; }
+    public string? Reason { get; set; }
 }

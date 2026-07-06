@@ -53,34 +53,7 @@ export default function AgentTrendPage() {
     loadPerf();
   }, [selectedAgentId]);
 
-  // Fallback mock data when API returns nothing (for demo)
-  useEffect(() => {
-    if (!loading && !performance) {
-      const mockPerf: AgentPerformance = {
-        agent_id: selectedAgentId ?? 0,
-        agent_name: agents.find(a => a.id === selectedAgentId)?.name || 'Agent Demo',
-        current_month: {
-          calls: 320,
-          appointments: 45,
-          conversion_rate: 27,
-          avg_call_duration: 120,
-          quality_score: 85,
-          attendance_rate: 92,
-          daily_performance: Array.from({ length: 30 }, (_, i) => 20 + i % 5)
-        },
-        previous_month: {
-          calls: 280,
-          appointments: 40,
-          conversion_rate: 25,
-          avg_call_duration: 115,
-          quality_score: 80,
-          attendance_rate: 90,
-          daily_performance: Array.from({ length: 30 }, (_, i) => 18 + i % 4)
-        }
-      };
-      setPerformance(mockPerf);
-    }
-  }, [loading, performance, selectedAgentId, agents]);
+
 
   const variation = (current: number, previous: number) => {
     const diff = current - previous;

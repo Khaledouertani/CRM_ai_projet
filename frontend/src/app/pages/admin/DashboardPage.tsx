@@ -3,7 +3,8 @@ import {
   TrendingUp, TrendingDown, Users, Phone, Clock,
   Trophy, Target, Download, RefreshCw, Calendar,
   ArrowUp, ArrowDown, Activity, AlertTriangle,
-  BarChart3, Brain, Zap, ArrowUpRight, FileText
+  BarChart3, Brain, Zap, ArrowUpRight, FileText,
+  Coffee, UserCheck, UserX, WifiOff, PlayCircle
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import api from '../../services/api';
@@ -41,6 +42,7 @@ export default function DashboardPage() {
   const [dateRange, setDateRange] = useState('today');
   const [chartData, setChartData] = useState<any[]>([]);
   const [exporting, setExporting] = useState(false);
+  const [pointageData, setPointageData] = useState<any[]>([]);
 
   // Agent Management State
   const [showModal, setShowModal] = useState(false);
@@ -59,12 +61,15 @@ const [selectedProject, setSelectedProject] = useState("");
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [overviewRes, agentsRes, comparisonRes, appointmentsRes] = await Promise.all([
+      const [overviewRes, agentsRes, comparisonRes, appointmentsRes, pointageRes] = await Promise.all([
         api.getAnalyticsOverview(),
         api.getAgents(),
         api.getGlobalComparison(),
-        api.getAppointments()
+        api.getAppointments(),
+        api.getAttendanceTeamDetail().catch(() => [])
       ]);
+
+      setPointageData(Array.isArray(pointageRes) ? pointageRes : []);
 
       setKpis({
         totalCalls: overviewRes.total_calls || 0,
@@ -312,6 +317,90 @@ const [selectedProject, setSelectedProject] = useState("");
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Pointage Section */}
+      <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-primary" />
+            <h3 className="text-sm font-black uppercase tracking-widest text-foreground">POINTAGE EN DIRECT</h3>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1.5 text-[10px] font-bold">
+              <span className="w-2 h-2 bg-emerald-400 rounded-full" />
+              {pointageData.filter((a: any) => a.status === "active").length} en poste
+            </span>
+            <span className="flex items-center gap-1.5 text-[10px] font-bold">
+              <span className="w-2 h-2 bg-amber-400 rounded-full" />
+              {pointageData.filter((a: any) => a.status === "break").length} en pause
+            </span>
+            <span className="flex items-center gap-1.5 text-[10px] font-bold">
+              <span className="w-2 h-2 bg-slate-500 rounded-full" />
+              {pointageData.filter((a: any) => a.status !== "active" && a.status !== "break").length} hors ligne
+            </span>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-muted/10 border-b border-border">
+                <th className="px-4 py-3 text-left">Agent</th>
+                <th className="px-4 py-3 text-left">Statut</th>
+                <th className="px-4 py-3 text-left">Début</th>
+                <th className="px-4 py-3 text-left">Travail</th>
+                <th className="px-4 py-3 text-left">Pause</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {(pointageData.length > 0 ? pointageData : []).map((agent: any, index: number) => {
+                const isOnline = agent.status === "active";
+                const isBreak = agent.status === "break";
+                return (
+                  <tr key={agent.user_id || index} className="hover:bg-muted/20 transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400' : isBreak ? 'bg-amber-400' : 'bg-slate-500'}`} />
+                        <span className="font-semibold">{agent.user_name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      {isOnline ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-bold">
+                          <PlayCircle className="w-3 h-3" /> EN POSTE
+                        </span>
+                      ) : isBreak ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-500/10 text-amber-400 rounded-full text-[10px] font-bold">
+                          <Coffee className="w-3 h-3" /> {agent.current_break_type || 'PAUSE'}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-500/10 text-slate-400 rounded-full text-[10px] font-bold">
+                          <WifiOff className="w-3 h-3" /> HORS LIGNE
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-xs text-muted-foreground">{agent.clock_in ? new Date(agent.clock_in).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--'}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-xs font-mono">{agent.work_duration_minutes != null ? `${Math.floor(agent.work_duration_minutes)} min` : '—'}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-xs font-mono text-amber-400/80">{agent.total_break_minutes != null ? `${Math.floor(agent.total_break_minutes)} min` : '—'}</span>
+                    </td>
+                  </tr>
+                );
+              })}
+              {pointageData.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                    Aucune donnée de pointage disponible
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

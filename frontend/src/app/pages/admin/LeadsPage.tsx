@@ -61,17 +61,6 @@ export default function LeadsPage() {
       setGeoData(mappedGeo);
     } catch (error) {
       console.error('Error fetching data:', error);
-      setLeads([
-        { id: 1, name: 'Jean Martin', phone: '06 12 34 56 78', status: 'RDV client 1', postalCode: '75001', agent: 'Sana B.' },
-        { id: 2, name: 'Marie Dupont', phone: '06 23 45 67 89', status: 'Hot - Prêt à acheter', postalCode: '69001', agent: 'Ali M.' },
-        { id: 3, name: 'Robert Leroy', phone: '06 34 56 78 90', status: 'Refus', postalCode: '13001', agent: 'Omar K.' },
-        { id: 4, name: 'Sophie Bernard', phone: '06 45 67 89 01', status: 'Warm - Intéressé', postalCode: '31000', agent: 'Sana B.' },
-      ]);
-      setGeoData([
-        { postalCode: '75001', calls: 45, conversions: 28, rate: 62 },
-        { postalCode: '69001', calls: 38, conversions: 22, rate: 58 },
-        { postalCode: '13001', calls: 32, conversions: 12, rate: 37 }
-      ]);
     }
   };
 

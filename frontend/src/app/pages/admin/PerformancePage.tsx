@@ -103,29 +103,11 @@ export default function AdminPerformancePage() {
         score: a.avg_score || a.score || 0,
         conversions: a.conversions || 0,
         refusals: a.refusals || 0,
-        activity: Array.from({ length: 7 }, (_, i) => ({
-          day: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'][i],
-          calls: Math.floor(Math.random() * 30) + 10,
-          convs: Math.floor(Math.random() * 8) + 2
-        }))
+        activity: a.activity || [],
       })).sort((a, b) => b.score - a.score);
       setAgents(mapped);
     } catch (e) {
-      const mockAgents = [
-        { id: 1, rank: 1, name: 'Marie Dubois', current: 142, previous: 128, score: 88, conversions: 28, refusals: 8 },
-        { id: 2, rank: 2, name: 'Jean Lefebvre', current: 135, previous: 140, score: 82, conversions: 24, refusals: 15 },
-        { id: 3, rank: 3, name: 'Ali Mansour', current: 128, previous: 125, score: 79, conversions: 21, refusals: 12 },
-        { id: 4, rank: 4, name: 'Sophie Martin', current: 118, previous: 110, score: 76, conversions: 19, refusals: 18 },
-        { id: 5, rank: 5, name: 'Pierre Leroy', current: 115, previous: 105, score: 72, conversions: 16, refusals: 22 }
-      ].map(a => ({
-        ...a,
-        activity: Array.from({ length: 7 }, (_, i) => ({
-          day: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'][i],
-          calls: Math.floor(Math.random() * 30) + 10,
-          convs: Math.floor(Math.random() * 8) + 2
-        }))
-      }));
-      setAgents(mockAgents);
+      console.error('Error loading agents:', e);
     } finally {
       setLoading(false);
       setInitialLoading(false);
