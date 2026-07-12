@@ -126,6 +126,7 @@ builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
 builder.Services.AddHostedService<DatabaseSeedService>();
 builder.Services.AddHostedService<CrmApi.Services.Followup.FollowupBackgroundService>();
+builder.Services.AddHostedService<CrmApi.Services.InactivityAlertService>();
 
 var app = builder.Build();
 app.UseWebSockets();
@@ -184,5 +185,12 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.MapGet("/", () => new { status = "online", message = "CRM AI Backend is running", version = "1.0.0" });
+app.MapGet("/api/health", async (ApplicationDbContext db) =>
+{
+    var canConnect = await db.Database.CanConnectAsync();
+    return canConnect
+        ? Results.Ok(new { status = "healthy", database = "connected", timestamp = DateTime.UtcNow })
+        : Results.StatusCode(503);
+});
 
 app.Run();

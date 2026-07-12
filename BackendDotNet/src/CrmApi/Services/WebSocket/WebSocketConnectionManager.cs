@@ -20,7 +20,32 @@ namespace CrmApi.Services.WebSocket
         /// </summary>
         public void Add(int userId, SysWebSocket socket)
         {
-            _sockets.AddOrUpdate(userId, socket, (_, __) => socket);
+            if (_sockets.TryGetValue(userId, out var existing))
+            {
+                if (existing.State == WebSocketState.Open)
+                {
+                    _ = existing.CloseAsync(WebSocketCloseStatus.NormalClosure, "Replaced by new connection", CancellationToken.None);
+                }
+                existing.Dispose();
+            }
+            _sockets[userId] = socket;
+        }
+
+        public bool TryGetConnection(int userId, out SysWebSocket? socket)
+        {
+            return _sockets.TryGetValue(userId, out socket);
+        }
+
+        public void Remove(int userId)
+        {
+            if (_sockets.TryRemove(userId, out var ws))
+            {
+                if (ws.State == WebSocketState.Open)
+                {
+                    _ = ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Removed", CancellationToken.None);
+                }
+                ws.Dispose();
+            }
         }
 
         /// <summary>

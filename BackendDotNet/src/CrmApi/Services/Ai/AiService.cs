@@ -2,16 +2,23 @@ using CrmApi.Data;
 using CrmApi.DTOs.Ai;
 using CrmApi.Helpers;
 using CrmApi.Models.Entities;
+using CrmApi.Services.Chat;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace CrmApi.Services.Ai;
 
 public class AiService : IAiService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IChatService _chatService;
 
-    public AiService(ApplicationDbContext context) => _context = context;
+    public AiService(ApplicationDbContext context, IChatService chatService)
+    {
+        _context = context;
+        _chatService = chatService;
+    }
 
     public Task<EligibilityResultDto> ScoreEligibilityAsync(EligibilityRequestDto dto)
     {
@@ -168,5 +175,240 @@ public class AiService : IAiService
             InactivityDuration = duration,
             Reason = reason
         });
+    }
+
+    public Task<DiarizationResultDto> DiarizeTranscriptAsync(DiarizationRequestDto dto, int? callDuration = null)
+    {
+        var text = dto.Transcript;
+        if (string.IsNullOrWhiteSpace(text))
+            return Task.FromResult(new DiarizationResultDto { Method = "none" });
+
+        var agentSegments = new List<string>();
+        var clientSegments = new List<string>();
+        var labeledLines = new List<string>();
+
+        var lines = text.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (var line in lines)
+        {
+            var trimmed = line.Trim();
+
+            if (Regex.IsMatch(trimmed, @"^(Agent|Conseiller|Commercial|Moi)\s*[:\-–—]",
+                RegexOptions.IgnoreCase))
+            {
+                agentSegments.Add(Regex.Replace(trimmed, @"^(Agent|Conseiller|Commercial|Moi)\s*[:\-–—]\s*", "", RegexOptions.IgnoreCase));
+                labeledLines.Add($"[Agent] {agentSegments.Last()}");
+            }
+            else if (Regex.IsMatch(trimmed, @"^(Client|Prospect|Lui|Elle)\s*[:\-–—]",
+                RegexOptions.IgnoreCase))
+            {
+                clientSegments.Add(Regex.Replace(trimmed, @"^(Client|Prospect|Lui|Elle)\s*[:\-–—]\s*", "", RegexOptions.IgnoreCase));
+                labeledLines.Add($"[Client] {clientSegments.Last()}");
+            }
+            else
+            {
+                var words = trimmed.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (words.Length > 0)
+                {
+                    var isAgent = agentSegments.Count <= clientSegments.Count;
+                    if (isAgent)
+                    {
+                        agentSegments.Add(trimmed);
+                        labeledLines.Add($"[Agent] {trimmed}");
+                    }
+                    else
+                    {
+                        clientSegments.Add(trimmed);
+                        labeledLines.Add($"[Client] {trimmed}");
+                    }
+                }
+            }
+        }
+
+        var agentText = string.Join(" ", agentSegments);
+        var clientText = string.Join(" ", clientSegments);
+        var totalAgentWords = agentText.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+        var totalClientWords = clientText.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+        var totalWords = totalAgentWords + totalClientWords;
+
+        float agentRatio = 0, clientRatio = 0;
+        float agentSecs = 0, clientSecs = 0;
+
+        if (totalWords > 0)
+        {
+            agentRatio = (float)Math.Round((float)totalAgentWords / totalWords, 3);
+            clientRatio = (float)Math.Round((float)totalClientWords / totalWords, 3);
+        }
+
+        if (callDuration.HasValue && callDuration.Value > 0 && totalWords > 0)
+        {
+            var wordsPerSecond = (float)totalWords / callDuration.Value;
+            agentSecs = wordsPerSecond > 0 ? (float)Math.Round(totalAgentWords / wordsPerSecond, 1) : 0;
+            clientSecs = wordsPerSecond > 0 ? (float)Math.Round(totalClientWords / wordsPerSecond, 1) : 0;
+        }
+
+        return Task.FromResult(new DiarizationResultDto
+        {
+            LabeledTranscript = string.Join("\n", labeledLines),
+            AgentText = agentText,
+            ClientText = clientText,
+            AgentTalkRatio = agentRatio,
+            ClientTalkRatio = clientRatio,
+            AgentSeconds = agentSecs,
+            ClientSeconds = clientSecs,
+            Method = "rule_based"
+        });
+    }
+
+    public async Task<SummarizeResultDto> SummarizeTranscriptAsync(SummarizeRequestDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Transcript))
+            return new SummarizeResultDto { Summary = "", Keywords = "" };
+
+        try
+        {
+            var agentContext = !string.IsNullOrEmpty(dto.AgentName)
+                ? $"L'agent s'appelle {dto.AgentName}. "
+                : "";
+
+            var response = await _chatService.SendMessageAsync(
+                $"Voici la transcription d'un appel téléphonique commercial. {agentContext}" +
+                $"Résume cet appel en 2-3 phrases en français, puis liste 5-8 mots-clés séparés par des virgules.\n\n" +
+                $"Transcription:\n{dto.Transcript}\n\n" +
+                $"Format de réponse:\nRÉSUMÉ: <résumé>\nMOTS-CLÉS: <mot1, mot2, ...>",
+                null, "admin", dto.AgentName
+            );
+
+            var summary = response.Response;
+            var keywords = "";
+
+            var summaryMatch = Regex.Match(summary, @"RÉSUMÉ:\s*(.+?)(?=\nMOTS-CLÉS:|$)", RegexOptions.Singleline);
+            if (summaryMatch.Success)
+                summary = summaryMatch.Groups[1].Value.Trim();
+
+            var keywordsMatch = Regex.Match(summary, @"MOTS-CLÉS:\s*(.+)", RegexOptions.Singleline);
+            if (keywordsMatch.Success)
+            {
+                keywords = keywordsMatch.Groups[1].Value.Trim();
+                summary = summary.Replace(keywordsMatch.Value, "").Replace("RÉSUMÉ:", "").Trim();
+            }
+
+            if (string.IsNullOrWhiteSpace(summary))
+                summary = dto.Transcript.Length > 200
+                    ? dto.Transcript[..200] + "..."
+                    : dto.Transcript;
+
+            return new SummarizeResultDto { Summary = summary, Keywords = keywords };
+        }
+        catch
+        {
+            var fallback = dto.Transcript.Length > 200
+                ? dto.Transcript[..200] + "..."
+                : dto.Transcript;
+            return new SummarizeResultDto { Summary = fallback, Keywords = "" };
+        }
+    }
+
+    public async Task<ScriptAnalysisResultDto> AnalyzeScriptAsync(ScriptAnalysisRequestDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Transcript))
+            return new ScriptAnalysisResultDto
+            {
+                ScriptRespected = false,
+                Sentiment = "NEUTRAL",
+                Performance = "N/A",
+                ScorePercentage = 0
+            };
+
+        try
+        {
+            var response = await _chatService.SendMessageAsync(
+                $"Analyse cette transcription d'appel commercial en français. " +
+                $"La qualification du projet est: {dto.Qualification}\n\n" +
+                $"Transcription:\n{dto.Transcript}\n\n" +
+                $"Évalue chaque critère de 0 à 10: écoute, persuasion, empathie, argumentation, gestion refus, vente. " +
+                $"Donne un score de sentiment (0=très négatif, 1=très positif), un score global (0-100). " +
+                $"Indique si le script a été respecté (oui/non), si les objections ont été gérées (oui/non), " +
+                $"l'intention du client, et les prochaines étapes.\n\n" +
+                $"Réponds UNIQUEMENT en JSON valide avec cette structure exacte:\n" +
+                $"{{\"score_ecoute\":0,\"score_persuasion\":0,\"score_empathie\":0,\"score_argumentation\":0," +
+                $"\"score_refus\":0,\"score_vente\":0,\"sentiment_score\":0.0,\"sentiment\":\"\",\"score_percentage\":0," +
+                $"\"performance\":\"\",\"script_respected\":true,\"objections_handled\":true,\"customer_intent\":\"\",\"next_steps\":\"\"}}",
+                null, "admin", null
+            );
+
+            var json = response.Response;
+            var jsonMatch = Regex.Match(json, @"\{.*\}", RegexOptions.Singleline);
+            if (jsonMatch.Success)
+                json = jsonMatch.Value;
+
+            var parsed = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            if (parsed != null)
+            {
+                var result = new ScriptAnalysisResultDto();
+                if (parsed.TryGetValue("score_ecoute", out var v)) result.ScoreEcoute = v.GetInt32();
+                if (parsed.TryGetValue("score_persuasion", out v)) result.ScorePersuasion = v.GetInt32();
+                if (parsed.TryGetValue("score_empathie", out v)) result.ScoreEmpathie = v.GetInt32();
+                if (parsed.TryGetValue("score_argumentation", out v)) result.ScoreArgumentation = v.GetInt32();
+                if (parsed.TryGetValue("score_refus", out v)) result.ScoreRefus = v.GetInt32();
+                if (parsed.TryGetValue("score_vente", out v)) result.ScoreVente = v.GetInt32();
+                if (parsed.TryGetValue("sentiment_score", out v)) result.SentimentScore = v.GetDouble();
+                if (parsed.TryGetValue("sentiment", out v)) result.Sentiment = v.GetString() ?? "NEUTRAL";
+                if (parsed.TryGetValue("score_percentage", out v)) result.ScorePercentage = v.GetDouble();
+                if (parsed.TryGetValue("performance", out v)) result.Performance = v.GetString() ?? "N/A";
+                if (parsed.TryGetValue("script_respected", out v)) result.ScriptRespected = v.GetBoolean();
+                if (parsed.TryGetValue("objections_handled", out v)) result.ObjectionsHandled = v.GetBoolean();
+                if (parsed.TryGetValue("customer_intent", out v)) result.CustomerIntent = v.GetString();
+                if (parsed.TryGetValue("next_steps", out v)) result.NextSteps = v.GetString();
+                return result;
+            }
+        }
+        catch { }
+
+        return new ScriptAnalysisResultDto
+        {
+            ScoreEcoute = 5, ScorePersuasion = 5, ScoreEmpathie = 5,
+            ScoreArgumentation = 5, ScoreRefus = 5, ScoreVente = 5,
+            SentimentScore = 0.5, Sentiment = "NEUTRAL", ScorePercentage = 50,
+            Performance = "Moyen", ScriptRespected = true, ObjectionsHandled = false
+        };
+    }
+
+    public Task<PostalCodeExtractResultDto> ExtractPostalCodeAsync(PostalCodeExtractRequestDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Transcript))
+            return Task.FromResult(new PostalCodeExtractResultDto { Extracted = false });
+
+        var frenchPostalCodePattern = new Regex(@"\b(0[1-9]|[1-9]\d)\d{3}\b");
+        var match = frenchPostalCodePattern.Match(dto.Transcript);
+        if (match.Success)
+        {
+            var code = match.Value;
+            var region = code[..2] switch
+            {
+                "75" => "Île-de-France",
+                "91" or "92" or "93" or "94" or "95" => "Île-de-France",
+                "69" => "Auvergne-Rhône-Alpes",
+                "13" or "83" or "84" or "06" or "04" => "Provence-Alpes-Côte d'Azur",
+                "33" or "24" or "47" or "40" or "64" => "Nouvelle-Aquitaine",
+                "59" or "62" => "Hauts-de-France",
+                "31" or "81" or "82" or "46" or "65" or "09" or "11" or "34" or "66" or "30" or "48" or "12" => "Occitanie",
+                "44" or "85" or "49" or "53" or "72" => "Pays de la Loire",
+                "35" or "22" or "29" or "56" => "Bretagne",
+                "67" or "68" or "57" or "54" or "88" => "Grand Est",
+                "76" or "27" or "14" or "50" or "61" => "Normandie",
+                "37" or "41" or "45" or "28" or "36" or "18" => "Centre-Val de Loire",
+                "21" or "25" or "39" or "70" or "71" or "58" or "89" or "52" or "10" or "77" => "Bourgogne-Franche-Comté",
+                _ => "Autre"
+            };
+            return Task.FromResult(new PostalCodeExtractResultDto
+            {
+                PostalCode = code,
+                Region = region,
+                Extracted = true
+            });
+        }
+
+        return Task.FromResult(new PostalCodeExtractResultDto { Extracted = false });
     }
 }

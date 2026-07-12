@@ -26,7 +26,7 @@ public class MaintenanceController : ControllerBase
     }
 
     [HttpPost("import")]
-    public async Task<IActionResult> Import([FromBody] ImportDataDto dto)
+    public IActionResult Import([FromBody] ImportDataDto dto)
     {
         if (dto == null) return BadRequest(new { error = "Request body is required" });
         try { return Ok(new { success = true, message = "Data imported" }); }

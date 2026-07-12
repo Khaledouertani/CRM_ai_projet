@@ -131,6 +131,11 @@ rapport_agents.csv
 *.xlsx
 gap_analysis.md
 
+# ------------------------- Docker / Deploy ----------------------------
+backups/
+ssl/
+*.pid
+
 # ------------------------- Cache & Temporary Data ----------------------
 .cache/
 *.cache
@@ -142,3 +147,11 @@ node_modules
 # .NET build artifacts
 BackendDotNet/**/bin/
 BackendDotNet/**/obj/
+BackendDotNet/TestResults/
+
+# Frontend test & coverage
+frontend/coverage/
+frontend/e2e/
+
+# Performance tests
+performance-tests/

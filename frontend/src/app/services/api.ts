@@ -2,9 +2,10 @@ import type { Message, Conversation } from '../types/chat';
 
 /**
  * api.ts - API Client for CRM AI Backend
- * Handles all HTTP requests to FastAPI backend
+ * Handles all HTTP requests to CRM API backend
+ * URL relative = fonctionne avec Vite proxy (dev) et Nginx (prod Docker)
  */
-const BASE_URL = "http://127.0.0.1:5190";
+const BASE_URL = "";
 
 export const API_BASE = `${BASE_URL}/api`;
 const AUTH_BASE = `${BASE_URL}/api/auth`;
@@ -1092,6 +1093,40 @@ const exportData = () => request('/api/maintenance/export');
 const importData = (data: any) => request('/api/maintenance/import', { method: 'POST', body: JSON.stringify(data) });
 const resetData = () => request('/api/maintenance/reset', { method: 'POST' });
 
+export const analyzeTranscript = async (data: {
+  transcript: string;
+  call_duration?: number;
+  agent_name?: string;
+  qualification?: string;
+}): Promise<any> => {
+  const response = await fetch(`${API_BASE}/analyze/transcript`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error('Transcript analysis failed');
+  return response.json();
+};
+
+export const analyzeExistingCall = async (callId: number): Promise<any> => {
+  const response = await fetch(`${API_BASE}/analyze/analyze-call/${callId}`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
+  if (!response.ok) throw new Error('Call analysis failed');
+  return response.json();
+};
+
+export const batchAnalyzeCalls = async (limit: number = 50): Promise<any> => {
+  const response = await fetch(`${API_BASE}/analyze/batch-analyze`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+    body: JSON.stringify({ limit }),
+  });
+  if (!response.ok) throw new Error('Batch analysis failed');
+  return response.json();
+};
+
 export const api = {
   // Auth
   login,
@@ -1201,6 +1236,11 @@ export const api = {
   deleteSalaryRule,
   getAgentSalaryDetail,
   updateSalaryPayment,
+
+  // Enhanced AI Analysis
+  analyzeTranscript,
+  analyzeExistingCall,
+  batchAnalyzeCalls,
 };
 
 export default api;
@@ -1216,3 +1256,4 @@ export const updateAppointmentStatus = (
       body: JSON.stringify({ status }),
     }
   );
+

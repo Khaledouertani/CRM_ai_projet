@@ -13,4 +13,8 @@ public interface IAiService
     Task<AnonymizeResultDto> AnonymizeTranscriptAsync(AnonymizeDto dto);
     Task<InactivityResultDto> AnalyzeInactivityAsync(InactivityRequestDto dto);
     Task<RefusalResultDto> DetectRefusalAsync(RefusalCheckDto dto);
+    Task<DiarizationResultDto> DiarizeTranscriptAsync(DiarizationRequestDto dto, int? callDuration = null);
+    Task<SummarizeResultDto> SummarizeTranscriptAsync(SummarizeRequestDto dto);
+    Task<ScriptAnalysisResultDto> AnalyzeScriptAsync(ScriptAnalysisRequestDto dto);
+    Task<PostalCodeExtractResultDto> ExtractPostalCodeAsync(PostalCodeExtractRequestDto dto);
 }

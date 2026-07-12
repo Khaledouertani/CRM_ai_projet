@@ -15,8 +15,30 @@ public class AttendanceService : IAttendanceService
 
     public async Task<ClockResultDto> ClockInAsync(int userId)
     {
+        var today = DateTime.UtcNow.Date;
+
+        var staleSessions = await _context.Attendances
+            .Where(a => a.UserId == userId && a.Date < today && (a.Status == "active" || a.Status == "break"))
+            .ToListAsync();
+
+        foreach (var stale in staleSessions)
+        {
+            var openBreaks = await _context.AttendanceBreaks
+                .Where(b => b.AttendanceId == stale.Id && b.EndTime == null)
+                .ToListAsync();
+
+            foreach (var b in openBreaks)
+            {
+                b.EndTime = DateTime.UtcNow;
+                b.DurationMinutes = (int)(DateTime.UtcNow - b.StartTime).TotalMinutes;
+            }
+
+            stale.Status = "completed";
+            stale.ClockOut ??= DateTime.UtcNow;
+        }
+
         var latest = await _context.Attendances
-            .Where(a => a.UserId == userId && (a.Status == "active" || a.Status == "break"))
+            .Where(a => a.UserId == userId && a.Date == today && (a.Status == "active" || a.Status == "break"))
             .OrderByDescending(a => a.Id)
             .FirstOrDefaultAsync();
 
@@ -30,7 +52,7 @@ public class AttendanceService : IAttendanceService
         var attendance = new Models.Entities.Attendance
         {
             UserId = userId,
-            Date = DateTime.UtcNow.Date,
+            Date = today,
             ClockIn = DateTime.UtcNow,
             Status = "active"
         };
@@ -320,15 +342,7 @@ foreach (var a in all)
 
             if (latestByUser.TryGetValue(agent.Id, out var att))
             {
-                if (att.Status == "active")
-                {
-                    var inactiveMinutes = (DateTime.UtcNow - (att.ClockOut ?? att.ClockIn)).TotalMinutes;
-                    dto.Status = inactiveMinutes > 30 ? "offline" : "active";
-                }
-                else
-                {
-                    dto.Status = att.Status;
-                }
+                dto.Status = att.Status;
                 dto.ClockIn = att.ClockIn;
                 if (att.ClockIn != default)
                 {

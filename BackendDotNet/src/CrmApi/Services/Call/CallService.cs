@@ -2,7 +2,10 @@ using CrmApi.Data;
 using CrmApi.DTOs.Call;
 using CrmApi.Models.Entities;
 using CrmApi.Repositories;
+using CrmApi.Services.Ai;
 using Microsoft.EntityFrameworkCore;
+
+using AiAnonymizeDto = CrmApi.DTOs.Ai.AnonymizeDto;
 
 namespace CrmApi.Services.Call;
 
@@ -10,11 +13,13 @@ public class CallService : ICallService
 {
     private readonly ApplicationDbContext _context;
     private readonly IUnitOfWork _uow;
+    private readonly IAiService _aiService;
 
-    public CallService(ApplicationDbContext context, IUnitOfWork uow)
+    public CallService(ApplicationDbContext context, IUnitOfWork uow, IAiService aiService)
     {
         _context = context;
         _uow = uow;
+        _aiService = aiService;
     }
 
     public async Task<CallsResponseDto> GetCallsAsync(int userId, string role, string? agentName, string? sentiment, int limit, int offset)
@@ -98,6 +103,12 @@ public class CallService : ICallService
     public async Task<(bool success, int callId, string message)> SaveCallAsync(int userId, CallSaveDto dto)
     {
         var user = await _uow.Users.GetByIdAsync(userId);
+        var anonymizedNotes = dto.Notes;
+        if (!string.IsNullOrEmpty(anonymizedNotes))
+        {
+            var anonymized = await _aiService.AnonymizeTranscriptAsync(new AiAnonymizeDto { Transcript = anonymizedNotes });
+            anonymizedNotes = anonymized.Anonymized;
+        }
         var call = new Models.Entities.Call
         {
             AgentId = userId.ToString(),
@@ -105,13 +116,13 @@ public class CallService : ICallService
             CallType = dto.Besoin,
             Problem = dto.Budget,
             CustomerIntent = dto.Interet,
-            NextSteps = dto.Notes ?? dto.Statut,
+            NextSteps = anonymizedNotes ?? dto.Statut,
             CallDate = dto.CallDate ?? DateTime.UtcNow,
             Status = dto.Statut
         };
         await _uow.Calls.AddAsync(call);
         await _uow.SaveChangesAsync();
-        return (true, call.Id, "Call saved");
+        return (true, call.Id, "Call saved with RGPD anonymization");
     }
 
     private static CallListDto MapToListDto(Models.Entities.Call c) => new()

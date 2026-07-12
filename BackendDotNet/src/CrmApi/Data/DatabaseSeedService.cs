@@ -119,9 +119,9 @@ public class DatabaseSeedService : IHostedService
 
         foreach (var (agent, tier) in agentTiers)
         {
-            var baseScore = tier switch { "high" => 72, "medium" => 58, "low" => 42 };
-            var scoreRange = tier switch { "high" => 20, "medium" => 25, "low" => 25 };
-            var baseDuration = tier switch { "high" => 480, "medium" => 350, "low" => 240 };
+            var baseScore = tier switch { "high" => 72, "medium" => 58, "low" => 42, _ => 50 };
+            var scoreRange = tier switch { "high" => 20, "medium" => 25, "low" => 25, _ => 25 };
+            var baseDuration = tier switch { "high" => 480, "medium" => 350, "low" => 240, _ => 350 };
 
             for (int dayOffset = 120; dayOffset >= 0; dayOffset--)
             {
@@ -133,6 +133,7 @@ public class DatabaseSeedService : IHostedService
                     "high" => Rng.Next(6, 12),
                     "medium" => Rng.Next(4, 9),
                     "low" => Rng.Next(2, 6),
+                    _ => Rng.Next(2, 6),
                 };
 
                 if (dayOffset < 30) count = (int)(count * 1.2);
@@ -253,7 +254,7 @@ public class DatabaseSeedService : IHostedService
 
             foreach (var (agent, tier) in agentTiers)
             {
-                int apptCount = tier switch { "high" => Rng.Next(1, 4), "medium" => Rng.Next(0, 3), "low" => Rng.Next(0, 2) };
+                int apptCount = tier switch { "high" => Rng.Next(1, 4), "medium" => Rng.Next(0, 3), "low" => Rng.Next(0, 2), _ => Rng.Next(0, 2) };
                 for (int a = 0; a < apptCount; a++)
                 {
                     var clientName = clientNames[Rng.Next(clientNames.Length)];
@@ -446,7 +447,7 @@ public class DatabaseSeedService : IHostedService
             EvaluatorId = qualite.Id,
             EvaluationDate = now.AddDays(-Rng.Next(0, 30)),
             CallRef = $"CALL-{Rng.Next(10000, 99999)}",
-            GlobalScore = t.tier switch { "high" => (float)Rng.Next(75, 98), "medium" => (float)Rng.Next(55, 80), "low" => (float)Rng.Next(35, 60) },
+            GlobalScore = t.tier switch { "high" => (float)Rng.Next(75, 98), "medium" => (float)Rng.Next(55, 80), "low" => (float)Rng.Next(35, 60), _ => (float)Rng.Next(35, 60) },
             Decision = Rng.NextDouble() > 0.25 ? "validé" : "à_revoir",
             Commentaires = evalComments[Rng.Next(evalComments.Length)],
             ScoresJson = evalScoresOptions[Rng.Next(evalScoresOptions.Length)],
@@ -490,14 +491,14 @@ public class DatabaseSeedService : IHostedService
         context.Salaries.AddRange(salaryMonths.SelectMany(month => agentTiers.Select(t =>
         {
             var baseSalary = 1500f;
-            var (rdvMin, rdvMax) = t.tier switch { "high" => (12, 30), "medium" => (6, 20), "low" => (3, 12) };
-            var (poseMin, poseMax) = t.tier switch { "high" => (3, 12), "medium" => (1, 6), "low" => (0, 3) };
-            var (refusMin, refusMax) = t.tier switch { "high" => (3, 12), "medium" => (8, 22), "low" => (15, 35) };
+            var (rdvMin, rdvMax) = t.tier switch { "high" => (12, 30), "medium" => (6, 20), "low" => (3, 12), _ => (3, 12) };
+            var (poseMin, poseMax) = t.tier switch { "high" => (3, 12), "medium" => (1, 6), "low" => (0, 3), _ => (0, 3) };
+            var (refusMin, refusMax) = t.tier switch { "high" => (3, 12), "medium" => (8, 22), "low" => (15, 35), _ => (15, 35) };
 
             var rdvCount = Rng.Next(rdvMin, rdvMax);
             var poseCount = Rng.Next(poseMin, poseMax);
             var refusCount = Rng.Next(refusMin, refusMax);
-            var qualityRate = t.tier switch { "high" => (float)Rng.Next(75, 98), "medium" => (float)Rng.Next(55, 80), "low" => (float)Rng.Next(35, 60) };
+            var qualityRate = t.tier switch { "high" => (float)Rng.Next(75, 98), "medium" => (float)Rng.Next(55, 80), "low" => (float)Rng.Next(35, 60), _ => (float)Rng.Next(35, 60) };
 
             var rdvBonus = rdvCount * 50f;
             var poseBonus = poseCount * 150f;
