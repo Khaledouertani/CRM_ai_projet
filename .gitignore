@@ -112,8 +112,10 @@ models/
 # ------------------------- Sensitive Data -------------------------------
 credentials.json
 secrets.yaml
-*password*
-*secret*
+*password*.txt
+*password*.json
+*secret*.txt
+*secret*.json
 *.key
 
 # ------------------------- OS Generated Files ---------------------------
