@@ -151,7 +151,6 @@ BackendDotNet/TestResults/
 
 # Frontend test & coverage
 frontend/coverage/
-frontend/e2e/
 
 # Performance tests
 performance-tests/
