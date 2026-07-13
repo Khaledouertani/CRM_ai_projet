@@ -22,11 +22,17 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: .NET info
+        run: dotnet --info
+
       - name: Restore dependencies
         run: dotnet restore
 
-      - name: Build
-        run: dotnet build --configuration Release /p:NuGetAudit=false
+      - name: Build main project
+        run: dotnet build src/CrmApi/CrmApi.csproj --configuration Release /p:NuGetAudit=false
+
+      - name: Build test project
+        run: dotnet build tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release /p:NuGetAudit=false
 
       - name: Run Unit Tests
         run: dotnet test tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --verbosity normal
@@ -72,8 +78,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check TypeScript version
+        run: npx tsc --version
+
       - name: Lint check
-        run: npx tsc --noEmit
+        run: npx tsc --noEmit 2>&1
 
       - name: Build
         run: npm run build
