@@ -10,9 +10,6 @@ jobs:
   backend-build:
     name: Backend Build & Test
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./BackendDotNet
 
     steps:
       - uses: actions/checkout@v4
@@ -22,35 +19,32 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: .NET info
-        run: dotnet --info
-
-      - name: Restore dependencies
-        run: dotnet restore
+      - name: Restore BackendDotNet
+        run: dotnet restore BackendDotNet/CrmApi.sln
 
       - name: Build main project
-        run: dotnet build src/CrmApi/CrmApi.csproj --configuration Release /p:NuGetAudit=false
+        run: dotnet build BackendDotNet/src/CrmApi/CrmApi.csproj --configuration Release --no-restore
 
       - name: Build test project
-        run: dotnet build tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release /p:NuGetAudit=false
+        run: dotnet build BackendDotNet/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-restore
 
       - name: Run Unit Tests
-        run: dotnet test tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --verbosity normal
+        run: dotnet test BackendDotNet/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --verbosity normal
 
       - name: Run Integration Tests
-        run: dotnet test tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Integration" --verbosity normal
+        run: dotnet test BackendDotNet/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Integration" --verbosity normal
 
       - name: Run Security Tests
-        run: dotnet test tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Security" --verbosity normal
+        run: dotnet test BackendDotNet/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Security" --verbosity normal
 
       - name: Run Database Tests
-        run: dotnet test tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Database" --verbosity normal
+        run: dotnet test BackendDotNet/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Database" --verbosity normal
 
       - name: Run Service Tests
-        run: dotnet test tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Services" --verbosity normal
+        run: dotnet test BackendDotNet/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Services" --verbosity normal
 
       - name: Collect Code Coverage
-        run: dotnet test tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage" --settings coverlet.runsettings
+        run: dotnet test BackendDotNet/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage" --settings BackendDotNet/coverlet.runsettings
 
       - name: Upload Coverage
         uses: actions/upload-artifact@v4
