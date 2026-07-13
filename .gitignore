@@ -103,6 +103,7 @@ __build__/
 
 # ------------------------- Model Files (if downloaded) -----------------
 models/
+!BackendDotNet/**/Models/
 *.bin
 *.h5
 *.onnx
