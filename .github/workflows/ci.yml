@@ -140,7 +140,7 @@ jobs:
       - name: Start backend
         env:
           ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=pfe_crm_ia;Username=postgres;Password=postgres"
-          ASPNETCORE_URLS: "http://0.0.0.0:5000"
+          ASPNETCORE_URLS: "http://0.0.0.0:5190"
         run: |
           cd ../BackendDotNet/src/CrmApi
           dotnet run --configuration Release --no-build &
