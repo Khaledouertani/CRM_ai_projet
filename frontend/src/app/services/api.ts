@@ -4,8 +4,9 @@ import type { Message, Conversation } from '../types/chat';
  * api.ts - API Client for CRM AI Backend
  * Handles all HTTP requests to CRM API backend
  * URL relative = fonctionne avec Vite proxy (dev) et Nginx (prod Docker)
+ * VITE_API_URL = URL absolue pour Render Static Site (cross-origin)
  */
-const BASE_URL = "";
+const BASE_URL = import.meta.env.VITE_API_URL || "";
 
 export const API_BASE = `${BASE_URL}/api`;
 const AUTH_BASE = `${BASE_URL}/api/auth`;
