@@ -93,12 +93,32 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: pfe_crm_ia
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     defaults:
       run:
         working-directory: ./frontend
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -111,10 +131,19 @@ jobs:
       - name: Install Playwright
         run: npx playwright install --with-deps chromium
 
+      - name: Restore & build backend
+        working-directory: ./BackendDotNet
+        run: |
+          dotnet restore CrmApi.sln
+          dotnet build src/CrmApi/CrmApi.csproj --configuration Release --no-restore
+
       - name: Start backend
+        env:
+          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=pfe_crm_ia;Username=postgres;Password=postgres"
+          ASPNETCORE_URLS: "http://0.0.0.0:5000"
         run: |
           cd ../BackendDotNet/src/CrmApi
-          dotnet run --environment Development &
+          dotnet run --configuration Release --no-build &
           sleep 15
 
       - name: Start frontend
