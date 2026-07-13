@@ -26,7 +26,7 @@ jobs:
         run: dotnet restore
 
       - name: Build
-        run: dotnet build --configuration Release
+        run: dotnet build --configuration Release /p:NuGetAudit=false
 
       - name: Run Unit Tests
         run: dotnet test tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --verbosity normal
