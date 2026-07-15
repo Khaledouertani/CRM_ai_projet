@@ -42,8 +42,8 @@ export function ConversationList({
   loading,
 }: ConversationListProps) {
   return (
-    <div className="w-80 flex-shrink-0 bg-card border-r border-border flex flex-col">
-      <div className="p-4">
+    <div className="w-80 flex-shrink-0 h-full min-h-0 bg-card border-r border-border flex flex-col overflow-hidden">
+      <div className="p-4 shrink-0">
         <div className="relative">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input
@@ -56,7 +56,7 @@ export function ConversationList({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-0.5">
+      <div className="flex-1 min-h-0 overflow-y-auto px-2 pb-2 space-y-0.5 custom-scrollbar">
         <AnimatePresence mode="popLayout">
           {(conversations || []).map((conv) => (
             <motion.button

@@ -1,3 +1,4 @@
+using CrmApi.Authorization;
 using CrmApi.DTOs.Auth;
 using CrmApi.Helpers;
 using CrmApi.Services.Auth;
@@ -11,8 +12,13 @@ namespace CrmApi.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly IPermissionService _permissionService;
 
-    public AuthController(IAuthService authService) => _authService = authService;
+    public AuthController(IAuthService authService, IPermissionService permissionService)
+    {
+        _authService = authService;
+        _permissionService = permissionService;
+    }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
@@ -89,5 +95,30 @@ public class AuthController : ControllerBase
     {
         var (success, message) = await _authService.ResetPasswordAsync(dto.Token, dto.NewPassword);
         return success ? Ok(new { success, message }) : BadRequest(new { success, message });
+    }
+
+    [HttpGet("permissions")]
+    [Authorize]
+    public async Task<IActionResult> GetMyPermissions()
+    {
+        var userId = UserContextHelper.GetUserId(User);
+        var perms = await _permissionService.GetUserPermissionsAsync(userId);
+        return Ok(new { permissions = perms, role = UserContextHelper.GetRole(User) });
+    }
+
+    [HttpGet("roles/permissions")]
+    [RequirePermission(Permissions.Roles.View)]
+    public async Task<IActionResult> GetAllRolePermissions()
+    {
+        var perms = await _permissionService.GetAllRolePermissionsAsync();
+        return Ok(perms);
+    }
+
+    [HttpPut("roles/permissions")]
+    [RequirePermission(Permissions.Roles.AssignPermissions)]
+    public async Task<IActionResult> SetRolePermission([FromBody] RolePermissionDto dto)
+    {
+        await _permissionService.SetRolePermissionAsync(dto.Role, dto.Permission, dto.Granted);
+        return Ok(new { success = true });
     }
 }

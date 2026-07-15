@@ -4,6 +4,8 @@ using System.Text.Json.Serialization;
 using CrmApi.Data;
 using CrmApi.Helpers;
 using CrmApi.Middleware;
+using CrmApi.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using CrmApi.Models.Entities;
 using CrmApi.Repositories;
 using CrmApi.Services.Agent;
@@ -74,7 +76,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    foreach (var perm in Permissions.All)
+    {
+        options.AddPolicy(perm.Name, policy =>
+            policy.Requirements.Add(new PermissionRequirement(perm.Name)));
+    }
+});
+
+builder.Services.AddScoped<IPermissionService, PermissionService>();
+builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

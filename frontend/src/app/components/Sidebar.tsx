@@ -19,14 +19,17 @@ import {
   ChevronRight,
   BarChart3,
   Banknote,
+  Shield,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { usePermissions } from '../contexts/PermissionContext';
 
 interface NavItem {
   icon: React.ElementType;
   label: string;
   path: string;
   accent?: 'blue' | 'green' | 'orange' | 'red' | 'purple';
+  requiredPermission?: string;
 }
 
 interface NavSection {
@@ -42,6 +45,17 @@ interface SidebarProps {
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { hasPermission } = usePermissions();
+
+  const filterByPermission = (sections: NavSection[]): NavSection[] =>
+    sections
+      .map(section => ({
+        ...section,
+        items: section.items.filter(item =>
+          !item.requiredPermission || hasPermission(item.requiredPermission)
+        ),
+      }))
+      .filter(section => section.items.length > 0);
 
   const accentColors: Record<string, string> = {
     blue: 'from-blue-500/20 to-blue-600/10 text-blue-400 border-blue-500/30',
@@ -85,6 +99,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       items: [
         { icon: Activity, label: 'Supervision Live', path: '/admin/realtime', accent: 'green' },
         { icon: Clock, label: 'Pointage & Présences', path: '/admin/pointage', accent: 'blue' },
+        { icon: Shield, label: 'Permissions', path: '/admin/permissions', accent: 'purple', requiredPermission: 'Roles.View' },
       ],
     },
     {
@@ -151,7 +166,9 @@ const qualitySections: NavSection[] = [
   },
 ];
 
-const sections = normalizedRole === 'admin' ? adminSections : normalizedRole === 'qualite' ? qualitySections : agentSections;
+const sections = filterByPermission(
+  normalizedRole === 'admin' ? adminSections : normalizedRole === 'qualite' ? qualitySections : agentSections
+);
 const isActive = (path: string) => location.pathname === path;
 
 return (

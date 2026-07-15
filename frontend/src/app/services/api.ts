@@ -1128,6 +1128,35 @@ export const batchAnalyzeCalls = async (limit: number = 50): Promise<any> => {
   return response.json();
 };
 
+// ============================================================
+// Permissions API
+// ============================================================
+
+export const getMyPermissions = async (): Promise<{ permissions: string[]; role: string }> => {
+  const response = await fetch(`${AUTH_BASE}/permissions`, {
+    headers: getAuthHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to get permissions');
+  return response.json();
+};
+
+export const getAllRolePermissions = async (): Promise<any[]> => {
+  const response = await fetch(`${AUTH_BASE}/roles/permissions`, {
+    headers: getAuthHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to get role permissions');
+  return response.json();
+};
+
+export const setRolePermission = async (role: string, permission: string, granted: boolean): Promise<void> => {
+  const response = await fetch(`${AUTH_BASE}/roles/permissions`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+    body: JSON.stringify({ role, permission, granted }),
+  });
+  if (!response.ok) throw new Error('Failed to set role permission');
+};
+
 export const api = {
   // Auth
   login,
@@ -1242,6 +1271,11 @@ export const api = {
   analyzeTranscript,
   analyzeExistingCall,
   batchAnalyzeCalls,
+
+  // Permissions
+  getMyPermissions,
+  getAllRolePermissions,
+  setRolePermission,
 };
 
 export default api;

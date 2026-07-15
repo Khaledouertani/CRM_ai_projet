@@ -30,6 +30,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Supplier> Suppliers => Set<Supplier>();
     public DbSet<SourceFile> SourceFiles => Set<SourceFile>();
     public DbSet<LeadFolder> LeadFolders => Set<LeadFolder>();
+    public DbSet<Permission> Permissions => Set<Permission>();
+    public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

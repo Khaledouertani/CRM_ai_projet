@@ -1,4 +1,5 @@
 using System.Text.Json;
+using CrmApi.Authorization;
 using CrmApi.Helpers;
 using CrmApi.Models.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -542,6 +543,89 @@ public class DatabaseSeedService : IHostedService
                 new() { RuleName = "Salaire de base", RuleType = "base_salary", Amount = 1800, Role = "qualite" },
                 new() { RuleName = "Prime qualité", RuleType = "quality_bonus", Amount = 250, Role = "qualite" },
             });
+            await context.SaveChangesAsync(cancellationToken);
+        }
+
+        // ── 14. PERMISSIONS ──
+        if (!await context.Permissions.AnyAsync(cancellationToken))
+        {
+            var permissionEntities = Authorization.Permissions.GetAll().Select(name => new Permission
+            {
+                Name = name,
+                Module = name.Split('.')[0],
+                Description = $"Permission {name}",
+                CreatedAt = now
+            }).ToList();
+
+            context.Permissions.AddRange(permissionEntities);
+            await context.SaveChangesAsync(cancellationToken);
+
+            // Re-load with IDs
+            var allPermissions = await context.Permissions.ToListAsync(cancellationToken);
+            var permDict = allPermissions.ToDictionary(p => p.Name, p => p.Id);
+
+            // Default role-permission mappings
+            var rolePermissions = new Dictionary<string, string[]>
+            {
+                ["admin"] = Authorization.Permissions.GetAll(), // Admin gets everything
+
+                ["agent"] = new[]
+                {
+                    Permissions.Dashboard.View,
+                    Permissions.CallCRM.View, Permissions.CallCRM.MakeCall,
+                    Permissions.CallCRM.ViewHistory, Permissions.CallCRM.Analyze,
+                    Permissions.Contacts.View, Permissions.Contacts.Edit,
+                    Permissions.Leads.View,
+                    Permissions.Agenda.View, Permissions.Agenda.Create, Permissions.Agenda.Edit,
+                    Permissions.Performance.View, Permissions.Performance.ViewOwn,
+                    Permissions.Attendance.ClockIn, Permissions.Attendance.ClockOut,
+                    Permissions.Attendance.StartBreak, Permissions.Attendance.EndBreak,
+                    Permissions.Evaluations.View,
+                    Permissions.Messages.View, Permissions.Messages.Send,
+                    Permissions.Salaries.ViewOwn,
+                    Permissions.Chatbot.View, Permissions.Chatbot.Use,
+                },
+
+                ["qualite"] = new[]
+                {
+                    Permissions.Dashboard.View, Permissions.Dashboard.ViewQuality, Permissions.Dashboard.ViewStats,
+                    Permissions.CallCRM.View, Permissions.CallCRM.ViewHistory,
+                    Permissions.CallCRM.Analyze, Permissions.CallCRM.Export,
+                    Permissions.Leads.View, Permissions.Leads.Qualify,
+                    Permissions.Agenda.View, Permissions.Agenda.Create, Permissions.Agenda.Edit,
+                    Permissions.Agenda.Confirm, Permissions.Agenda.ManageAll,
+                    Permissions.Performance.View, Permissions.Performance.ViewAgents,
+                    Permissions.Performance.Compare, Permissions.Performance.Export,
+                    Permissions.Attendance.ClockIn, Permissions.Attendance.ClockOut,
+                    Permissions.Attendance.ViewTeam, Permissions.Attendance.Export,
+                    Permissions.Evaluations.View, Permissions.Evaluations.Create,
+                    Permissions.Evaluations.ViewAll, Permissions.Evaluations.Export,
+                    Permissions.Messages.View, Permissions.Messages.Send,
+                    Permissions.Salaries.ViewOwn,
+                    Permissions.Scoring.View, Permissions.Scoring.ViewAlerts,
+                    Permissions.Reports.View, Permissions.Reports.ViewAll, Permissions.Reports.Export,
+                    Permissions.Chatbot.View, Permissions.Chatbot.Use,
+                    Permissions.Followups.View,
+                    Permissions.Analytics.View,
+                }
+            };
+
+            foreach (var (role, perms) in rolePermissions)
+            {
+                foreach (var permName in perms)
+                {
+                    if (permDict.TryGetValue(permName, out var permId))
+                    {
+                        context.RolePermissions.Add(new RolePermission
+                        {
+                            Role = role,
+                            PermissionId = permId,
+                            CreatedAt = now
+                        });
+                    }
+                }
+            }
+
             await context.SaveChangesAsync(cancellationToken);
         }
     }

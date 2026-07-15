@@ -4,7 +4,8 @@ import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
-const WS_URL = 'ws://127.0.0.1:5190/ws/messages';
+const WS_BASE = import.meta.env.VITE_WS_URL || `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`;
+const WS_URL = `${WS_BASE}/ws/messages`;
 const WS_MAX_RETRIES = 5;
 const WS_RETRY_DELAY = 3000;
 

@@ -37,9 +37,9 @@ export function ChatLayout() {
     : null;
 
   return (
-    <div className="flex h-full bg-background">
+    <div className="flex flex-1 h-full min-h-0 overflow-hidden bg-background">
       {/* Conversation List - Left Sidebar */}
-      <div className="w-80 border-r border-border flex flex-col bg-card">
+      <div className="w-80 min-h-0 overflow-hidden border-r border-border flex flex-col bg-card">
         <ConversationList
           conversations={conversations}
           selectedUserId={selectedUserId}

@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using CrmApi.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace CrmApi.Helpers;
 
@@ -10,4 +12,13 @@ public static class UserContextHelper
     public static bool IsAdmin(ClaimsPrincipal user) => GetRole(user) == "admin";
     public static bool IsAdminOrQualite(ClaimsPrincipal user) { var r = GetRole(user); return r == "admin" || r == "qualite"; }
     public static bool IsAgent(ClaimsPrincipal user) => GetRole(user) == "agent";
+
+    public static async Task<bool> HasPermissionAsync(ClaimsPrincipal user, ApplicationDbContext db, string permission)
+    {
+        var userId = GetUserId(user);
+        var role = GetRole(user);
+        return await db.RolePermissions
+            .Include(rp => rp.Permission)
+            .AnyAsync(rp => rp.Role == role && rp.Permission.Name == permission);
+    }
 }

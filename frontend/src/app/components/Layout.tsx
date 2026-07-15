@@ -59,10 +59,12 @@ export function Layout() {
         <Navbar onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} mobileMenuOpen={mobileMenuOpen} />
 
         {/* CONTENT */}
-        <main className={`flex-1 ${isChatbot || isMessages ? 'overflow-hidden' : 'overflow-y-auto p-3 sm:p-4 md:p-6'} bg-gray-50/50 dark:bg-transparent`}>
+        <main className={`flex-1 flex flex-col ${isChatbot || isMessages ? 'overflow-hidden min-h-0' : 'overflow-y-auto p-3 sm:p-4 md:p-6'} bg-gray-50/50 dark:bg-transparent`}>
 
           {isChatbot || isMessages ? (
-            <Outlet />
+            <div className="flex flex-1 min-h-0 overflow-hidden">
+              <Outlet />
+            </div>
           ) : (
             <div className="max-w-7xl mx-auto w-full">
               <Outlet />

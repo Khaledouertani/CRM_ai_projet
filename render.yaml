@@ -69,3 +69,5 @@ staticSites:
     envVars:
       - key: VITE_API_URL
         value: https://crm-backend.onrender.com
+      - key: VITE_WS_URL
+        value: wss://crm-backend.onrender.com

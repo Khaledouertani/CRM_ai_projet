@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AlertProvider } from './contexts/AlertContext';
+import { PermissionProvider, usePermissions } from './contexts/PermissionContext';
 import { Layout } from './components/Layout';
 import LoginPage from './pages/LoginPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
@@ -45,6 +46,7 @@ import ImportFile from './pages/admin/importfile';
 import FichierAcharge from './pages/admin/FichierAcharge';
 import AlertsPage from './pages/admin/AlertsPage';
 import SalaryPage from './pages/admin/SalaryPage';
+import PermissionsPage from './pages/admin/PermissionsPage';
 
 
 // AI
@@ -159,6 +161,7 @@ function AppRoutes() {
 <Route path="/admin/import-leads/FichierAcharge" element={<FichierAcharge />} />
       <Route path="/admin/alerts" element={<AlertsPage />} />
       <Route path="/admin/salaries" element={<SalaryPage />} />
+      <Route path="/admin/permissions" element={<PermissionsPage />} />
 
     </Route>
 
@@ -196,12 +199,14 @@ export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
-        <AlertProvider>
-          <ThemeProvider>
-            <Toaster position="top-right" reverseOrder={false} />
-            <AppRoutes />
-          </ThemeProvider>
-        </AlertProvider>
+        <PermissionProvider>
+          <AlertProvider>
+            <ThemeProvider>
+              <Toaster position="top-right" reverseOrder={false} />
+              <AppRoutes />
+            </ThemeProvider>
+          </AlertProvider>
+        </PermissionProvider>
       </AuthProvider>
     </BrowserRouter>
   );

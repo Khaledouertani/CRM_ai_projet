@@ -5,7 +5,7 @@ import { ChatLayout } from '../../components/chat/ChatLayout';
 
 function MessagesContent() {
   return (
-    <div className="h-full flex flex-col bg-background">
+    <div className="min-h-0 flex-1 flex flex-col bg-background">
       <ChatLayout />
     </div>
   );
