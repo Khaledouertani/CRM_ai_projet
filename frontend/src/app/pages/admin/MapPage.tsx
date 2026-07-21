@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   MapPin, TrendingUp, Filter, Globe, Map as MapIcon,
   Navigation, MousePointer2, Target, Users, ArrowUpRight,
-  Loader2
+  Loader2, Clock, CheckCircle, XCircle, Timer, Award,
+  Phone, BarChart3, X, Sun
 } from 'lucide-react';
 import api from '../../services/api';
 
@@ -14,11 +15,18 @@ interface RegionData {
   appels: number;
   conversions: number;
   taux: number;
+  avgDuration: number;
   color: string;
+  confirmed: number;
+  refused: number;
+  waiting: number;
+  peakHour: string | null;
+  bestAgent: string | null;
 }
 
 export default function MapPage() {
   const [hoveredRegion, setHoveredRegion] = useState<any>(null);
+  const [selectedRegion, setSelectedRegion] = useState<RegionData | null>(null);
   const [regions, setRegions] = useState<RegionData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -36,6 +44,12 @@ export default function MapPage() {
         appels: d.total,
         conversions: Math.round((d.total || 0) * (d.avg_score || 0) / 100),
         taux: d.avg_score || 0,
+        avgDuration: d.avg_duration || 0,
+        confirmed: d.confirmed || 0,
+        refused: d.refused || 0,
+        waiting: d.waiting || 0,
+        peakHour: d.peak_hour || null,
+        bestAgent: d.best_agent || null,
         color: COLORS[idx % COLORS.length],
       }));
       setRegions(depts);
@@ -51,6 +65,17 @@ export default function MapPage() {
   const totalCalls = filteredData.reduce((sum, r) => sum + r.appels, 0);
   const totalConvs = filteredData.reduce((sum, r) => sum + r.conversions, 0);
   const avgTaux = filteredData.length > 0 ? (filteredData.reduce((sum, r) => sum + r.taux, 0) / filteredData.length).toFixed(1) : '0';
+  const avgDurationSecs = filteredData.length > 0
+    ? Math.round(filteredData.reduce((sum, r) => sum + r.avgDuration, 0) / filteredData.length)
+    : 0;
+  const totalConfirmed = filteredData.reduce((sum, r) => sum + (r.confirmed || 0), 0);
+  const totalRefused = filteredData.reduce((sum, r) => sum + (r.refused || 0), 0);
+  const totalWaiting = filteredData.reduce((sum, r) => sum + (r.waiting || 0), 0);
+  const formatDuration = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}m ${s}s`;
+  };
 
   if (loading) {
     return (
@@ -86,21 +111,52 @@ export default function MapPage() {
         </div>
       </div>
 
+      {/* KPI Cards Row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-card border border-border rounded-2xl p-4 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+            <Globe className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-2xl font-black text-foreground">{filteredData.length}</p>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase">Départements</p>
+          </div>
+        </div>
+        <div className="bg-card border border-border rounded-2xl p-4 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+            <Phone className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-2xl font-black text-foreground">{totalCalls.toLocaleString()}</p>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase">Appels total</p>
+          </div>
+        </div>
+        <div className="bg-card border border-border rounded-2xl p-4 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+            <BarChart3 className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-2xl font-black text-foreground">{avgTaux}%</p>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase">Score moyen</p>
+          </div>
+        </div>
+        <div className="bg-card border border-border rounded-2xl p-4 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+            <Timer className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-2xl font-black text-foreground">{formatDuration(avgDurationSecs)}</p>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase">Durée moyenne</p>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Statistics Sidebar */}
         <div className="lg:col-span-1 space-y-4">
           <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
             <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">KPIs Régionaux</h3>
             <div className="space-y-5">
-              <div className="flex items-center justify-between">
-                <div className="flex flex-col">
-                  <span className="text-2xl font-black text-foreground">{totalCalls.toLocaleString()}</span>
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase">Appels Totaux</span>
-                </div>
-                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
-                  <Navigation className="w-5 h-5" />
-                </div>
-              </div>
               <div className="flex items-center justify-between">
                 <div className="flex flex-col">
                   <span className="text-2xl font-black text-emerald-500">{totalConvs.toLocaleString()}</span>
@@ -112,11 +168,29 @@ export default function MapPage() {
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex flex-col">
-                  <span className="text-2xl font-black text-primary">{avgTaux}%</span>
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase">Taux d'Efficacité</span>
+                  <span className="text-2xl font-black text-emerald-400">{totalConfirmed.toLocaleString()}</span>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase">Confirmés</span>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                  <TrendingUp className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                  <CheckCircle className="w-5 h-5" />
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col">
+                  <span className="text-2xl font-black text-red-400">{totalRefused.toLocaleString()}</span>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase">Refusés</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-400">
+                  <XCircle className="w-5 h-5" />
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col">
+                  <span className="text-2xl font-black text-amber-400">{totalWaiting.toLocaleString()}</span>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase">En attente</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400">
+                  <Clock className="w-5 h-5" />
                 </div>
               </div>
             </div>
@@ -171,9 +245,14 @@ export default function MapPage() {
                 key={region.id}
                 onMouseEnter={() => setHoveredRegion(region)}
                 onMouseLeave={() => setHoveredRegion(null)}
+                onClick={() => setSelectedRegion(selectedRegion?.id === region.id ? null : region)}
                 className="group relative"
               >
                 <div className={`h-full p-6 rounded-3xl border-2 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl cursor-pointer overflow-hidden relative ${
+                  selectedRegion?.id === region.id
+                    ? 'ring-2 ring-primary shadow-xl scale-[1.02]'
+                    : ''
+                } ${
                   region.taux >= 63 ? 'bg-emerald-500/5 border-emerald-500/20 shadow-emerald-500/5' :
                   region.taux >= 59 ? 'bg-primary/5 border-primary/20 shadow-primary/5' :
                   'bg-orange-500/5 border-orange-500/20 shadow-orange-500/5'
@@ -190,9 +269,12 @@ export default function MapPage() {
                       }`}>
                         <MapPin className="w-4 h-4" />
                       </div>
-                      <div className="flex items-center gap-1 text-muted-foreground">
+                      <div className="flex items-center gap-2 text-muted-foreground">
                         <Users className="w-3 h-3" />
                         <span className="text-[9px] font-black uppercase">{region.appels}</span>
+                        <span className="text-muted-foreground/30">|</span>
+                        <Clock className="w-3 h-3" />
+                        <span className="text-[9px] font-black uppercase">{formatDuration(Math.round(region.avgDuration))}</span>
                       </div>
                     </div>
                     
@@ -225,7 +307,64 @@ export default function MapPage() {
             ))}
           </div>
 
-          <div className="mt-8 pt-6 border-t border-border flex items-center justify-between text-muted-foreground relative z-10">
+          {/* Detail Panel */}
+          {selectedRegion && (
+            <div className="mt-6 p-6 rounded-2xl border border-border bg-muted/10 relative z-10 animate-in slide-in-from-bottom-2">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-sm font-black uppercase tracking-widest text-foreground flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-primary" />
+                  {selectedRegion.region} — Analyse détaillée
+                </h4>
+                <button
+                  onClick={() => setSelectedRegion(null)}
+                  className="p-1.5 rounded-lg hover:bg-muted/30 transition-colors text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div className="bg-card rounded-xl p-3 border border-border">
+                  <div className="flex items-center gap-2 text-emerald-400 mb-1">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Confirmés</span>
+                  </div>
+                  <p className="text-xl font-black text-foreground">{selectedRegion.confirmed}</p>
+                </div>
+                <div className="bg-card rounded-xl p-3 border border-border">
+                  <div className="flex items-center gap-2 text-red-400 mb-1">
+                    <XCircle className="w-3.5 h-3.5" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Refusés</span>
+                  </div>
+                  <p className="text-xl font-black text-foreground">{selectedRegion.refused}</p>
+                </div>
+                <div className="bg-card rounded-xl p-3 border border-border">
+                  <div className="flex items-center gap-2 text-amber-400 mb-1">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">En attente</span>
+                  </div>
+                  <p className="text-xl font-black text-foreground">{selectedRegion.waiting}</p>
+                </div>
+                <div className="bg-card rounded-xl p-3 border border-border">
+                  <div className="flex items-center gap-2 text-sky-400 mb-1">
+                    <Sun className="w-3.5 h-3.5" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Heure pointe</span>
+                  </div>
+                  <p className="text-xl font-black text-foreground">{selectedRegion.peakHour || 'N/A'}</p>
+                </div>
+                <div className="bg-card rounded-xl p-3 border border-border">
+                  <div className="flex items-center gap-2 text-purple-400 mb-1">
+                    <Award className="w-3.5 h-3.5" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Meilleur agent</span>
+                  </div>
+                  <p className="text-xl font-black text-foreground truncate" title={selectedRegion.bestAgent || undefined}>
+                    {selectedRegion.bestAgent || 'N/A'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-6 pt-6 border-t border-border flex items-center justify-between text-muted-foreground relative z-10">
              <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>

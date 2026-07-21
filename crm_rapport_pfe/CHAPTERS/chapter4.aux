@@ -1,0 +1,163 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\gdef \LT@v {\LT@entry 
+    {1}{22.76228pt}\LT@entry 
+    {1}{455.24411pt}\LT@entry 
+    {1}{28.45274pt}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {4}Authentification et Gestion Multi-Tenant}{42}{chapter.4}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{chap:release1}{{4}{42}{Authentification et Gestion Multi-Tenant}{chapter.4}{}}
+\gdef \LT@vi {\LT@entry 
+    {1}{42.09819pt}\LT@entry 
+    {1}{266.4748pt}\LT@entry 
+    {1}{55.92458pt}\LT@entry 
+    {1}{55.92458pt}}
+\newlabel{sec:chap4_introduction}{{4}{43}{}{section*.34}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Sprint 1 : Accès et utilisateurs}{43}{section.4.1}\protected@file@percent }
+\newlabel{sec:sprint1}{{1}{43}{Sprint 1 : Accès et utilisateurs}{section.4.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Objectifs et Backlog du Sprint 1}{43}{subsection.4.1.1}\protected@file@percent }
+\newlabel{subsec:sprint1_backlog}{{1.1}{43}{Objectifs et Backlog du Sprint 1}{subsection.4.1.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4.2}{\ignorespaces Backlog du Sprint 1 -- Gestion des accès et des comptes utilisateurs}}{43}{table.4.2}\protected@file@percent }
+\newlabel{tab:sprint1_backlog}{{4.2}{43}{Backlog du Sprint 1 -- Gestion des accès et des comptes utilisateurs}{table.4.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Spécification et Conception du Sprint 1}{44}{subsection.4.1.2}\protected@file@percent }
+\newlabel{subsec:sprint1_spec}{{1.2}{44}{Spécification et Conception du Sprint 1}{subsection.4.1.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de cas d'utilisation}{44}{subsubsection*.35}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.1}{\ignorespaces Diagramme de cas d'utilisation — Sprint 1 : Authentification et gestion des rôles.}}{45}{figure.4.1}\protected@file@percent }
+\newlabel{fig:sprint1_usecase}{{4.1}{45}{Diagramme de cas d'utilisation — Sprint 1 : Authentification et gestion des rôles}{figure.4.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de classes}{45}{subsubsection*.36}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.2}{\ignorespaces Diagramme de classes — Sprint 1 : Modèle du module d'authentification et de gestion des rôles.}}{46}{figure.4.2}\protected@file@percent }
+\newlabel{fig:sprint1_class}{{4.2}{46}{Diagramme de classes — Sprint 1 : Modèle du module d'authentification et de gestion des rôles}{figure.4.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de séquence — Inscription et provisionnement}{47}{subsubsection*.37}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.3}{\ignorespaces Diagramme de séquence — Sprint 1 : Flux d'inscription et provisionnement du tenant.}}{47}{figure.4.3}\protected@file@percent }
+\newlabel{fig:sprint1_seq_register}{{4.3}{47}{Diagramme de séquence — Sprint 1 : Flux d'inscription et provisionnement du tenant}{figure.4.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de séquence — Flux de connexion}{48}{subsubsection*.38}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.4}{\ignorespaces Diagramme de séquence — Sprint 1 : Flux de connexion via Direct Access Grant.}}{48}{figure.4.4}\protected@file@percent }
+\newlabel{fig:sprint1_seq_login}{{4.4}{48}{Diagramme de séquence — Sprint 1 : Flux de connexion via Direct Access Grant}{figure.4.4}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de séquence — Gestion des rôles par le Tenant Admin}{48}{subsubsection*.39}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.5}{\ignorespaces Diagramme de séquence — Sprint 1 : Gestion des rôles par le Tenant Admin}}{50}{figure.4.5}\protected@file@percent }
+\newlabel{fig:sprint1_seq_roles}{{4.5}{50}{Diagramme de séquence — Sprint 1 : Gestion des rôles par le Tenant Admin}{figure.4.5}{}}
+\citation{Keycloak}
+\citation{OAuth2RFC}
+\gdef \LT@vii {\LT@entry 
+    {1}{160.75423pt}\LT@entry 
+    {1}{245.7125pt}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.3}Présentation des Technologies Utilisées}{51}{subsection.4.1.3}\protected@file@percent }
+\newlabel{subsec:sprint1_tech}{{1.3}{51}{Présentation des Technologies Utilisées}{subsection.4.1.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Keycloak — Realm, rôles et groupes}{51}{subsubsection*.40}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4.3}{\ignorespaces Hiérarchie des rôles Keycloak de la plateforme FaaS}}{51}{table.4.3}\protected@file@percent }
+\newlabel{tab:keycloak_roles}{{4.3}{51}{Hiérarchie des rôles Keycloak de la plateforme FaaS}{table.4.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.6}{\ignorespaces Structure du \textit  {realm} Keycloak de la plateforme FaaS : authentification, rôles, groupes, \textit  {Role Mapping}, protocol mappers et consommation du jeton JWT par les microservices.}}{53}{figure.4.6}\protected@file@percent }
+\newlabel{fig:sprint1_realm_structure}{{4.6}{53}{Structure du \textit {realm} Keycloak de la plateforme FaaS : authentification, rôles, groupes, \textit {Role Mapping}, protocol mappers et consommation du jeton JWT par les microservices}{figure.4.6}{}}
+\@writefile{toc}{\contentsline {subsubsection}{La bibliothèque partagée de sécurité}{53}{subsubsection*.41}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Angular — Authentification et navigation par rôle}{53}{subsubsection*.42}\protected@file@percent }
+\newlabel{sec:chap4_implementation}{{1.3}{54}{Angular — Authentification et navigation par rôle}{section*.43}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.4}Réalisation}{54}{subsection.4.1.4}\protected@file@percent }
+\newlabel{subsec:sprint1_realisation}{{1.4}{54}{Réalisation}{subsection.4.1.4}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Configuration du realm Keycloak}{54}{subsubsection*.44}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.7}{\ignorespaces Configuration des rôles du realm Keycloak.}}{54}{figure.4.7}\protected@file@percent }
+\newlabel{fig:sprint1_keycloak_realm_roles}{{4.7}{54}{Configuration des rôles du realm Keycloak}{figure.4.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.8}{\ignorespaces Configuration des groupes Keycloak.}}{55}{figure.4.8}\protected@file@percent }
+\newlabel{fig:sprint1_keycloak_groups}{{4.8}{55}{Configuration des groupes Keycloak}{figure.4.8}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Flux d'inscription — Création automatique du tenant}{55}{subsubsection*.45}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.9}{\ignorespaces Formulaire d'inscription.}}{55}{figure.4.9}\protected@file@percent }
+\newlabel{fig:sprint1_register}{{4.9}{55}{Formulaire d'inscription}{figure.4.9}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Flux de connexion — Direct Access Grant}{55}{subsubsection*.46}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.10}{\ignorespaces Interface de connexion.}}{56}{figure.4.10}\protected@file@percent }
+\newlabel{fig:sprint1_login}{{4.10}{56}{Interface de connexion}{figure.4.10}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Gestion des rôles par le Tenant Admin}{56}{subsubsection*.47}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.11}{\ignorespaces Interface de gestion des membres du tenant.}}{56}{figure.4.11}\protected@file@percent }
+\newlabel{fig:sprint1_team_members}{{4.11}{56}{Interface de gestion des membres du tenant}{figure.4.11}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.12}{\ignorespaces Création d'un nouveau membre.}}{57}{figure.4.12}\protected@file@percent }
+\newlabel{fig:sprint1_add_member}{{4.12}{57}{Création d'un nouveau membre}{figure.4.12}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Tests unitaires et validation}{57}{subsubsection*.48}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Résultats obtenus}{57}{subsubsection*.49}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Sprint 2 : Tenants}{57}{section.4.2}\protected@file@percent }
+\newlabel{sec:sprint2}{{2}{57}{Sprint 2 : Tenants}{section.4.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Objectifs et Backlog du Sprint 2}{57}{subsection.4.2.1}\protected@file@percent }
+\newlabel{subsec:sprint2_backlog}{{2.1}{57}{Objectifs et Backlog du Sprint 2}{subsection.4.2.1}{}}
+\gdef \LT@viii {\LT@entry 
+    {1}{42.09819pt}\LT@entry 
+    {1}{266.4748pt}\LT@entry 
+    {1}{55.92458pt}\LT@entry 
+    {1}{55.92458pt}}
+\@writefile{lot}{\contentsline {table}{\numberline {4.4}{\ignorespaces Backlog du Sprint 2 -- Gestion des tenants et gouvernance des ressources}}{58}{table.4.4}\protected@file@percent }
+\newlabel{tab:sprint2_backlog}{{4.4}{58}{Backlog du Sprint 2 -- Gestion des tenants et gouvernance des ressources}{table.4.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Spécification et Conception du Sprint 2}{58}{subsection.4.2.2}\protected@file@percent }
+\newlabel{subsec:sprint2_spec}{{2.2}{58}{Spécification et Conception du Sprint 2}{subsection.4.2.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de cas d'utilisation}{58}{subsubsection*.50}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.13}{\ignorespaces Diagramme de cas d'utilisation --- Sprint 2 : Gestion des tenants et gouvernance des ressources.}}{59}{figure.4.13}\protected@file@percent }
+\newlabel{fig:sprint2_usecase}{{4.13}{59}{Diagramme de cas d'utilisation --- Sprint 2 : Gestion des tenants et gouvernance des ressources}{figure.4.13}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de classes}{59}{subsubsection*.51}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.14}{\ignorespaces Diagramme de classes --- Sprint~2 : Gestion des tenants et isolation des ressources Kubernetes.}}{61}{figure.4.14}\protected@file@percent }
+\newlabel{fig:sprint2_class}{{4.14}{61}{Diagramme de classes --- Sprint~2 : Gestion des tenants et isolation des ressources Kubernetes}{figure.4.14}{}}
+\citation{KubernetesNamespaces}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de séquence}{62}{subsubsection*.52}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.15}{\ignorespaces Diagramme de séquence — Sprint 2 : Création et provisionnement d'un tenant.}}{62}{figure.4.15}\protected@file@percent }
+\newlabel{fig:sprint2_seq}{{4.15}{62}{Diagramme de séquence — Sprint 2 : Création et provisionnement d'un tenant}{figure.4.15}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Présentation des Technologies Utilisées}{62}{subsection.4.2.3}\protected@file@percent }
+\newlabel{subsec:sprint2_tech}{{2.3}{62}{Présentation des Technologies Utilisées}{subsection.4.2.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{L'isolation multi-tenant via les namespaces Kubernetes}{62}{subsubsection*.53}\protected@file@percent }
+\citation{Fabric8}
+\@writefile{toc}{\contentsline {subsubsection}{Le client Fabric8 Kubernetes pour Java}{63}{subsubsection*.54}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{RBAC Kubernetes — Role, RoleBinding, ServiceAccount}{63}{subsubsection*.55}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{ResourceQuota, LimitRange et NetworkPolicy}{63}{subsubsection*.56}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Réalisation}{64}{subsection.4.2.4}\protected@file@percent }
+\newlabel{subsec:sprint2_realisation}{{2.4}{64}{Réalisation}{subsection.4.2.4}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Architecture du service de gestion des tenants}{64}{subsubsection*.57}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.16}{\ignorespaces Liste des tenants.}}{64}{figure.4.16}\protected@file@percent }
+\newlabel{fig:sprint2_tenant_list}{{4.16}{64}{Liste des tenants}{figure.4.16}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Provisionnement automatique des ressources Kubernetes}{64}{subsubsection*.58}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.17}{\ignorespaces Ressources Kubernetes du tenant.}}{65}{figure.4.17}\protected@file@percent }
+\newlabel{fig:sprint2_k8s_resources}{{4.17}{65}{Ressources Kubernetes du tenant}{figure.4.17}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Tests unitaires et validation}{65}{subsubsection*.59}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Résultats obtenus}{65}{subsubsection*.60}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.18}{\ignorespaces Tableau de bord tenant.}}{65}{figure.4.18}\protected@file@percent }
+\newlabel{fig:sprint2_dashboard}{{4.18}{65}{Tableau de bord tenant}{figure.4.18}{}}
+\newlabel{sec:chap4_conclusion}{{2.4}{65}{}{section*.61}{}}
+\@setckpt{CHAPTERS/chapter4}{
+\setcounter{page}{67}
+\setcounter{equation}{0}
+\setcounter{enumi}{0}
+\setcounter{enumii}{0}
+\setcounter{enumiii}{0}
+\setcounter{enumiv}{0}
+\setcounter{footnote}{0}
+\setcounter{mpfootnote}{0}
+\setcounter{part}{0}
+\setcounter{chapter}{4}
+\setcounter{section}{2}
+\setcounter{subsection}{4}
+\setcounter{subsubsection}{0}
+\setcounter{paragraph}{0}
+\setcounter{subparagraph}{0}
+\setcounter{figure}{18}
+\setcounter{table}{4}
+\setcounter{NAT@ctr}{0}
+\setcounter{tcbbreakpart}{1}
+\setcounter{tcblayer}{0}
+\setcounter{tcolorbox@number}{4}
+\setcounter{tcbrastercolumn}{1}
+\setcounter{tcbrasterrow}{1}
+\setcounter{tcbrasternum}{1}
+\setcounter{tcbraster}{0}
+\setcounter{parentequation}{0}
+\setcounter{lstnumber}{1}
+\setcounter{tcblisting}{0}
+\setcounter{float@type}{16}
+\setcounter{AM@survey}{0}
+\setcounter{LT@tables}{8}
+\setcounter{LT@chunks}{5}
+\setcounter{caption@flags}{2}
+\setcounter{continuedfloat}{0}
+\setcounter{subfigure}{0}
+\setcounter{subtable}{0}
+\setcounter{lofdepth}{1}
+\setcounter{lotdepth}{1}
+\setcounter{vrcnt}{0}
+\setcounter{section@level}{0}
+\setcounter{Item}{0}
+\setcounter{Hfootnote}{0}
+\setcounter{bookmark@seq@number}{0}
+\setcounter{lstlisting}{0}
+}

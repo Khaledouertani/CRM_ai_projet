@@ -3,6 +3,7 @@ import { Navbar } from './Navbar';
 import { Sidebar } from './Sidebar';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { CallProvider } from '../contexts/CallContext';
 import { Toaster } from 'react-hot-toast';
 
 export function Layout() {
@@ -54,25 +55,25 @@ export function Layout() {
 
       {/* Main Container */}
       <div className="flex-1 flex flex-col overflow-hidden relative min-w-0">
+        <CallProvider>
+          {/* Navbar — passes mobile menu toggle */}
+          <Navbar onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} mobileMenuOpen={mobileMenuOpen} />
 
-        {/* Navbar — passes mobile menu toggle */}
-        <Navbar onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} mobileMenuOpen={mobileMenuOpen} />
+          {/* CONTENT */}
+          <main className={`flex-1 flex flex-col ${isChatbot || isMessages ? 'overflow-hidden min-h-0' : 'overflow-y-auto p-3 sm:p-4 md:p-6'} bg-gray-50/50 dark:bg-transparent`}>
 
-        {/* CONTENT */}
-        <main className={`flex-1 flex flex-col ${isChatbot || isMessages ? 'overflow-hidden min-h-0' : 'overflow-y-auto p-3 sm:p-4 md:p-6'} bg-gray-50/50 dark:bg-transparent`}>
+            {isChatbot || isMessages ? (
+              <div className="flex flex-1 min-h-0 overflow-hidden">
+                <Outlet />
+              </div>
+            ) : (
+              <div className="max-w-7xl mx-auto w-full">
+                <Outlet />
+              </div>
+            )}
 
-          {isChatbot || isMessages ? (
-            <div className="flex flex-1 min-h-0 overflow-hidden">
-              <Outlet />
-            </div>
-          ) : (
-            <div className="max-w-7xl mx-auto w-full">
-              <Outlet />
-            </div>
-          )}
-
-        </main>
-
+          </main>
+        </CallProvider>
       </div>
     </div>
   );

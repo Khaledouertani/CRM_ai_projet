@@ -77,6 +77,12 @@ public class DeptDto
     public string Dept { get; set; } = string.Empty;
     public int Total { get; set; }
     public double AvgScore { get; set; }
+    public double AvgDuration { get; set; }
+    public int Confirmed { get; set; }
+    public int Refused { get; set; }
+    public int Waiting { get; set; }
+    public string? PeakHour { get; set; }
+    public string? BestAgent { get; set; }
 }
 
 public class FollowupStatsDto

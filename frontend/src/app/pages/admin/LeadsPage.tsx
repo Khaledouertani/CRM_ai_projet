@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Users, MapPin, Phone, Search, Download, Target, 
   ChevronRight, Filter, Database, TrendingUp, Sparkles,
-  UserCheck
+  UserCheck, Clock
 } from 'lucide-react';
 import api from '../../services/api';
 
@@ -20,6 +20,7 @@ interface GeoData {
   calls: number;
   conversions: number;
   rate: number;
+  avgDuration: number;
 }
 
 const qualificationOptions = [
@@ -56,7 +57,8 @@ export default function LeadsPage() {
         postalCode: d.dept || '??',
         calls: d.total || 0,
         conversions: Math.round((d.total || 0) * (d.avg_score || 0) / 100),
-        rate: d.avg_score || 0
+        rate: d.avg_score || 0,
+        avgDuration: d.avg_duration || 0,
       }));
       setGeoData(mappedGeo);
     } catch (error) {
@@ -268,16 +270,24 @@ export default function LeadsPage() {
                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Top Performance</p>
                </div>
                <div className="space-y-4">
-                 <div className="flex items-center justify-between">
-                   <span className="text-[10px] font-bold text-muted-foreground uppercase">Appels Totaux</span>
-                   <span className="text-sm font-black">{geoData.reduce((sum, g) => sum + g.calls, 0)}</span>
-                 </div>
-                 <div className="flex items-center justify-between">
-                   <span className="text-[10px] font-bold text-muted-foreground uppercase">Taux Moyen</span>
-                   <span className="text-sm font-black text-primary">
-                     {geoData.length > 0 ? (geoData.reduce((sum, g) => sum + g.rate, 0) / geoData.length).toFixed(1) : 0}%
-                   </span>
-                 </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase">Appels Totaux</span>
+                    <span className="text-sm font-black">{geoData.reduce((sum, g) => sum + g.calls, 0)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase">Taux Moyen</span>
+                    <span className="text-sm font-black text-primary">
+                      {geoData.length > 0 ? (geoData.reduce((sum, g) => sum + g.rate, 0) / geoData.length).toFixed(1) : 0}%
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase">Durée Moyenne</span>
+                    <span className="text-sm font-black text-amber-500">
+                      {geoData.length > 0
+                        ? `${Math.floor(geoData.reduce((s, g) => s + g.avgDuration, 0) / geoData.length / 60)}m ${Math.round(geoData.reduce((s, g) => s + g.avgDuration, 0) / geoData.length % 60)}s`
+                        : '0m 0s'}
+                    </span>
+                  </div>
                </div>
              </div>
 
@@ -327,7 +337,12 @@ export default function LeadsPage() {
                          }`}>
                            <MapPin className="w-4 h-4" />
                          </div>
-                         <div className="text-[9px] font-black uppercase text-muted-foreground">{region.calls} Appels</div>
+                          <div className="flex items-center gap-2 text-[9px] font-black uppercase text-muted-foreground">
+                            <span>{region.calls} Appels</span>
+                            <span className="text-muted-foreground/30">|</span>
+                            <Clock className="w-3 h-3" />
+                            <span>{Math.floor(region.avgDuration / 60)}m {Math.round(region.avgDuration % 60)}s</span>
+                          </div>
                        </div>
                        
                        <h4 className="text-lg font-black italic tracking-tighter uppercase mb-1">Zone {region.postalCode}</h4>

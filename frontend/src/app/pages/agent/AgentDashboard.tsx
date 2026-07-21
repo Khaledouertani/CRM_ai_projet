@@ -472,7 +472,7 @@ export default function AgentDashboard() {
                     </tr>
                   );
                 }) : (
-                  <tr>
+                  <tr key="empty-state">
                     <td colSpan={5} className="p-8 text-center text-muted-foreground">
                       Aucun appel récent
                     </td>

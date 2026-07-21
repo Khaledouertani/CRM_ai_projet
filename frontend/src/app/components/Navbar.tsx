@@ -8,6 +8,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { useAuth } from '../contexts/AuthContext';
 import { useAlerts } from '../contexts/AlertContext';
 import { useNavigate } from 'react-router-dom';
+import { CallButton } from '../components/call/CallButton';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -338,6 +339,9 @@ export function Navbar({ onMobileMenuToggle, mobileMenuOpen }: { onMobileMenuTog
 
       {/* RIGHT SECTION */}
       <div className="flex items-center gap-2">
+        {/* APPEL EN DIRECT — CallButton 3 états */}
+        <CallButton />
+
         {/* POINTAGE — change entre entrée et sortie selon le statut */}
         {agentStatus === 'offline' && (
           <button

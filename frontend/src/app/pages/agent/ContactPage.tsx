@@ -5,12 +5,15 @@ import {
   Coffee, Calendar, MessageCircle, Award,
   FileText, Check, Download, Bell, ArrowLeft,
   Zap, RefreshCw, Send, Plus,
-  XCircle, Radio, Wifi, Battery, ChevronDown,
+  XCircle, Radio, Wifi, Battery, ChevronDown, Clock,
   TrendingUp, Users, MapPin, Mail, User,
   LogOut, Settings, HelpCircle, Moon, Sun,
 } from "lucide-react";
 import api from '../../services/api';
 import { LucideIcon } from "lucide-react";
+import { useCallContext } from '../../contexts/CallContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { PhoneKeypad } from '../../components/call/PhoneKeypad';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type ColorKey = "green" | "red" | "blue" | "purple" | "amber" | "orange" | "slate";
@@ -210,12 +213,14 @@ const ContactPage: React.FC = () => {
     phone: "+33 6 12 34 56 78", email: "jean.dupont@mail.fr", city: "Lyon, 69000",
   };
 
-  // ── Call state ──────────────────────────────────────────────────────────────
-  const [callActive, setCallActive] = useState<boolean>(false);
-  const [callDuration, setCallDuration] = useState<number>(0);
+  // ── Call state from context ─────────────────────────────────────────────────
+  const {
+    callState, callDuration, cooldownRemaining,
+    startCall: ctxStartCall, endCall: ctxEndCall, skipCooldown,
+    isMuted, isOnHold, toggleMute, toggleHold,
+  } = useCallContext();
+
   const [campaign, setCampaign] = useState("PAC");
-  const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [isOnHold, setIsOnHold] = useState<boolean>(false);
   const [callQuality, setCallQuality] = useState<number>(97);
   const [messages, setMessages] = useState<TranscriptLine[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -227,7 +232,8 @@ const ContactPage: React.FC = () => {
   const [showPauseMenu, setShowPauseMenu] = useState<boolean>(false);
   const [showNotifications, setShowNotifications] = useState<boolean>(false);
   const [showProfileMenu, setShowProfileMenu] = useState<boolean>(false);
-  const [darkMode, setDarkMode] = useState<boolean>(true);
+  const { theme } = useTheme();
+  const darkMode = theme === 'dark';
 
   // ── Notifications ────────────────────────────────────────────────────────────
   const [notifications, setNotifications] = useState<Notification[]>([
@@ -277,19 +283,16 @@ const ContactPage: React.FC = () => {
   };
 
   // ── AUTOMATIC CALL START ON LOAD ─────────────────────────────────────────────
-  // ── Call timer ───────────────────────────────────────────────────────────────
-
-  // ── Call timer ───────────────────────────────────────────────────────────────
+  // ── Call quality fluctuation ─────────────────────────────────────────────────
   useEffect(() => {
     let t: ReturnType<typeof setInterval> | undefined;
-    if (callActive && !isOnHold) {
+    if (callState === 'calling' && !isOnHold) {
       t = setInterval(() => {
-        setCallDuration(d => d + 1);
         setCallQuality(q => Math.max(88, Math.min(100, q + (Math.random() - 0.5) * 1.5)));
-      }, 1000);
+      }, 2000);
     }
     return () => { if (t !== undefined) clearInterval(t); };
-  }, [callActive, isOnHold]);
+  }, [callState, isOnHold]);
 
   // ── Pause timer ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -304,7 +307,7 @@ const ContactPage: React.FC = () => {
 
   // ── Transcription + auto-fill ────────────────────────────────────────────────
   useEffect(() => {
-    if (!callActive || isOnHold) return;
+    if (callState !== 'calling' || isOnHold) return;
     const msg = SCRIPT.find(m => m.t === callDuration);
     if (!msg) return;
 
@@ -332,20 +335,27 @@ const ContactPage: React.FC = () => {
       };
       setNotifications(prev => [newNotif, ...prev]);
     }
-  }, [callDuration, callActive, isOnHold]);
+  }, [callDuration, callState, isOnHold]);
 
   const triggerAI = () => { setAiLoading(true); setTimeout(() => setAiLoading(false), 900); };
+  // ── Generate AI summary when call ends ──────────────────────────────────────
+  useEffect(() => {
+    if (callState === 'cooldown') {
+      setAiSummary("Prospect qualifié automatiquement. Analyse IA terminée.");
+      setAiScore({ lead: 85, conversion: 78 });
+      setObjections(["Délai de pose", "Financement à confirmer"]);
+    }
+  }, [callState]);
+
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   const startCall = async () => {
-    setCallActive(true);
-    setCallDuration(0);
+    ctxStartCall();
     setMessages([]);
-    setIsOnHold(false);
+    setCallQuality(97);
   };
   const endCall = async () => {
-    setCallActive(false);
-    setIsOnHold(false);
+    ctxEndCall();
     try {
       const statut = crmStatus === "Converti" ? "Converti" : crmStatus === "Refusé" ? "Refusé" : "Rappel";
       await api.saveCall({
@@ -375,8 +385,6 @@ const ContactPage: React.FC = () => {
       console.error("Auto-save error:", e);
     }
   };
-  const toggleHold = () => { setIsOnHold(!isOnHold); };
-  const toggleMute = () => { setIsMuted(!isMuted); };
   const startPause = (type: string) => { setAgentStatus("break"); setActivePause(type); setShowPauseMenu(false); };
   const endPause = () => { setAgentStatus("online"); setActivePause(""); };
 const saveCrm = async () => {
@@ -432,10 +440,32 @@ const saveCrm = async () => {
     transition: "background 0.3s, border-color 0.3s",
     boxShadow: highlighted.has(k) ? `0 0 0 2px ${darkMode ? "rgba(139,126,245,0.2)" : "rgba(139,126,245,0.3)"}` : "none",
   });
+  const handleManualCall = async (number: string) => {
+    startCall();
+    try {
+      await api.saveCall({
+        contact_id: 0,
+        contact_name: number,
+        contact_company: "Appel manuel",
+        phone: number,
+        email: "",
+        duration: 0,
+        besoin: "",
+        budget: "",
+        interet: "",
+        notes: `Appel manuel vers ${number}`,
+        statut: "Rappel",
+        call_date: new Date().toISOString()
+      });
+    } catch (e) {
+      console.error("Manual call save error:", e);
+    }
+  };
+
   const changeCampaign = (newCampaign: string) => {
   setCampaign(newCampaign);
 
-  if (callActive) {
+  if (callState === 'calling') {
     endCall();
 
     setTimeout(() => {
@@ -445,7 +475,7 @@ const saveCrm = async () => {
   
 };
 
-  const callStatusLabel = callActive && !isOnHold ? "En ligne" : callActive ? "En attente" : "Inactif";
+  const callStatusLabel = callState === 'calling' && !isOnHold ? "En ligne" : callState === 'calling' ? "En attente" : "Inactif";
   const colors = getColors(darkMode);
 
   type TabId = "qualification" | "rdv" | "statut" | "notes";
@@ -499,10 +529,8 @@ const saveRdv = async () => {
 };
   return (
     <div style={{
-      background: darkMode ? "#03050A" : "#F8FAFC",
-      minHeight: "100vh",
+      background: "transparent",
       fontFamily: "'Inter', system-ui, sans-serif",
-      transition: "background 0.3s",
     }}>
       <style>{`
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
@@ -566,9 +594,9 @@ const saveRdv = async () => {
   <option value="Toiture">Toiture</option>
 </select>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <PhoneCall size={18} style={{ color: callActive && !isOnHold ? "#2DCF7F" : (darkMode ? "#9AA9B9" : "#64748B") }} />
+                <PhoneCall size={18} style={{ color: callState === 'calling' && !isOnHold ? "#2DCF7F" : (darkMode ? "#9AA9B9" : "#64748B") }} />
                 <span style={{ fontSize: 15, fontWeight: 700, color: darkMode ? "#F1F5F9" : "#0F172A" }}>CONSOLE TÉLÉPHONIQUE</span>
-                {callActive && (
+                {callState === 'calling' && (
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#2DCF7F", animation: "pulse 1.5s infinite" }} />
                     <span style={{ fontSize: 11, color: "#2DCF7F" }}>APPEL EN COURS</span>
@@ -579,13 +607,13 @@ const saveRdv = async () => {
                 <span style={{ fontFamily: "monospace", fontSize: 28, fontWeight: 700, color: darkMode ? "#F1F5F9" : "#0F172A" }}>{fmt(callDuration)}</span>
                 <span style={{
                   padding: "4px 14px", borderRadius: 30, fontSize: 11, fontWeight: 600,
-                  background: callActive && !isOnHold ? getColorByKey("green").bg : callActive ? getColorByKey("amber").bg : getColorByKey("slate").bg,
-                  color: callActive && !isOnHold ? getColorByKey("green").text : callActive ? getColorByKey("amber").text : getColorByKey("slate").text,
+                  background: callState === 'calling' && !isOnHold ? getColorByKey("green").bg : callState === 'calling' ? getColorByKey("amber").bg : getColorByKey("slate").bg,
+                  color: callState === 'calling' && !isOnHold ? getColorByKey("green").text : callState === 'calling' ? getColorByKey("amber").text : getColorByKey("slate").text,
                 }}>{callStatusLabel}</span>
               </div>
             </div>
 
-            {callActive && (
+            {callState === 'calling' && (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)" }}>
                 {[
                   { icon: Signal, label: "Qualité", val: `${Math.round(callQuality)}%` },
@@ -612,11 +640,11 @@ const saveRdv = async () => {
               <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                 <div style={{
                   width: 52, height: 52, borderRadius: "50%",
-                  background: callActive && !isOnHold ? getColorByKey("green").bg : (darkMode ? "#11161F" : "#F8FAFC"),
-                  border: `1px solid ${callActive && !isOnHold ? getColorByKey("green").border : (darkMode ? "#252E3A" : "#E2E8F0")}`,
+                  background: callState === 'calling' && !isOnHold ? getColorByKey("green").bg : (darkMode ? "#11161F" : "#F8FAFC"),
+                  border: `1px solid ${callState === 'calling' && !isOnHold ? getColorByKey("green").border : (darkMode ? "#252E3A" : "#E2E8F0")}`,
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
-                  <Phone size={20} style={{ color: callActive && !isOnHold ? getColorByKey("green").text : (darkMode ? "#9AA9B9" : "#64748B") }} />
+                  <Phone size={20} style={{ color: callState === 'calling' && !isOnHold ? getColorByKey("green").text : (darkMode ? "#9AA9B9" : "#64748B") }} />
                 </div>
                 <div>
                   <div style={{ fontSize: 16, fontWeight: 700, color: darkMode ? "#F1F5F9" : "#0F172A" }}>{contact.contact}</div>
@@ -624,64 +652,37 @@ const saveRdv = async () => {
                 </div>
               </div>
 
-              {/* BOUTONS D'APPEL CORRIGÉS */}
+              {/* BOUTONS D'APPEL — Nouveau workflow 3 états */}
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                {!callActive ? (
-                  <button onClick={startCall} style={{
-                    padding: "12px 32px", background: "#1C4935", color: "#fff",
-                    border: "none", borderRadius: 40, fontSize: 14, fontWeight: 600,
-                    display: "flex", alignItems: "center", gap: 10,
-                    cursor: "pointer", transition: "all 0.2s",
+                {callState === 'cooldown' && (
+                  <div style={{
+                    display: "flex", alignItems: "center",
+                    padding: "8px 24px",
+                    borderRadius: 40,
+                    background: getColorByKey("amber").bg,
+                    border: `1px solid ${getColorByKey("amber").border}`,
+                    boxShadow: "0 4px 20px rgba(240,179,75,0.2)",
                   }}>
-                    <Phone size={14} /> DÉMARRER L'APPEL
-                  </button>
-                ) : (
-                  <>
-                    {/* Bouton Mettre en attente / Reprendre */}
-                    <button
-                      onClick={toggleHold}
-                      title={isOnHold ? "Reprendre l'appel" : "Mettre en attente"}
-                      style={{
-                        width: 48, height: 48, borderRadius: 16,
-                        border: `1px solid ${isOnHold ? getColorByKey("amber").border : (darkMode ? "#252E3A" : "#E2E8F0")}`,
-                        background: isOnHold ? getColorByKey("amber").bg : (darkMode ? "#11161F" : "#F8FAFC"),
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        cursor: "pointer", transition: "all 0.2s",
-                      }}
-                    >
-                      {isOnHold ? <Play size={20} style={{ color: getColorByKey("amber").text }} /> : <Pause size={20} style={{ color: darkMode ? "#9AA9B9" : "#64748B" }} />}
-                    </button>
-
-                    {/* Bouton Couper/Activer micro */}
-                    <button
-                      onClick={toggleMute}
-                      title={isMuted ? "Activer le micro" : "Couper le micro"}
-                      style={{
-                        width: 48, height: 48, borderRadius: 16,
-                        border: `1px solid ${isMuted ? getColorByKey("red").border : (darkMode ? "#252E3A" : "#E2E8F0")}`,
-                        background: isMuted ? getColorByKey("red").bg : (darkMode ? "#11161F" : "#F8FAFC"),
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        cursor: "pointer", transition: "all 0.2s",
-                      }}
-                    >
-                      {isMuted ? <MicOff size={20} style={{ color: getColorByKey("red").text }} /> : <Mic size={20} style={{ color: darkMode ? "#9AA9B9" : "#64748B" }} />}
-                    </button>
-
-                    {/* Bouton Raccrocher */}
-                    <button
-                      onClick={endCall}
-                      title="Raccrocher"
-                      style={{
-                        width: 48, height: 48, borderRadius: 16,
-                        border: `1px solid ${getColorByKey("red").border}`,
-                        background: getColorByKey("red").bg,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        cursor: "pointer", transition: "all 0.2s",
-                      }}
-                    >
-                      <PhoneOff size={20} style={{ color: getColorByKey("red").text }} />
-                    </button>
-                  </>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <Clock size={16} style={{ color: getColorByKey("amber").text }} />
+                        <span style={{ fontSize: 15, fontWeight: 700, color: getColorByKey("amber").text, fontVariantNumeric: "tabular-nums" }}>
+                          {cooldownRemaining}s
+                        </span>
+                      </div>
+                      <div style={{
+                        width: 80, height: 4, background: `${getColorByKey("amber").border}`,
+                        borderRadius: 4, marginTop: 4, overflow: "hidden",
+                      }}>
+                        <div style={{
+                          height: "100%", background: getColorByKey("amber").text,
+                          borderRadius: 4,
+                          width: `${((30 - cooldownRemaining) / 30) * 100}%`,
+                          transition: "width 1s linear",
+                        }} />
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
@@ -760,7 +761,7 @@ const saveRdv = async () => {
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 700, color: "#5D9BFF", marginBottom: 14 }}>IDENTITÉ & LOGEMENT</div>
                     <Field label="NOM COMPLET" isDark={darkMode}><input value={form.nom} onChange={e => setF("nom", e.target.value)} style={iStyle("nom")} /></Field>
-                    <Field label="GSM" isDark={darkMode}><input value={form.gsm} onChange={e => setF("gsm", e.target.value)} style={iStyle("gsm")} /></Field>
+                    <Field label="GSM" isDark={darkMode}><input value={form.gsm} readOnly style={iStyle("gsm")} /></Field>
                     <Field label="PROPRIÉTAIRE DEPUIS" isDark={darkMode}><input value={form.depuis} onChange={e => setF("depuis", e.target.value)} style={iStyle("depuis")} /></Field>
                     <Field label="PERSONNES" isDark={darkMode}><input value={form.nbPersonnes} onChange={e => setF("nbPersonnes", e.target.value)} style={iStyle("nbPersonnes")} /></Field>
                   </div>
@@ -869,10 +870,14 @@ const saveRdv = async () => {
             ))}
           </Section>
 
+          <Section title="COMPOSER UN NUMÉRO" icon={PhoneCall} iconColor="#F0B34B" isDark={darkMode}>
+            <PhoneKeypad onCall={handleManualCall} />
+          </Section>
+
           <Section title="PIPELINE CRM" icon={Activity} iconColor="#2DCF7F" isDark={darkMode}>
             {[
-              { step: 1, title: "Agent", detail: "Qualification & RDV", active: true },
-              { step: 2, title: "Confirmation", detail: "Vérification qualité", active: callDuration >= 66 },
+              { step: 1, title: "Agent", detail: "Qualification & RDV", active: callState === 'calling' },
+              { step: 2, title: "Confirmation", detail: "Vérification qualité", active: callState === 'cooldown' },
               { step: 3, title: "Commercial", detail: "Visite à domicile", active: false },
               { step: 4, title: "Installation", detail: "Pose & raccordement", active: false },
             ].map(({ step, title, detail, active }) => (

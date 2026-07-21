@@ -1,0 +1,472 @@
+\chapter[Authentification et Gestion des Leads]{Authentification et Gestion des Leads}
+\label{chap:release1}
+\chapterplan{%
+\chapterplanitem{}{Introduction}{sec:chap4_introduction}
+\chapterplanitem{1}{Sprint 1 : Gestion des accès et des utilisateurs}{sec:sprint1}
+\chapterplanitem{2}{Sprint 2 : Gestion des leads, rendez-vous et campagnes}{sec:sprint2}
+\chapterplanitem{}{Conclusion}{sec:chap4_conclusion}
+}
+
+\section*{Introduction}
+\phantomsection
+\label{sec:chap4_introduction}
+
+Ce chapitre constitue le socle initial de la plateforme CRM intelligente. Il regroupe les deux
+premiers sprints du projet et se concentre sur les mécanismes indispensables à l'accès sécurisé
+à la plateforme ainsi qu'à la gestion opérationnelle des leads et des rendez-vous.
+
+Le Sprint 1 met en place l'authentification JWT avec un système de permissions granulaires,
+la gestion des comptes utilisateurs et le contrôle d'accès basé sur les rôles (RBAC). Le
+Sprint 2 introduit la gestion complète des leads, des rendez-vous et des campagnes
+commerciales.
+
+Chaque sprint est présenté selon une structure méthodologique homogène : backlog, spécification
+et conception, présentation des technologies utilisées, réalisation technique, tests unitaires
+et validation des résultats obtenus.
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\section[Sprint 1 : Accès et utilisateurs]{Sprint 1 : Gestion des accès et des utilisateurs}
+\label{sec:sprint1}
+%% ────────────────────────────────────────────────────────────────────────────
+
+\subsection{Objectifs et Backlog du Sprint 1}
+\label{subsec:sprint1_backlog}
+
+Le Sprint 1 a pour objectif de construire le socle de sécurité et de gestion des comptes
+utilisateurs. Il couvre l'authentification JWT, la gestion des rôles et permissions, la
+création des comptes et l'administration des accès.
+
+\begingroup
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.35}
+\begin{longtable}{|>{\centering\arraybackslash}p{1.1cm}|>{\raggedright\arraybackslash}p{9.0cm}|>{\centering\arraybackslash}p{1.6cm}|>{\centering\arraybackslash}p{1.6cm}|}
+\caption{Backlog du Sprint 1 -- Gestion des accès et des utilisateurs}\label{tab:sprint1_backlog}\\
+\hline
+\textbf{ID} & \textbf{User Story} & \textbf{Priorité} & \textbf{Statut} \\
+\hline
+\endfirsthead
+\hline
+\textbf{ID} & \textbf{User Story} & \textbf{Priorité} & \textbf{Statut} \\
+\hline
+\endhead
+\hline
+\endfoot
+\endlastfoot
+1.1 & En tant qu'\textbf{utilisateur}, je veux m'authentifier avec JWT afin d'accéder à mon espace de travail. & Élevée & Terminé \\
+\hline
+1.2 & En tant qu'\textbf{utilisateur}, je veux fermer ma session afin de sécuriser mon accès. & Moyenne & Terminé \\
+\hline
+1.3 & En tant que \textbf{Super Admin}, je veux gérer les utilisateurs (CRUD) afin d'administrer les comptes. & Élevée & Terminé \\
+\hline
+1.4 & En tant que \textbf{Super Admin}, je veux attribuer des rôles et permissions aux utilisateurs afin de contrôler leurs accès. & Élevée & Terminé \\
+\hline
+1.5 & En tant qu'\textbf{Admin RH}, je veux créer des comptes agents afin d'intégrer de nouveaux collaborateurs. & Élevée & Terminé \\
+\hline
+1.6 & En tant que \textbf{Super Admin}, je veux configurer les permissions granulaires afin de définir les droits d'accès. & Moyenne & Terminé \\
+\hline
+1.7 & En tant qu'\textbf{Admin RH}, je veux désactiver un compte agent afin de suspendre son accès. & Moyenne & Terminé \\
+\hline
+1.8 & En tant qu'\textbf{utilisateur}, je veux réinitialiser mon mot de passe afin de retrouver l'accès à mon compte. & Moyenne & Terminé \\
+\hline
+\end{longtable}
+\endgroup
+
+%% ────────────────────────────────────────────────────────────────────────────
+\subsection{Spécification et Conception du Sprint 1}
+\label{subsec:sprint1_spec}
+
+\subsubsection{Diagramme de cas d'utilisation}
+
+Le diagramme de cas d'utilisation du Sprint 1 modélise l'ensemble des interactions entre les
+acteurs et le système d'authentification et de gestion des utilisateurs. Cinq acteurs sont
+identifiés~: \textit{Visiteur} (non authentifié), \textit{Super Admin}, \textit{Admin RH},
+\textit{Supervisor}, \textit{Quality Manager} et \textit{Agent}.
+
+Le \textit{Visiteur} peut se connecter via son nom d'utilisateur et son mot de passe. Le
+\textit{Super Admin} gère les utilisateurs, les rôles et les permissions. L'\textit{Admin RH}
+crée et gère les comptes des agents. Le \textit{Supervisor} consulte les utilisateurs de son
+périmètre. L'\textit{Agent} et le \textit{Quality Manager} accèdent à leurs espaces de
+travail respectifs.
+
+\subsubsection{Architecture de l'authentification}
+
+L'authentification repose sur le standard JWT (JSON Web Token). Le flux d'authentification se
+déroule comme suit~:
+
+\begin{enumerate}
+    \item L'utilisateur soumet ses identifiants (email + mot de passe) via le formulaire de
+    connexion React.
+    \item Le contrôleur \texttt{AuthController} reçoit la requête et appelle
+    \texttt{AuthService}.
+    \item Le service valide les identifiants via \texttt{PasswordHasher}, puis génère un
+    token JWT contenant l'ID utilisateur, les rôles et les permissions.
+    \item Le frontend stocke le token et l'inclut dans les en-têtes des requêtes suivantes.
+    \item Le middleware ASP.NET Core valide le token et peuple le contexte utilisateur.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.95\linewidth}{
+    \centering\vspace{0.4cm}
+    \textit{[Diagramme de séquence : Flux d'authentification JWT]}\\[0.3cm]
+    Ce diagramme illustre le processus complet d'authentification~: soumission des identifiants
+    depuis le frontend React, validation par AuthController et AuthService, génération du token
+    JWT avec les claims (rôles, permissions), retour du token au frontend et utilisation dans
+    les requêtes suivantes via le middleware de validation ASP.NET Core.
+    \vspace{0.4cm}
+    }}
+    \caption{Diagramme de séquence -- Flux d'authentification JWT}
+    \label{fig:sprint1_auth_flow}
+\end{figure}
+
+\subsubsection{Système de permissions}
+
+Le système de permissions granulaires est implémenté via une classe \texttt{Permissions}
+contenant des constantes pour chaque action du système~:
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Permission} & \textbf{Description} \\
+\hline
+\texttt{leads.create} & Créer un nouveau lead \\
+\texttt{leads.read} & Consulter les leads \\
+\texttt{leads.update} & Modifier un lead \\
+\texttt{leads.delete} & Supprimer un lead \\
+\texttt{quality.evaluate} & Évaluer la qualité d'un appel \\
+\texttt{quality.read} & Consulter les évaluations qualité \\
+\texttt{attendance.read} & Consulter les pointages \\
+\texttt{salary.manage} & Gérer les salaires \\
+\texttt{users.manage} & Gérer les utilisateurs \\
+\texttt{admin.access} & Accéder à l'administration \\
+\hline
+\end{tabular}
+\end{center}
+
+%% ────────────────────────────────────────────────────────────────────────────
+\subsection{Présentation des Technologies Utilisées}
+\label{subsec:sprint1_tech}
+
+\subsubsection{JWT et ASP.NET Core Identity}
+
+La plateforme utilise JWT pour l'authentification sans état~\cite{JWTRFC}. Le middleware
+\texttt{Microsoft.AspNetCore.Authentication.JwtBearer} valide les tokens et peuple
+automatiquement le contexte utilisateur. Le service \texttt{JwtHelper} centralise la
+génération et la validation des tokens.
+
+\subsubsection{Le filtre d'autorisation par permission}
+
+Une classe \texttt{RequirePermissionAttribute} a été développée pour protéger les endpoints
+avec des permissions spécifiques~:
+
+\begin{itemize}
+    \item Le décorateur \texttt{[RequirePermission(Permissions.Leads.Create)]} sur un contrôleur
+    ou une action.
+    \item Le \texttt{PermissionAuthorizationHandler} vérifie que l'utilisateur possède la
+    permission requise.
+    \item La configuration des permissions par rôle est définie dans la classe
+    \texttt{Permissions} sous forme de mappings rôle-permissions.
+\end{itemize}
+
+%% ────────────────────────────────────────────────────────────────────────────
+\subsection{Réalisation}
+\label{subsec:sprint1_realisation}
+
+\subsubsection{Interface de connexion}
+
+La page de connexion est implémentée avec React Hook Form pour la gestion du formulaire.
+Après authentification, l'utilisateur est redirigé vers son espace selon son rôle.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.9\linewidth}{
+    \centering\vspace{0.4cm}
+    \textit{[Capture d'écran : Page de connexion]}\\[0.3cm]
+    L'interface de connexion présente un formulaire avec les champs email et mot de passe,
+    un bouton de connexion et un lien de réinitialisation de mot de passe. La validation
+    des champs est assurée par React Hook Form.
+    \vspace{0.4cm}
+    }}
+    \caption{Interface de connexion}
+    \label{fig:sprint1_login}
+\end{figure}
+
+\subsubsection{Gestion des utilisateurs}
+
+L'interface d'administration des utilisateurs permet au Super Admin de créer, modifier et
+désactiver des comptes. Chaque utilisateur se voit attribuer un rôle et des permissions
+spécifiques.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.9\linewidth}{
+    \centering\vspace{0.4cm}
+    \textit{[Capture d'écran : Gestion des utilisateurs]}\\[0.3cm]
+    Interface listant les utilisateurs avec leur nom, email, rôle, statut (actif/inactif)
+    et les actions disponibles (modifier, désactiver, réinitialiser le mot de passe).
+    \vspace{0.4cm}
+    }}
+    \caption{Gestion des utilisateurs}
+    \label{fig:sprint1_users}
+\end{figure}
+
+\subsubsection{Tests unitaires et validation}
+
+Les tests du Sprint 1 couvrent~: l'authentification (connexion, déconnexion, refresh token),
+la gestion des utilisateurs (CRUD), le système de permissions (vérification des accès par
+rôle), les validateurs FluentValidation et les scénarios d'erreur.
+
+\subsubsection{Résultats obtenus}
+
+Le Sprint 1 livre un socle fonctionnel pour l'authentification sécurisée et la gestion des
+comptes utilisateurs. Le système de permissions granulaires permet un contrôle d'accès fin
+et flexible, préparant l'extension aux fonctionnalités métier des sprints suivants. Au total,
+17 contrôleurs API ont été implémentés, couvrant l'ensemble des fonctionnalités d'authentification
+et de gestion des utilisateurs.
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\section[Sprint 2 : Leads et rendez-vous]{Sprint 2 : Gestion des leads, rendez-vous et campagnes}
+\label{sec:sprint2}
+
+%% ────────────────────────────────────────────────────────────────────────────
+\subsection{Objectifs et Backlog du Sprint 2}
+\label{subsec:sprint2_backlog}
+
+Le Sprint 2 a pour objectif de mettre en place la gestion opérationnelle des leads, des
+rendez-vous et des campagnes commerciales. Il couvre la création, la qualification, le suivi
+des leads, la planification des rendez-vous et la gestion des campagnes.
+
+\begingroup
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.35}
+\begin{longtable}{|>{\centering\arraybackslash}p{1.1cm}|>{\raggedright\arraybackslash}p{9.0cm}|>{\centering\arraybackslash}p{1.6cm}|>{\centering\arraybackslash}p{1.6cm}|}
+\caption{Backlog du Sprint 2 -- Leads, rendez-vous et campagnes}\label{tab:sprint2_backlog}\\
+\hline
+\textbf{ID} & \textbf{User Story} & \textbf{Priorité} & \textbf{Statut} \\
+\hline
+\endfirsthead
+\hline
+\textbf{ID} & \textbf{User Story} & \textbf{Priorité} & \textbf{Statut} \\
+\hline
+\endhead
+\hline
+\endfoot
+\endlastfoot
+2.1 & En tant qu'\textbf{Agent}, je veux créer un lead afin d'ajouter un nouveau prospect. & Élevée & Terminé \\
+\hline
+2.2 & En tant qu'\textbf{Agent}, je veux consulter la liste de mes leads afin de suivre mes prospects. & Élevée & Terminé \\
+\hline
+2.3 & En tant qu'\textbf{Agent}, je veux modifier un lead afin de mettre à jour ses informations. & Élevée & Terminé \\
+\hline
+2.4 & En tant qu'\textbf{Agent}, je veux qualifier un lead afin de suivre son état d'avancement. & Élevée & Terminé \\
+\hline
+2.5 & En tant qu'\textbf{Agent}, je veux organiser mes leads dans des folders afin de les classer. & Moyenne & Terminé \\
+\hline
+2.6 & En tant que \textbf{Supervisor}, je veux affecter un lead à un agent afin de distribuer la charge de travail. & Élevée & Terminé \\
+\hline
+2.7 & En tant qu'\textbf{Agent}, je veux planifier un rendez-vous pour un lead. & Élevée & Terminé \\
+\hline
+2.8 & En tant qu'\textbf{Agent}, je veux consulter mon agenda afin de visualiser mes rendez-vous. & Élevée & Terminé \\
+\hline
+2.9 & En tant que \textbf{Supervisor}, je veux créer une campagne afin d'organiser une action commerciale. & Élevée & Terminé \\
+\hline
+2.10 & En tant qu'\textbf{Agent}, je veux consulter l'historique des interactions d'un lead. & Moyenne & Terminé \\
+\hline
+\end{longtable}
+\endgroup
+
+%% ────────────────────────────────────────────────────────────────────────────
+\subsection{Spécification et Conception du Sprint 2}
+\label{subsec:sprint2_spec}
+
+\subsubsection{Modèle de données des leads}
+
+Le modèle de données du lead est central dans la plateforme. Il comprend les informations
+suivantes~:
+
+\begin{itemize}
+    \item \textbf{Informations de contact} : nom, prénom, téléphone, email, adresse.
+    \item \textbf{Qualification} : statut (HORS_CIBLE, RDV1, RDV2, RAPPEL, REFUS_COUPLE,
+    REFUS_NON_INTERESSE, REFUS_CONSO, REFUS_PROJET, RDV_ANNULE, REPONDEUR).
+    \item \textbf{Suivi} : date de création, date de dernier contact, agent assigné,
+    campagne associée.
+    \item \textbf{Organisation} : folder de classement, notes, follow-ups planifiés.
+\end{itemize}
+
+\subsubsection{Diagramme de classes — Module leads}
+
+Le diagramme de classes du module leads est centré autour de l'entité \texttt{Lead}, qui
+constitue l'élément central du CRM. Un lead est créé par un agent, peut être assigné à un
+folder, rattaché à une campagne et suivi par des rendez-vous et des appels.
+
+Les classes principales sont~:
+
+\begin{itemize}
+    \item \textbf{Lead} : entité principale avec les champs de contact, qualification et suivi.
+    \item \textbf{LeadFolder} : permet de classer les leads par catégorie.
+    \item \textbf{Followup} : action de suivi planifiée sur un lead.
+    \item \textbf{Appointment} : rendez-vous lié à un lead et un agent.
+    \item \textbf{Campaign} : campagne commerciale regroupant des leads.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.95\linewidth}{
+    \centering\vspace{0.4cm}
+    \textit{[Diagramme de classes du module de gestion des leads]}\\[0.3cm]
+    Ce diagramme présente les entités Lead, LeadFolder, Followup, Appointment, Campaign
+    et leurs relations. Un Lead appartient à un Folder et une Campaign, peut avoir plusieurs
+    Followups et Appointments, et est assigné à un Agent.
+    \vspace{0.4cm}
+    }}
+    \caption{Diagramme de classes -- Module leads}
+    \label{fig:sprint2_class}
+\end{figure}
+
+\subsubsection{Diagramme de séquence — Création d'un lead}
+
+Ce diagramme illustre le processus de création d'un lead par un agent. L'agent remplit le
+formulaire de création dans l'interface React, les données sont envoyées au contrôleur
+\texttt{LeadsController} via l'API REST, puis le service \texttt{LeadService} valide et
+persiste le lead en base de données via le repository.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.95\linewidth}{
+    \centering\vspace{0.4cm}
+    \textit{[Diagramme de séquence : Création d'un lead]}\\[0.3cm]
+    L'agent soumet le formulaire de création, LeadsController reçoit la requête POST,
+    LeadService valide les données avec FluentValidation, le repository persiste le lead
+    dans PostgreSQL, et la réponse retourne le lead créé avec son ID.
+    \vspace{0.4cm}
+    }}
+    \caption{Diagramme de séquence -- Création d'un lead}
+    \label{fig:sprint2_seq_create_lead}
+\end{figure}
+
+%% ────────────────────────────────────────────────────────────────────────────
+\subsection{Présentation des Technologies Utilisées}
+\label{subsec:sprint2_tech}
+
+\subsubsection{Generic Repository et Unit of Work}
+
+Le pattern \textbf{Generic Repository} (\texttt{IRepository<T>}) encapsule les opérations
+de persistance pour chaque entité. Le \textbf{Unit of Work} (\texttt{IUnitOfWork})
+coordonne les transactions entre plusieurs repositories.
+
+\textbf{Avantages~:} Ce pattern garantit une séparation claire entre la logique métier et
+la persistance, facilite les tests unitaires via le mock des repositories et assure
+l'atomicité des transactions.
+
+\subsubsection{Entity Framework Core avec PostgreSQL}
+
+EF Core est configuré avec Npgsql pour la connexion à PostgreSQL. Les migrations sont
+générées automatiquement à partir des entités du domaine. Les configurations d'entités
+sont définies dans la classe \texttt{EntityConfigurations}.
+
+\textbf{Avantages~:} EF Core permet un mapping objet-relationnel fluide, des migrations
+versionnées et une exécution performante des requêtes LINQ.
+
+%% ────────────────────────────────────────────────────────────────────────────
+\subsection{Réalisation}
+\label{subsec:sprint2_realisation}
+
+\subsubsection{Interface de gestion des leads}
+
+L'interface de gestion des leads offre une vue liste avec filtres (statut, campagne, agent,
+date) et un formulaire de création/édition. L'agent peut qualifier un lead en un clic et
+planifier des follow-ups.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.9\linewidth}{
+    \centering\vspace{0.4cm}
+    \textit{[Capture d'écran : Liste des leads]}\\[0.3cm]
+    Cette capture présente la vue liste des leads avec les colonnes~: nom, téléphone, statut
+    de qualification, agent assigné, campagne, date de création et actions. Des filtres
+    permettent de rechercher par statut, campagne ou période.
+    \vspace{0.4cm}
+    }}
+    \caption{Liste des leads}
+    \label{fig:sprint2_leads_list}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.9\linewidth}{
+    \centering\vspace{0.4cm}
+    \textit{[Capture d'écran : Formulaire de création d'un lead]}\\[0.3cm]
+    Le formulaire de création comprend les champs~: prénom, nom, téléphone, email, adresse,
+    campagne, notes initiales et statut de qualification. La validation est assurée par
+    React Hook Form côté frontend et FluentValidation côté backend.
+    \vspace{0.4cm}
+    }}
+    \caption{Création d'un lead}
+    \label{fig:sprint2_lead_create}
+\end{figure}
+
+\subsubsection{Gestion des rendez-vous et de l'agenda}
+
+L'agenda des rendez-vous permet à l'agent de visualiser et gérer ses rendez-vous par jour,
+semaine ou mois. Chaque rendez-vous est lié à un lead et peut être modifié ou annulé.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.9\linewidth}{
+    \centering\vspace{0.4cm}
+    \textit{[Capture d'écran : Agenda des rendez-vous]}\\[0.3cm]
+    Vue agenda présentant les rendez-vous de l'agent connecté avec les informations~: date,
+    heure, client (lead associé), statut (confirmé, annulé, reporté) et actions disponibles.
+    \vspace{0.4cm}
+    }}
+    \caption{Agenda des rendez-vous}
+    \label{fig:sprint2_appointments}
+\end{figure}
+
+\subsubsection{Gestion des campagnes}
+
+L'interface de gestion des campagnes permet au Supervisor de créer, suivre et analyser les
+performances des actions commerciales.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.9\linewidth}{
+    \centering\vspace{0.4cm}
+    \textit{[Capture d'écran : Gestion des campagnes]}\\[0.3cm]
+    Cette capture montre la liste des campagnes avec leur nom, date de début/fin, nombre de
+    leads, taux de conversion et statut (active, terminée, en pause).
+    \vspace{0.4cm}
+    }}
+    \caption{Gestion des campagnes}
+    \label{fig:sprint2_campaigns}
+\end{figure}
+
+\subsubsection{Tests unitaires et validation}
+
+Les tests du Sprint 2 couvrent~: la création, modification, suppression et qualification des
+leads, la gestion des folders, la planification des rendez-vous, la gestion des campagnes,
+ainsi que les scénarios d'erreur et les validations métier.
+
+\subsubsection{Résultats obtenus}
+
+Le Sprint 2 livre le cœur fonctionnel du CRM. Les agents peuvent désormais gérer leurs leads,
+planifier des rendez-vous et suivre leurs campagnes. Le backend expose une API REST complète
+via 17 contrôleurs, et le frontend React/TailwindCSS offre une expérience utilisateur moderne
+et responsive.
+
+%% ══════════════════════════════════════════════════════════════════════════════
+\section*{Conclusion}
+\phantomsection
+\label{sec:chap4_conclusion}
+
+Ce chapitre a permis de construire les fondations de la plateforme CRM. Le Sprint 1 a établi
+un système d'authentification JWT robuste avec un contrôle d'accès basé sur les permissions
+granulaires. Le Sprint 2 a complété ce socle par les fonctionnalités métier essentielles~:
+gestion des leads, des rendez-vous et des campagnes.
+
+À l'issue de cette première release, la plateforme dispose d'une base cohérente pour gérer
+les identités, les accès et les opérations commerciales quotidiennes d'un centre d'appels.
+Les tests unitaires réalisés sur l'ensemble des services renforcent la fiabilité des règles
+métier critiques.

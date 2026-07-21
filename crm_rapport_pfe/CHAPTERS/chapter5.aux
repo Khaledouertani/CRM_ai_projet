@@ -1,0 +1,190 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\gdef \LT@ix {\LT@entry 
+    {1}{22.76228pt}\LT@entry 
+    {1}{455.24411pt}\LT@entry 
+    {1}{28.45274pt}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {5}Développement Serverless et intégrations}{67}{chapter.5}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{chap:serverless_integrations}{{5}{67}{Développement Serverless et intégrations}{chapter.5}{}}
+\gdef \LT@x {\LT@entry 
+    {1}{42.09819pt}\LT@entry 
+    {1}{266.4748pt}\LT@entry 
+    {1}{55.92458pt}\LT@entry 
+    {1}{55.92458pt}}
+\newlabel{sec:chap5_introduction}{{5}{68}{}{section*.62}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Sprint 3 : Runtimes et fonctions}{68}{section.5.1}\protected@file@percent }
+\newlabel{sec:sprint3}{{1}{68}{Sprint 3 : Runtimes et fonctions}{section.5.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Objectifs et Backlog du Sprint 3}{68}{subsection.5.1.1}\protected@file@percent }
+\newlabel{subsec:sprint3_backlog}{{1.1}{68}{Objectifs et Backlog du Sprint 3}{subsection.5.1.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5.2}{\ignorespaces Backlog du Sprint 3 -- Runtimes, environnements d'exécution et fonctions serverless}}{68}{table.5.2}\protected@file@percent }
+\newlabel{tab:sprint3_backlog}{{5.2}{68}{Backlog du Sprint 3 -- Runtimes, environnements d'exécution et fonctions serverless}{table.5.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Spécification et Conception du Sprint 3}{70}{subsection.5.1.2}\protected@file@percent }
+\newlabel{subsec:sprint3_spec}{{1.2}{70}{Spécification et Conception du Sprint 3}{subsection.5.1.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de cas d'utilisation}{70}{subsubsection*.63}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.1}{\ignorespaces Diagramme de cas d'utilisation --- Sprint~3 : Gestion des fonctions serverless et des environnements d'exécution.}}{71}{figure.5.1}\protected@file@percent }
+\newlabel{fig:sprint3_usecase}{{5.1}{71}{Diagramme de cas d'utilisation --- Sprint~3 : Gestion des fonctions serverless et des environnements d'exécution}{figure.5.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de classes}{71}{subsubsection*.64}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.2}{\ignorespaces Diagramme de classes du Sprint~3 : gestion des fonctions serverless, des versions, des permissions et des environnements d'exécution.}}{73}{figure.5.2}\protected@file@percent }
+\newlabel{fig:sprint3_class}{{5.2}{73}{Diagramme de classes du Sprint~3 : gestion des fonctions serverless, des versions, des permissions et des environnements d'exécution}{figure.5.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de séquence — Création d'une fonction}{74}{subsubsection*.65}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.3}{\ignorespaces Diagramme de séquence --- Sprint 3 : Création d'une fonction serverless.}}{75}{figure.5.3}\protected@file@percent }
+\newlabel{fig:sprint3_seq_create_function}{{5.3}{75}{Diagramme de séquence --- Sprint 3 : Création d'une fonction serverless}{figure.5.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de séquence — Déploiement d'une fonction}{76}{subsubsection*.66}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.4}{\ignorespaces Diagramme de séquence --- Sprint 3 : Déploiement d'une fonction via Fission.}}{76}{figure.5.4}\protected@file@percent }
+\newlabel{fig:sprint3_seq_deploy_function}{{5.4}{76}{Diagramme de séquence --- Sprint 3 : Déploiement d'une fonction via Fission}{figure.5.4}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de séquence — Création et activation d'une nouvelle version}{76}{subsubsection*.67}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.5}{\ignorespaces Diagramme de séquence --- Sprint 3 : Création et publication d'une nouvelle version de fonction serverless.}}{76}{figure.5.5}\protected@file@percent }
+\newlabel{fig:sprint3_seq_publish_function}{{5.5}{76}{Diagramme de séquence --- Sprint 3 : Création et publication d'une nouvelle version de fonction serverless}{figure.5.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.3}Présentation des Technologies Utilisées}{77}{subsection.5.1.3}\protected@file@percent }
+\newlabel{subsec:sprint3_tech}{{1.3}{77}{Présentation des Technologies Utilisées}{subsection.5.1.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Fission comme moteur d'exécution serverless}{77}{subsubsection*.68}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Builder, Environment, Package et Function}{77}{subsubsection*.69}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Executor, Router, Fetcher et Pool Manager}{77}{subsubsection*.70}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Architecture et fonctionnement interne de Fission}{77}{subsubsection*.71}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.6}{\ignorespaces Architecture interne et workflow d'exécution de Fission.}}{78}{figure.5.6}\protected@file@percent }
+\newlabel{fig:sprint3_fission_architecture_workflow}{{5.6}{78}{Architecture interne et workflow d'exécution de Fission}{figure.5.6}{}}
+\@writefile{toc}{\contentsline {subsubsection}{MinIO, Kubernetes Jobs et images Docker}{78}{subsubsection*.72}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.4}Réalisation}{79}{subsection.5.1.4}\protected@file@percent }
+\newlabel{subsec:sprint3_realisation}{{1.4}{79}{Réalisation}{subsection.5.1.4}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Gestion des runtimes et environnements d'exécution}{79}{subsubsection*.73}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.7}{\ignorespaces Liste des runtimes.}}{79}{figure.5.7}\protected@file@percent }
+\newlabel{fig:sprint3_runtimes_list}{{5.7}{79}{Liste des runtimes}{figure.5.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.8}{\ignorespaces Configuration d'un runtime.}}{80}{figure.5.8}\protected@file@percent }
+\newlabel{fig:sprint3_runtime_config}{{5.8}{80}{Configuration d'un runtime}{figure.5.8}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Création et édition des fonctions}{80}{subsubsection*.74}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.9}{\ignorespaces Création d'une fonction serverless.}}{81}{figure.5.9}\protected@file@percent }
+\newlabel{fig:sprint3_function_create}{{5.9}{81}{Création d'une fonction serverless}{figure.5.9}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.10}{\ignorespaces Éditeur de code.}}{81}{figure.5.10}\protected@file@percent }
+\newlabel{fig:sprint3_code_editor}{{5.10}{81}{Éditeur de code}{figure.5.10}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Déploiement, publication et exécution}{81}{subsubsection*.75}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.11}{\ignorespaces Liste des fonctions serverless.}}{82}{figure.5.11}\protected@file@percent }
+\newlabel{fig:sprint3_functions_list}{{5.11}{82}{Liste des fonctions serverless}{figure.5.11}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Versioning, historique et rollback}{82}{subsubsection*.76}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.12}{\ignorespaces Historique des versions.}}{82}{figure.5.12}\protected@file@percent }
+\newlabel{fig:sprint3_version_history}{{5.12}{82}{Historique des versions}{figure.5.12}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.13}{\ignorespaces Journaux d'exécution.}}{83}{figure.5.13}\protected@file@percent }
+\newlabel{fig:sprint3_execution_logs}{{5.13}{83}{Journaux d'exécution}{figure.5.13}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Tests unitaires et validation}{83}{subsubsection*.77}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Résultats obtenus}{83}{subsubsection*.78}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Sprint 4 : Déclencheurs et intégrations}{83}{section.5.2}\protected@file@percent }
+\newlabel{sec:sprint4}{{2}{83}{Sprint 4 : Déclencheurs et intégrations}{section.5.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Objectifs et Backlog du Sprint 4}{83}{subsection.5.2.1}\protected@file@percent }
+\newlabel{subsec:sprint4_backlog}{{2.1}{83}{Objectifs et Backlog du Sprint 4}{subsection.5.2.1}{}}
+\gdef \LT@xi {\LT@entry 
+    {1}{42.09819pt}\LT@entry 
+    {1}{266.4748pt}\LT@entry 
+    {1}{55.92458pt}\LT@entry 
+    {1}{55.92458pt}}
+\@writefile{lot}{\contentsline {table}{\numberline {5.3}{\ignorespaces Backlog du Sprint 4 -- Déclencheurs, clés API et domaines personnalisés}}{84}{table.5.3}\protected@file@percent }
+\newlabel{tab:sprint4_backlog}{{5.3}{84}{Backlog du Sprint 4 -- Déclencheurs, clés API et domaines personnalisés}{table.5.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Spécification et Conception du Sprint 4}{85}{subsection.5.2.2}\protected@file@percent }
+\newlabel{subsec:sprint4_spec}{{2.2}{85}{Spécification et Conception du Sprint 4}{subsection.5.2.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de cas d'utilisation}{85}{subsubsection*.79}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.14}{\ignorespaces Diagramme de cas d'utilisation --- Sprint 4 : Déclencheurs, API Keys et domaines personnalisés.}}{85}{figure.5.14}\protected@file@percent }
+\newlabel{fig:sprint4_usecase}{{5.14}{85}{Diagramme de cas d'utilisation --- Sprint 4 : Déclencheurs, API Keys et domaines personnalisés}{figure.5.14}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de classes}{85}{subsubsection*.80}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.15}{\ignorespaces Diagramme de classes --- Sprint 4 : Déclencheurs, clés API et domaines personnalisés.}}{86}{figure.5.15}\protected@file@percent }
+\newlabel{fig:sprint4_class}{{5.15}{86}{Diagramme de classes --- Sprint 4 : Déclencheurs, clés API et domaines personnalisés}{figure.5.15}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de séquence — Création d'un déclencheur}{86}{subsubsection*.81}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.16}{\ignorespaces Diagramme de séquence --- Sprint 4 : Création d'un déclencheur.}}{86}{figure.5.16}\protected@file@percent }
+\newlabel{fig:sprint4_seq_create_trigger}{{5.16}{86}{Diagramme de séquence --- Sprint 4 : Création d'un déclencheur}{figure.5.16}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de séquence — Invocation HTTP d'une fonction}{86}{subsubsection*.82}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.17}{\ignorespaces Diagramme de séquence --- Sprint 4 : Invocation HTTP d'une fonction.}}{86}{figure.5.17}\protected@file@percent }
+\newlabel{fig:sprint4_seq_http_invocation}{{5.17}{86}{Diagramme de séquence --- Sprint 4 : Invocation HTTP d'une fonction}{figure.5.17}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de séquence — Invocation événementielle via Kafka}{87}{subsubsection*.83}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.18}{\ignorespaces Diagramme de séquence --- Sprint 4 : Invocation événementielle via Kafka.}}{87}{figure.5.18}\protected@file@percent }
+\newlabel{fig:sprint4_seq_kafka_invocation}{{5.18}{87}{Diagramme de séquence --- Sprint 4 : Invocation événementielle via Kafka}{figure.5.18}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de séquence — Création d'une clé API}{87}{subsubsection*.84}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.19}{\ignorespaces Diagramme de séquence --- Sprint 4 : Création d'une clé API.}}{87}{figure.5.19}\protected@file@percent }
+\newlabel{fig:sprint4_seq_api_key}{{5.19}{87}{Diagramme de séquence --- Sprint 4 : Création d'une clé API}{figure.5.19}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de séquence — Création et validation DNS d'un domaine}{87}{subsubsection*.85}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.20}{\ignorespaces Diagramme de séquence --- Sprint 4 : Création et validation DNS d'un domaine personnalisé.}}{87}{figure.5.20}\protected@file@percent }
+\newlabel{fig:sprint4_seq_domain_validation}{{5.20}{87}{Diagramme de séquence --- Sprint 4 : Création et validation DNS d'un domaine personnalisé}{figure.5.20}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Diagramme de séquence — Association d'un domaine à une fonction}{88}{subsubsection*.86}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.21}{\ignorespaces Diagramme de séquence --- Sprint 4 : Association d'un domaine personnalisé à une fonction.}}{88}{figure.5.21}\protected@file@percent }
+\newlabel{fig:sprint4_seq_domain_mapping}{{5.21}{88}{Diagramme de séquence --- Sprint 4 : Association d'un domaine personnalisé à une fonction}{figure.5.21}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Présentation des Technologies Utilisées}{88}{subsection.5.2.3}\protected@file@percent }
+\newlabel{subsec:sprint4_tech}{{2.3}{88}{Présentation des Technologies Utilisées}{subsection.5.2.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Fission Triggers, HTTP et Webhook}{88}{subsubsection*.87}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Kafka et déclencheurs événementiels}{88}{subsubsection*.88}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Cron et déclencheurs planifiés}{88}{subsubsection*.89}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{API Gateway, Nginx, Ingress, TLS et certificats}{89}{subsubsection*.90}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Cloudflare et validation DNS}{89}{subsubsection*.91}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Réalisation}{89}{subsection.5.2.4}\protected@file@percent }
+\newlabel{subsec:sprint4_realisation}{{2.4}{89}{Réalisation}{subsection.5.2.4}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Gestion des déclencheurs}{89}{subsubsection*.92}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.22}{\ignorespaces Liste des déclencheurs.}}{89}{figure.5.22}\protected@file@percent }
+\newlabel{fig:sprint4_triggers_list}{{5.22}{89}{Liste des déclencheurs}{figure.5.22}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.23}{\ignorespaces Création d'un déclencheur.}}{90}{figure.5.23}\protected@file@percent }
+\newlabel{fig:sprint4_trigger_create}{{5.23}{90}{Création d'un déclencheur}{figure.5.23}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.24}{\ignorespaces Configuration d'un déclencheur HTTP.}}{90}{figure.5.24}\protected@file@percent }
+\newlabel{fig:sprint4_http_trigger}{{5.24}{90}{Configuration d'un déclencheur HTTP}{figure.5.24}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.25}{\ignorespaces Configuration d'un déclencheur planifié.}}{90}{figure.5.25}\protected@file@percent }
+\newlabel{fig:sprint4_cron_trigger}{{5.25}{90}{Configuration d'un déclencheur planifié}{figure.5.25}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.26}{\ignorespaces Déclencheur Kafka.}}{90}{figure.5.26}\protected@file@percent }
+\newlabel{fig:sprint4_kafka_trigger}{{5.26}{90}{Déclencheur Kafka}{figure.5.26}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Gestion des API Keys}{90}{subsubsection*.93}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.27}{\ignorespaces Liste des clés API.}}{91}{figure.5.27}\protected@file@percent }
+\newlabel{fig:sprint4_api_keys_list}{{5.27}{91}{Liste des clés API}{figure.5.27}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.28}{\ignorespaces Création d'une clé API.}}{91}{figure.5.28}\protected@file@percent }
+\newlabel{fig:sprint4_api_key_create}{{5.28}{91}{Création d'une clé API}{figure.5.28}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Gestion des domaines personnalisés}{91}{subsubsection*.94}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.29}{\ignorespaces Liste des domaines personnalisés.}}{91}{figure.5.29}\protected@file@percent }
+\newlabel{fig:sprint4_domains_list}{{5.29}{91}{Liste des domaines personnalisés}{figure.5.29}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.30}{\ignorespaces Validation DNS d'un domaine personnalisé.}}{91}{figure.5.30}\protected@file@percent }
+\newlabel{fig:sprint4_dns_validation}{{5.30}{91}{Validation DNS d'un domaine personnalisé}{figure.5.30}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.31}{\ignorespaces Association domaine-fonction.}}{92}{figure.5.31}\protected@file@percent }
+\newlabel{fig:sprint4_domain_mapping}{{5.31}{92}{Association domaine-fonction}{figure.5.31}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.32}{\ignorespaces Invocation HTTP.}}{92}{figure.5.32}\protected@file@percent }
+\newlabel{fig:sprint4_http_invocation_capture}{{5.32}{92}{Invocation HTTP}{figure.5.32}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Tests unitaires et validation}{92}{subsubsection*.95}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Résultats obtenus}{92}{subsubsection*.96}\protected@file@percent }
+\newlabel{sec:chap5_conclusion}{{2.4}{92}{}{section*.97}{}}
+\@setckpt{CHAPTERS/chapter5}{
+\setcounter{page}{94}
+\setcounter{equation}{0}
+\setcounter{enumi}{0}
+\setcounter{enumii}{0}
+\setcounter{enumiii}{0}
+\setcounter{enumiv}{0}
+\setcounter{footnote}{0}
+\setcounter{mpfootnote}{0}
+\setcounter{part}{0}
+\setcounter{chapter}{5}
+\setcounter{section}{2}
+\setcounter{subsection}{4}
+\setcounter{subsubsection}{0}
+\setcounter{paragraph}{0}
+\setcounter{subparagraph}{0}
+\setcounter{figure}{32}
+\setcounter{table}{3}
+\setcounter{NAT@ctr}{0}
+\setcounter{tcbbreakpart}{1}
+\setcounter{tcblayer}{0}
+\setcounter{tcolorbox@number}{4}
+\setcounter{tcbrastercolumn}{1}
+\setcounter{tcbrasterrow}{1}
+\setcounter{tcbrasternum}{1}
+\setcounter{tcbraster}{0}
+\setcounter{parentequation}{0}
+\setcounter{lstnumber}{1}
+\setcounter{tcblisting}{0}
+\setcounter{float@type}{16}
+\setcounter{AM@survey}{0}
+\setcounter{LT@tables}{11}
+\setcounter{LT@chunks}{5}
+\setcounter{caption@flags}{2}
+\setcounter{continuedfloat}{0}
+\setcounter{subfigure}{0}
+\setcounter{subtable}{0}
+\setcounter{lofdepth}{1}
+\setcounter{lotdepth}{1}
+\setcounter{vrcnt}{0}
+\setcounter{section@level}{0}
+\setcounter{Item}{0}
+\setcounter{Hfootnote}{0}
+\setcounter{bookmark@seq@number}{0}
+\setcounter{lstlisting}{0}
+}

@@ -94,7 +94,30 @@ public class AnalyticsService : IAnalyticsService
     public async Task<GeoDto> GetGeoAsync()
     {
         var calls = await _context.Calls.AsNoTracking().Where(c => !string.IsNullOrEmpty(c.PostalCode)).ToListAsync();
-        var depts = calls.GroupBy(c => c.PostalCode!.Length >= 2 ? c.PostalCode!.Substring(0, 2) : c.PostalCode!).Select(g => new DeptDto { Dept = g.Key, Total = g.Count(), AvgScore = Math.Round(g.Average(c => c.ScorePercentage), 2) }).OrderByDescending(d => d.Total).ToList();
+        var depts = calls.GroupBy(c => c.PostalCode!.Length >= 2 ? c.PostalCode!.Substring(0, 2) : c.PostalCode!).Select(g =>
+        {
+            var callsWithDuration = g.Where(c => c.CallDuration.HasValue).ToList();
+            var callsWithDate = g.Where(c => c.CallDate.HasValue).ToList();
+            var statusCounts = g.Where(c => !string.IsNullOrEmpty(c.Status)).GroupBy(c => c.Status!.ToLower()).ToDictionary(gr => gr.Key, gr => gr.Count());
+            var agentScores = g.Where(c => !string.IsNullOrEmpty(c.AgentName)).GroupBy(c => c.AgentName!).Select(ag => new { Agent = ag.Key, Avg = ag.Average(c => c.ScorePercentage), Count = ag.Count() }).ToList();
+            var bestAgent = agentScores.OrderByDescending(a => a.Avg).ThenByDescending(a => a.Count).FirstOrDefault();
+            var peakHour = callsWithDate.GroupBy(c => c.CallDate!.Value.Hour).OrderByDescending(h => h.Count()).FirstOrDefault();
+
+            return new DeptDto
+            {
+                Dept = g.Key,
+                Total = g.Count(),
+                AvgScore = Math.Round(g.Average(c => c.ScorePercentage), 2),
+                AvgDuration = callsWithDuration.Count > 0
+                    ? Math.Round(callsWithDuration.Average(c => c.CallDuration!.Value), 1)
+                    : 0,
+                Confirmed = statusCounts.GetValueOrDefault("confirmed", 0) + statusCounts.GetValueOrDefault("confirme", 0),
+                Refused = statusCounts.GetValueOrDefault("cancelled", 0) + statusCounts.GetValueOrDefault("refus", 0),
+                Waiting = statusCounts.GetValueOrDefault("pending", 0) + statusCounts.GetValueOrDefault("en_attente", 0),
+                PeakHour = peakHour != null ? $"{peakHour.Key}h" : null,
+                BestAgent = bestAgent?.Agent
+            };
+        }).OrderByDescending(d => d.Total).ToList();
         return new GeoDto { Departments = depts, TotalLocalized = calls.Count, DeptCount = depts.Count, TopDept = depts.FirstOrDefault()?.Dept };
     }
 

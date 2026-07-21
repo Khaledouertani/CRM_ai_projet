@@ -551,11 +551,13 @@ const [selectedProject, setSelectedProject] = useState("");
 
                 <th className="px-4 py-3 text-left">Date RDV</th>
 
-                <th className="px-4 py-3 text-left">Heure</th>
+                <th className="px-4 py-3 text-left">Création du RDV</th>
 
                 <th className="px-4 py-3 text-left">Agent</th>
 
                 <th className="px-4 py-3 text-left">Statut</th>
+
+                <th className="px-4 py-3 text-left">Enregistrement</th>
 
               </tr>
             </thead>
@@ -584,8 +586,13 @@ const [selectedProject, setSelectedProject] = useState("");
                     {item.appointment_date}
                   </td>
 
-                  <td className="px-4 py-4">
-                    {item.appointment_time}
+                  <td className="px-4 py-4 text-xs text-muted-foreground">
+                    {item.created_at
+                      ? new Date(item.created_at).toLocaleDateString('fr-FR', {
+                          day: '2-digit', month: '2-digit', year: 'numeric',
+                          hour: '2-digit', minute: '2-digit'
+                        })
+                      : '-'}
                   </td>
 
                   <td className="px-4 py-4">
@@ -593,18 +600,30 @@ const [selectedProject, setSelectedProject] = useState("");
                   </td>
 
                   <td className="px-4 py-4">
-
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-bold ${item.status === "confirme"
-                          ? "bg-emerald-500/10 text-emerald-400"
-                          : item.status === "refus"
-                            ? "bg-red-500/10 text-red-400"
-                            : "bg-yellow-500/10 text-yellow-400"
-                        }`}
-                    >
-                      {item.status}
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${(() => {
+                      const s = (item.status || '').toLowerCase();
+                      if (s === 'confirmed' || s === 'confirme') return 'bg-emerald-500/10 text-emerald-400';
+                      if (s === 'cancelled' || s === 'refus') return 'bg-red-500/10 text-red-400';
+                      return 'bg-amber-500/10 text-amber-400';
+                    })()}`}>
+                      {(() => {
+                        const s = (item.status || '').toLowerCase();
+                        if (s === 'confirmed' || s === 'confirme') return 'Confirmé';
+                        if (s === 'cancelled' || s === 'refus') return 'Refusé';
+                        return 'En attente';
+                      })()}
                     </span>
+                  </td>
 
+                  <td className="px-4 py-4">
+                    <button
+                      onClick={() => toast('Aucun enregistrement disponible pour ce RDV', { icon: '🔇' })}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-xs font-medium"
+                      title="Écouter l'enregistrement"
+                    >
+                      <PlayCircle className="w-3.5 h-3.5" />
+                      Lecture
+                    </button>
                   </td>
 
                 </tr>

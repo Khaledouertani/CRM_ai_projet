@@ -1,0 +1,796 @@
+%==========================================================
+%  CHAPITRE 2 — Analyse et spécification des besoins
+%  CRM Intelligent pour Centres d'Appels
+%==========================================================
+
+\chapter{Analyse et spécification des besoins}
+\chapterplan{%
+\chapterplanitem{1}{Introduction}{sec:chap2_introduction}
+\chapterplanitem{2}{Spécification des besoins}{sec:specification_besoins}
+\chapterplanitem{3}{Diagramme de cas d'utilisation global}{sec:diagramme_cas_utilisation}
+\chapterplanitem{4}{Diagramme de classes}{sec:diagramme_classes}
+\chapterplanitem{5}{Product Backlog}{sec:product_backlog}
+\chapterplanitem{6}{Répartition des sprints}{sec:repartition_sprints}
+\chapterplanitem{7}{Conclusion}{sec:chap2_conclusion}
+}
+
+%----------------------------------------------------------
+\section{Introduction}
+\phantomsection
+\label{sec:chap2_introduction}
+%----------------------------------------------------------
+
+La phase d'analyse et de spécification des besoins constitue une étape fondamentale dans la
+réussite de tout projet logiciel. Elle permet de définir précisément les attentes des différents
+utilisateurs ainsi que les contraintes techniques et fonctionnelles indispensables à la conception
+d'un système robuste et adapté.
+
+Ce chapitre présente l'identification des besoins de la plateforme CRM intelligente, la
+modélisation des fonctionnalités principales à travers plusieurs diagrammes UML, ainsi que la
+planification du projet selon la méthodologie Scrum. \cite{ScrumGuide}
+
+%==========================================================
+\section{Spécification des besoins}
+\label{sec:specification_besoins}
+%==========================================================
+
+%---------------------------------------------------------
+\subsection{Identification des acteurs}
+%---------------------------------------------------------
+
+La plateforme CRM met en interaction cinq acteurs principaux dont les rôles et les
+responsabilités sont définis selon une hiérarchie de droits progressifs :
+
+\begin{itemize}[label=\textbullet, itemsep=5pt]
+
+    \item \textbf{Agent :}
+    utilisateur principal du centre d'appels. Il peut consulter et gérer ses leads, planifier
+    des rendez-vous, passer des appels, consulter son scoring IA et son planning de présence.
+    Ce rôle constitue la base de la hiérarchie opérationnelle.
+
+    \item \textbf{Quality Manager :}
+    responsable de l'évaluation de la qualité des appels. Il hérite des droits de consultation
+    de l'Agent et peut en plus évaluer manuellement les appels, consulter les scores IA,
+    générer des rapports de qualité et configurer les règles d'évaluation.
+
+    \item \textbf{Admin RH :}
+    responsable de la gestion des ressources humaines. Il gère les agents (création,
+    modification, désactivation), les plannings de présence, les pauses et le calcul des
+    salaires selon les règles définies.
+
+    \item \textbf{Supervisor :}
+    superviseur des opérations du centre d'appels. Il consulte les tableaux de bord de
+    performance, suit les campagnes, analyse les métriques de conversion et peut accéder
+    à l'ensemble des données opérationnelles de son périmètre.
+
+    \item \textbf{Super Admin :}
+    administrateur global de la plateforme. Il dispose de privilèges d'administration sur
+    l'ensemble du système : gestion des utilisateurs et de leurs rôles, configuration des
+    permissions, paramétrage des règles de scoring IA, des poids d'évaluation et des
+    configurations système.
+
+\end{itemize}
+
+%---------------------------------------------------------
+\subsection{Spécification des besoins fonctionnels par acteur}
+%---------------------------------------------------------
+
+\subsubsection{L'Agent}
+
+\begin{itemize}[label=--, itemsep=3pt]
+    \item \textbf{Gestion des accès :}
+    \begin{itemize}[label=--, itemsep=2pt]
+        \item S'authentifier et se déconnecter de manière sécurisée.
+        \item Accéder à son espace de travail personnel.
+    \end{itemize}
+
+    \item \textbf{Gestion des leads :}
+    \begin{itemize}[label=--, itemsep=2pt]
+        \item Consulter la liste des leads qui lui sont assignés.
+        \item Filtrer les leads par statut, campagne ou date.
+        \item Ajouter un nouveau lead avec ses informations de contact.
+        \item Modifier les informations d'un lead existant.
+        \item Qualifier un lead (HORS_CIBLE, RDV1, RDV2, RAPPEL, REFUS, etc.).
+        \item Planifier un follow-up sur un lead.
+    \end{itemize}
+
+    \item \textbf{Gestion des rendez-vous :}
+    \begin{itemize}[label=--, itemsep=2pt]
+        \item Consulter son agenda de rendez-vous.
+        \item Créer un rendez-vous pour un lead.
+        \item Modifier ou annuler un rendez-vous.
+    \end{itemize}
+
+    \item \textbf{Gestion des appels :}
+    \begin{itemize}[label=--, itemsep=2pt]
+        \item Consulter l'historique de ses appels.
+        \item Visualiser la transcription de ses appels.
+        \item Consulter son score IA par appel.
+    \end{itemize}
+
+    \item \textbf{Consultation IA :}
+    \begin{itemize}[label=--, itemsep=2pt]
+        \item Visualiser son score IA global et par critère.
+        \item Consulter son évolution dans le temps.
+    \end{itemize}
+
+    \item \textbf{Présence :}
+    \begin{itemize}[label=--, itemsep=2pt]
+        \item Pointer son arrivée et son départ.
+        \item Déclarer une pause.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Le Quality Manager}
+
+\begin{itemize}[label=--, itemsep=3pt]
+    \item \textbf{Évaluation qualité :}
+    \begin{itemize}[label=--, itemsep=2pt]
+        \item Consulter la liste des appels à évaluer.
+        \item Effectuer une évaluation manuelle d'un appel avec notes et commentaires.
+        \item Comparer son évaluation avec le score IA automatique.
+        \item Consulter l'historique des évaluations.
+    \end{itemize}
+
+    \item \textbf{Scoring IA :}
+    \begin{itemize}[label=--, itemsep=2pt]
+        \item Visualiser les détails du scoring IA par appel.
+        \item Analyser les tendances de qualité par agent et par équipe.
+    \end{itemize}
+
+    \item \textbf{Alertes :}
+    \begin{itemize}[label=--, itemsep=2pt]
+        \item Configurer des règles d'alerte (score minimum, inactivité, taux de conversion).
+        \item Consulter les alertes déclenchées.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{L'Admin RH}
+
+\begin{itemize}[label=--, itemsep=3pt]
+    \item \textbf{Gestion des agents :}
+    \begin{itemize}[label=--, itemsep=2pt]
+        \item Créer, modifier et désactiver des comptes agents.
+        \item Consulter la liste des agents.
+    \end{itemize}
+
+    \item \textbf{Gestion de présence :}
+    \begin{itemize}[label=--, itemsep=2pt]
+        \item Consulter les pointages de présence.
+        \item Visualiser les statistiques de présence par agent et par période.
+    \end{itemize}
+
+    \item \textbf{Gestion de la paie :}
+    \begin{itemize}[label=--, itemsep=2pt]
+        \item Définir les règles de calcul des salaires.
+        \item Consulter les salaires calculés.
+        \item Exporter les rapports de paie.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Le Supervisor}
+
+\begin{itemize}[label=--, itemsep=3pt]
+    \item \textbf{Tableaux de bord :}
+    \begin{itemize}[label=--, itemsep=2pt]
+        \item Consulter les KPIs globaux du centre d'appels.
+        \item Visualiser les performances par agent, par équipe et par campagne.
+        \item Analyser les taux de conversion et les tendances.
+    \end{itemize}
+
+    \item \textbf{Campagnes :}
+    \begin{itemize}[label=--, itemsep=2pt]
+        \item Créer et gérer des campagnes.
+        \item Suivre les performances des campagnes.
+    \end{itemize}
+
+    \item \textbf{Rapports :}
+    \begin{itemize}[label=--, itemsep=2pt]
+        \item Générer des exports PDF des rapports de performance.
+        \item Exporter les données d'analyse.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Le Super Admin}
+
+\begin{itemize}[label=--, itemsep=3pt]
+    \item \textbf{Configuration globale :}
+    \begin{itemize}[label=--, itemsep=2pt]
+        \item Gérer les utilisateurs et leurs rôles.
+        \item Configurer les permissions granulaires.
+        \item Paramétrer les poids des critères de scoring IA.
+        \item Configurer les règles d'alerte globales.
+        \item Gérer les paramètres de transcription et de sentiment.
+    \end{itemize}
+
+    \item \textbf{Supervision :}
+    \begin{itemize}[label=--, itemsep=2pt]
+        \item Accéder à l'ensemble des données de la plateforme.
+        \item Surveiller l'état du système.
+    \end{itemize}
+\end{itemize}
+
+%---------------------------------------------------------
+\subsection{Besoins non fonctionnels}
+%---------------------------------------------------------
+
+\begin{itemize}[label=\textbullet, itemsep=5pt]
+
+    \item \textbf{Sécurité :}
+    \begin{itemize}[itemsep=2pt]
+        \item Authentification JWT avec tokens d'accès et de refresh.
+        \item Contrôle d'accès basé sur les permissions (RBAC).
+        \item Chiffrement des communications (TLS 1.3).
+        \item Hachage des mots de passe.
+        \item Conformité RGPD avec anonymisation des données.
+    \end{itemize}
+
+    \item \textbf{Performance :}
+    \begin{itemize}[itemsep=2pt]
+        \item Temps de réponse API inférieur à 500ms pour les requêtes standards.
+        \item Scoring IA avec timeout configurable (120s max).
+        \item Transcription audio avec modèle optimisé (base, français).
+    \end{itemize}
+
+    \item \textbf{Disponibilité :}
+    \begin{itemize}[itemsep=2pt]
+        \item Architecture Dockerisée avec healthchecks.
+        \item Base de données PostgreSQL avec persistance.
+        \item Déploiement via Render ou auto-hébergé.
+    \end{itemize}
+
+    \item \textbf{Maintenabilité :}
+    \begin{itemize}[itemsep=2pt]
+        \item Architecture Clean Architecture avec séparation des couches.
+        \item Repository Pattern et Unit of Work.
+        \item Documentation Swagger/OpenAPI des endpoints.
+        \item Tests unitaires, d'intégration et E2E.
+    \end{itemize}
+
+    \item \textbf{Extensibilité :}
+    \begin{itemize}[itemsep=2pt]
+        \item API REST versionnée.
+        \item Ajout simplifié de nouveaux critères de scoring.
+        \item Configuration des poids d'évaluation via fichier JSON.
+    \end{itemize}
+
+\end{itemize}
+
+%==========================================================
+\section{Diagramme de cas d'utilisation global}
+\label{sec:diagramme_cas_utilisation}
+%==========================================================
+
+Le diagramme de cas d'utilisation global illustre les interactions entre les cinq acteurs et
+les fonctionnalités principales de la plateforme CRM.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.95\linewidth}{
+    \centering\vspace{0.4cm}
+    \textit{[Diagramme de cas d'utilisation global de la plateforme CRM]}\\[0.3cm]
+    Ce diagramme présente les cinq acteurs (Super Admin, Admin RH, Supervisor, Quality Manager
+    et Agent) et leurs cas d'utilisation principaux~: authentification, gestion des leads, des
+    rendez-vous, des appels, du scoring IA, de la qualité, de la présence, de la paie, des
+    campagnes et de l'administration système.
+    \vspace{0.4cm}
+    }}
+    \caption{Diagramme de cas d'utilisation global de la plateforme CRM}
+    \label{fig:use_case_crm}
+\end{figure}
+
+%==========================================================
+\section{Diagramme de classes}
+\label{sec:diagramme_classes}
+%==========================================================
+
+Le diagramme de classes modélise les 26 entités de la plateforme CRM ainsi que leurs
+relations. Il constitue la base de la conception orientée objet en traduisant les besoins
+fonctionnels en un modèle conceptuel cohérent. Les entités sont organisées en cinq
+paquetages selon leur domaine métier.
+
+%% ──────────────────────────────────────────────────────────
+\subsubsection{Paquetage 1 : Authentification et Sécurité}
+%% ──────────────────────────────────────────────────────────
+
+Ce paquetage regroupe les entités responsables de la gestion des identités, des rôles
+et des permissions granulaires.
+
+\begin{description}[itemsep=4pt]
+    \item[\textbf{User}] : entité centrale du système. Elle stocke les informations
+    d'authentification (Username, Password hashé avec BCrypt, Email), le profil (Name)
+    et le rôle (\texttt{UserRole} : Admin, Agent, Qualite). Elle est reliée à la plupart
+    des autres entités du système~:
+    \begin{itemize}
+        \item \textbf{1 ---* Attendance} : un utilisateur a plusieurs pointages
+        \item \textbf{1 ---* CrmAppointment} : un agent a plusieurs rendez-vous clients
+        \item \textbf{1 ---* Salary} : un agent a un salaire par mois
+        \item \textbf{1 ---* ManualEvaluation (Agent)} : un agent reçoit des évaluations
+        \item \textbf{1 ---* ManualEvaluation (Evaluator)} : un évaluateur donne des évaluations
+        \item \textbf{1 ---* Message (Sender)} : un utilisateur envoie des messages
+        \item \textbf{1 ---* Message (Receiver)} : un utilisateur reçoit des messages
+    \end{itemize}
+
+    \item[\textbf{Permission}] : représente une permission granulaire (ex~: \texttt{Leads.Create},
+    \texttt{Scoring.Configure}). Chaque permission appartient à un module (Leads, Agenda,
+    Scoring, etc.) et possède une description. Elle est liée aux rôles via l'entité de
+    jointure \texttt{RolePermission}.
+
+    \item[\textbf{RolePermission}] : entité de jointure entre un rôle (Admin, Agent, Qualite)
+    et une permission. Un même rôle peut avoir plusieurs permissions (ex~: le rôle Admin
+    possède toutes les permissions), et une même permission peut être attribuée à
+    plusieurs rôles.
+\end{description}
+
+\textbf{Relations du paquetage~:}
+\begin{itemize}
+    \item Permission \textbf{1 ---* } RolePermission (une permission est assignée à plusieurs rôles)
+    \item RolePermission \textbf{* ---* } User (via le champ Role)
+\end{itemize}
+
+%% ──────────────────────────────────────────────────────────
+\subsubsection{Paquetage 2 : Gestion Commerciale}
+%% ──────────────────────────────────────────────────────────
+
+Ce paquetage couvre le coeur métier du CRM~: la gestion des prospects, des appels,
+des rendez-vous et des campagnes.
+
+\begin{description}[itemsep=4pt]
+    \item[\textbf{Lead}] : représente un prospect commercial. Il contient ses coordonnées
+    (CompanyName, ContactName, Phone, Email, Address, PostalCode), son statut (Status)
+    et l'identifiant de l'agent auquel il est affecté (\texttt{AgentId}). Le statut
+    évolue selon la qualification (nouveau, RDV1, RDV2, REFUS, RAPPEL, HORS\_CIBLE).
+
+    \item[\textbf{Call}] : enregistrement d'un appel téléphonique. C'est l'entité la plus
+    riche du modèle avec plus de 50 attributs~:
+    \begin{itemize}
+        \item \textbf{Transcription} : texte brut (Transcription), textes séparés
+        agent/client (AgentText, ClientText), transcription labellisée (LabeledTranscript)
+        \item \textbf{Scores IA} : ScorePercentage (score global), 8 scores par critère
+        (ScoreEcoute, ScorePersuasion, ScoreEmpathie, ScoreArgumentation, ScoreRefus,
+        ScoreVente, AgentPoliteness, etc.)
+        \item \textbf{Analyse} : Sentiment (positif/négatif/neutre), SentimentScore,
+        Summary, Keywords, CustomerIntent
+        \item \textbf{Métadonnées} : CallDuration, CallDate, AgentTalkRatio, AgentSeconds,
+        InactivityDetected, InactivityDuration, RefusalReason, QualificationCoherence
+    \end{itemize}
+
+    \item[\textbf{CrmAppointment}] : rendez-vous client planifié par un agent. Il contient
+    les informations détaillées du projet (ProjectType, Chauffage, Toiture, Isolation,
+    Consommation, CreditScore, Revenus), le statut financier (FinancingStatus, SituationBancaire),
+    la qualité (QualityScore) et le statut (pending/confirmed/cancelled).
+
+    \item[\textbf{Appointment}] : rendez-vous détecté automatiquement par l'IA depuis
+    un appel. Stocke la date détectée (DetectedDate), le score de confiance
+    (ConfidenceScore) et le statut (detected/confirmed/rejected).
+
+    \item[\textbf{Campaign}] : campagne marketing avec son nom (Name) et le nom
+    de l'entreprise ciblée (CompanyName).
+
+    \item[\textbf{Followup}] : suivi de relance d'un lead. Contient le nom de l'agent
+    (AgentName), la date de rendez-vous (AppointmentDate), le statut et le nombre de
+    relances (RelanceCount).
+
+    \item[\textbf{LeadFolder}] : dossier de classement pour organiser les leads
+    (Name, Campaign).
+
+    \item[\textbf{Qualification}] : table de référence des codes de qualification
+    (Code : HORS\_CIBLE, RDV1, RDV2, REFUS, RAPPEL) avec leur libellé (Label) et
+    les mots-clés attendus (ExpectedKeywords) pour la validation IA.
+
+    \item[\textbf{Supplier}] : fournisseur associé aux leads ou campagnes.
+\end{description}
+
+\textbf{Relations du paquetage~:}
+\begin{itemize}
+    \item Lead \textbf{* --- 1} User (un lead est affecté à un agent)
+    \item Lead \textbf{1 --- *} Call (un lead peut avoir plusieurs appels)
+    \item Lead \textbf{1 --- *} Followup (un lead peut avoir plusieurs relances)
+    \item Call \textbf{1 --- *} Appointment (un appel peut générer plusieurs RDV détectés)
+    \item Lead \textbf{* --- 1} Campaign (un lead appartient à une campagne)
+    \item Lead \textbf{* --- 1} LeadFolder (un lead peut être classé dans un dossier)
+\end{itemize}
+
+%% ──────────────────────────────────────────────────────────
+\subsubsection{Paquetage 3 : Présence et Paie}
+%% ──────────────────────────────────────────────────────────
+
+Ce paquetage gère les ressources humaines~: pointage des agents, pauses et calcul
+automatisé des salaires.
+
+\begin{description}[itemsep=4pt]
+    \item[\textbf{Attendance}] : pointage journalier d'un agent. Enregistre la date
+    (Date), l'heure d'arrivée (ClockIn), l'heure de départ (ClockOut) et le statut
+    (active/completed). Lié à User et contient une collection de pauses.
+
+    \item[\textbf{AttendanceBreak}] : pause effectuée pendant une journée de travail.
+    Stocke le début (BreakStart), la fin (BreakEnd) et le type (Type~: déjeuner,
+    café, technique). La durée de la pause est déduite du temps de travail total.
+
+    \item[\textbf{Salary}] : salaire mensuel calculé pour un agent. Contient le
+    détail complet~: salaire de base (BaseSalary), nombre de RDV (RdvCount),
+    nombre de poses (PoseCount), nombre de refus (RefusCount), taux qualité
+    (QualityRate), primes (RdvBonus, PoseBonus, QualityBonus, InstallationBonus),
+    pénalités (Penalties) et salaire total (TotalSalary). Le statut de paiement
+    (PaymentStatus) peut être pending/paid/cancelled.
+
+    \item[\textbf{SalaryRule}] : règle de calcul de salaire configurable. Définit
+    le type de règle (RuleType~: rdv\_bonus, pose\_bonus, quality\_bonus,
+    penalty), le montant (Amount), le rôle ciblé (Role) et l'état actif/inactif
+    (IsActive).
+\end{description}
+
+\textbf{Relations du paquetage~:}
+\begin{itemize}
+    \item User \textbf{1 --- *} Attendance (un agent a un pointage par jour)
+    \item Attendance \textbf{1 --- *} AttendanceBreak (un pointage contient plusieurs pauses)
+    \item User \textbf{1 --- *} Salary (un agent a un salaire par mois)
+\end{itemize}
+
+%% ──────────────────────────────────────────────────────────
+\subsubsection{Paquetage 4 : Qualité et Intelligence Artificielle}
+%% ──────────────────────────────────────────────────────────
+
+Ce paquetage regroupe les entités liées à l'évaluation de la qualité des appels,
+au scoring IA et aux alertes.
+
+\begin{description}[itemsep=4pt]
+    \item[\textbf{ManualEvaluation}] : évaluation manuelle de la qualité d'un appel
+    réalisée par un Quality Manager ou Admin. Contient l'identifiant de l'agent
+    évalué (AgentId), de l'évaluateur (EvaluatorId), la note globale (GlobalScore),
+    la décision (Decision), les commentaires (Commentaires) et les scores détaillés
+    au format JSON (ScoresJson). Un agent peut recevoir plusieurs évaluations,
+    et un évaluateur peut en donner plusieurs.
+
+    \item[\textbf{AlertRule}] : règle d'alerte qualité configurable. Définit le type
+    (RuleType~: score\_min, inactivite, conversion), le seuil (ThresholdValue),
+    l'email de notification (NotificationEmail) et l'état actif (IsActive).
+
+    \item[\textbf{AlertHistory}] : historique des alertes déclenchées. Stocke le nom
+    de l'agent concerné (AgentName), le type d'alerte (AlertType), la sévérité
+    (Severity~: warning/critical), le message, le seuil et la valeur réelle
+    (ActualValue).
+
+    \item[\textbf{AiEligibilityLog}] : journal des vérifications d'éligibilité
+    effectuées par l'IA. Stocke l'identifiant de l'agent (AgentId), les données
+    client (ClientData) et le résultat (Result).
+\end{description}
+
+\textbf{Relations du paquetage~:}
+\begin{itemize}
+    \item User \textbf{1 --- *} ManualEvaluation (en tant qu'agent évalué)
+    \item User \textbf{1 --- *} ManualEvaluation (en tant qu'évaluateur)
+    \item User \textbf{1 --- *} AiEligibilityLog (log des vérifications par agent)
+\end{itemize}
+
+%% ──────────────────────────────────────────────────────────
+\subsubsection{Paquetage 5 : Communication et Système}
+%% ──────────────────────────────────────────────────────────
+
+Ce paquetage contient les entités de messagerie interne et les données auxiliaires.
+
+\begin{description}[itemsep=4pt]
+    \item[\textbf{Message}] : message de la messagerie interne temps réel (WebSocket).
+    Contient l'expéditeur (SenderId), le destinataire (ReceiverId), le contenu
+    (Content), le flag d'urgence (IsUrgent), l'état de lecture (IsRead) et les
+    horodatages (CreatedAt, ReadAt).
+
+    \item[\textbf{AgentSavedData}] : données spécifiques sauvegardées par un agent
+    (préférences, configuration personnelle). Lié à User.
+
+    \item[\textbf{Agent}] : statistiques agrégées d'un agent utilisées pour les
+    rapports (FirstCall, LastCall, TotalCalls).
+
+    \item[\textbf{SourceFile}] : fichier source importé dans la plateforme
+    (fichiers audio, documents).
+
+    \item[\textbf{Log}] : journalisation système pour le suivi des actions.
+\end{description}
+
+\textbf{Relations du paquetage~:}
+\begin{itemize}
+    \item User \textbf{1 --- *} Message (Sender) : un utilisateur envoie plusieurs messages
+    \item User \textbf{1 --- *} Message (Receiver) : un utilisateur reçoit plusieurs messages
+    \item User \textbf{1 --- *} AgentSavedData : un agent a des données sauvegardées
+\end{itemize}
+
+%% ──────────────────────────────────────────────────────────
+\subsection{Synthèse des relations}
+%% ──────────────────────────────────────────────────────────
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.95\linewidth}{
+    \centering\vspace{0.3cm}
+    {\large\textbf{Diagramme de classes global de la plateforme CRM}}\\[0.2cm]
+    \textit{26 entités réparties en 5 paquetages}\\[0.3cm]
+    \small
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{|c|c|c|}
+    \hline
+    \rowcolor{tekupBlue!20}
+    \textbf{Paquetage} & \textbf{Entité} & \textbf{Attributs principaux} \\
+    \hline
+    \multirow{3}{2.8cm}{\centering Authentification \\ \& Sécurité} & \textbf{User} & Id, Username, Password, Name, Role (Admin|Agent|Qualite), Email \\
+    \cline{2-3}
+    & \textbf{Permission} & Id, Name, Module, Description \\
+    \cline{2-3}
+    & \textbf{RolePermission} & Id, Role, PermissionId \\
+    \hline
+    \multirow{9}{2.8cm}{\centering Gestion \\ Commerciale} & \textbf{Lead} & Id, CompanyName, ContactName, Phone, Email, Status, AgentId \\
+    \cline{2-3}
+    & \textbf{Call} & Id, AgentId, LeadId, Transcription, ScorePercentage, Sentiment, CallDuration \\
+    \cline{2-3}
+    & \textbf{CrmAppointment} & Id, AgentId, ClientName, AppointmentDate, QualityScore, Status \\
+    \cline{2-3}
+    & \textbf{Appointment} & Id, CallId, DetectedDate, ConfidenceScore, Status \\
+    \cline{2-3}
+    & \textbf{Campaign} & Id, Name, CompanyName \\
+    \cline{2-3}
+    & \textbf{Followup} & Id, AgentName, AppointmentDate, Status, RelanceCount \\
+    \cline{2-3}
+    & \textbf{LeadFolder} & Id, Name, Campaign \\
+    \cline{2-3}
+    & \textbf{Qualification} & Id, Code, Label, ExpectedKeywords \\
+    \cline{2-3}
+    & \textbf{Supplier} & Id, \textit{(données fournisseur)} \\
+    \hline
+    \multirow{3}{2.8cm}{\centering Présence \\ \& Paie} & \textbf{Attendance} & Id, UserId, Date, ClockIn, ClockOut?, Status \\
+    \cline{2-3}
+    & \textbf{AttendanceBreak} & Id, AttendanceId, BreakStart, BreakEnd?, Type \\
+    \cline{2-3}
+    & \textbf{Salary} & Id, AgentId, Month, BaseSalary, TotalSalary, PaymentStatus \\
+    \cline{2-3}
+    & \textbf{SalaryRule} & Id, RuleName, RuleType, Amount, Role, IsActive \\
+    \hline
+    \multirow{4}{2.8cm}{\centering Qualité \\ \& IA} & \textbf{ManualEvaluation} & Id, AgentId, EvaluatorId, GlobalScore, Decision, Commentaires \\
+    \cline{2-3}
+    & \textbf{AlertRule} & Id, RuleType, ThresholdValue, IsActive \\
+    \cline{2-3}
+    & \textbf{AlertHistory} & Id, AgentName, AlertType, Severity, ActualValue \\
+    \cline{2-3}
+    & \textbf{AiEligibilityLog} & Id, AgentId, ClientData, Result \\
+    \hline
+    \multirow{3}{2.8cm}{\centering Communication \\ \& Système} & \textbf{Message} & Id, SenderId, ReceiverId, Content, IsUrgent, IsRead \\
+    \cline{2-3}
+    & \textbf{AgentSavedData} & Id, AgentId, \textit{(données sauvegardées)} \\
+    \cline{2-3}
+    & \textbf{Log / SourceFile} & \textit{(logs et fichiers)} \\
+    \hline
+    \end{tabular}
+
+    \vspace{0.3cm}
+    \textbf{Relations principales~:}\\[0.1cm]
+    \begin{tabular}{@{}ll@{}}
+    \hline
+    \textbf{Association} & \textbf{Multiplicité} \\
+    \hline
+    User $\longleftrightarrow$ Attendance & 1 $\longrightarrow$ * \\
+    Attendance $\longleftrightarrow$ AttendanceBreak & 1 $\longrightarrow$ * \\
+    User $\longleftrightarrow$ CrmAppointment & 1 $\longrightarrow$ * \\
+    User $\longleftrightarrow$ Salary & 1 $\longrightarrow$ * \\
+    User $\longleftrightarrow$ ManualEvaluation (Agent) & 1 $\longrightarrow$ * \\
+    User $\longleftrightarrow$ ManualEvaluation (Evaluator) & 1 $\longrightarrow$ * \\
+    User $\longleftrightarrow$ Message (Sender/Receiver) & 1 $\longrightarrow$ * \\
+    Lead $\longleftrightarrow$ User & * $\longrightarrow$ 1 \\
+    Call $\longleftrightarrow$ Lead & * $\longrightarrow$ 1 \\
+    Call $\longleftrightarrow$ Appointment & 1 $\longrightarrow$ * \\
+    Permission $\longleftrightarrow$ RolePermission & 1 $\longrightarrow$ * \\
+    \hline
+    \end{tabular}
+    \vspace{0.3cm}
+    }}
+    \caption{Diagramme de classes global de la plateforme CRM}
+    \label{fig:class_diagram}
+\end{figure}
+
+Les 26 entités sont réparties en cinq paquetages~: \textbf{Authentification et Sécurité}
+(User, Permission, RolePermission), \textbf{Gestion Commerciale} (Lead, Call, CrmAppointment,
+Appointment, Campaign, Followup, LeadFolder, Qualification, Supplier),
+\textbf{Présence et Paie} (Attendance, AttendanceBreak, Salary, SalaryRule),
+\textbf{Qualité et IA} (ManualEvaluation, AlertRule, AlertHistory, AiEligibilityLog, Agent,
+AgentSavedData), et \textbf{Communication} (Message, SourceFile, Log).
+
+%==========================================================
+\section{Product Backlog}
+\label{sec:product_backlog}
+%==========================================================
+
+Le Product Backlog est organisé selon la méthodologie Scrum. Les fonctionnalités sont décrites
+sous forme d'\textbf{Epics} (objectifs métier) et de \textbf{User Stories} (besoins utilisateurs).
+\cite{ScrumGuide}
+
+\begingroup
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{1.18}
+\setlength{\LTpre}{6pt}
+\setlength{\LTpost}{6pt}
+
+\begin{longtable}{|>{\raggedright\arraybackslash}p{2.7cm}
+                   |>{\centering\arraybackslash}p{1.1cm}
+                   |>{\raggedright\arraybackslash}p{7.0cm}
+                   |>{\centering\arraybackslash}p{1.25cm}
+                   |>{\centering\arraybackslash}p{1.35cm}|}
+\caption{Product Backlog}\label{tab:backlog}\\
+\hline
+\textbf{Epic} & \textbf{US ID} & \textbf{User Story} & \textbf{Priorité} & \textbf{Durée estimée (jours)} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Epic} & \textbf{US ID} & \textbf{User Story} & \textbf{Priorité} & \textbf{Durée estimée (jours)} \\
+\hline
+\endhead
+\hline
+\endfoot
+\hline
+\endlastfoot
+\multirow{8}{2.7cm}{Authentification et gestion des comptes} & 1.1 & En tant qu'\textbf{utilisateur}, je veux m'authentifier avec JWT afin d'accéder à mon espace de travail. & Élevée & 2 \\
+\cline{2-5}
+ & 1.2 & En tant qu'\textbf{utilisateur}, je veux fermer ma session afin de sécuriser mon accès. & Moyenne & 0.5 \\
+\cline{2-5}
+ & 1.3 & En tant que \textbf{Super Admin}, je veux gérer les utilisateurs (CRUD) afin d'administrer les comptes. & Élevée & 3 \\
+\cline{2-5}
+ & 1.4 & En tant que \textbf{Super Admin}, je veux attribuer des rôles et permissions aux utilisateurs afin de contrôler leurs accès. & Élevée & 2 \\
+\cline{2-5}
+ & 1.5 & En tant qu'\textbf{Admin RH}, je veux créer des comptes agents afin d'intégrer de nouveaux collaborateurs. & Élevée & 1.5 \\
+\cline{2-5}
+ & 1.6 & En tant que \textbf{Super Admin}, je veux configurer les permissions granulaires afin de définir les droits d'accès. & Moyenne & 2 \\
+\cline{2-5}
+ & 1.7 & En tant qu'\textbf{Admin RH}, je veux désactiver un compte agent afin de suspendre son accès. & Moyenne & 1 \\
+\cline{2-5}
+ & 1.8 & En tant qu'\textbf{utilisateur}, je veux réinitialiser mon mot de passe afin de retrouver l'accès à mon compte. & Moyenne & 1 \\
+\hline
+\multirow{10}{2.7cm}{Gestion des leads} & 2.1 & En tant qu'\textbf{Agent}, je veux créer un lead afin d'ajouter un nouveau prospect. & Élevée & 2 \\
+\cline{2-5}
+ & 2.2 & En tant qu'\textbf{Agent}, je veux consulter la liste de mes leads afin de suivre mes prospects. & Élevée & 1.5 \\
+\cline{2-5}
+ & 2.3 & En tant qu'\textbf{Agent}, je veux modifier un lead afin de mettre à jour ses informations. & Élevée & 1 \\
+\cline{2-5}
+ & 2.4 & En tant qu'\textbf{Agent}, je veux qualifier un lead afin de suivre son état d'avancement. & Élevée & 1.5 \\
+\cline{2-5}
+ & 2.5 & En tant qu'\textbf{Agent}, je veux filtrer les leads par statut et campagne afin de prioriser mon travail. & Moyenne & 1 \\
+\cline{2-5}
+ & 2.6 & En tant que \textbf{Supervisor}, je veux affecter un lead à un agent afin de distribuer la charge de travail. & Élevée & 1.5 \\
+\cline{2-5}
+ & 2.7 & En tant qu'\textbf{Agent}, je veux organiser mes leads dans des folders afin de les classer. & Moyenne & 1 \\
+\cline{2-5}
+ & 2.8 & En tant que \textbf{Supervisor}, je veux consulter les statistiques de conversion des leads afin d'analyser les performances. & Élevée & 2 \\
+\cline{2-5}
+ & 2.9 & En tant qu'\textbf{Agent}, je veux planifier un follow-up sur un lead afin d'assurer un suivi régulier. & Moyenne & 1.5 \\
+\cline{2-5}
+ & 2.10 & En tant qu'\textbf{Agent}, je veux consulter l'historique des interactions d'un lead afin d'avoir une vue complète. & Moyenne & 1 \\
+\hline
+\multirow{5}{2.7cm}{Rendez-vous et appels} & 3.1 & En tant qu'\textbf{Agent}, je veux créer un rendez-vous pour un lead afin de planifier une rencontre. & Élevée & 2 \\
+\cline{2-5}
+ & 3.2 & En tant qu'\textbf{Agent}, je veux consulter mon agenda afin de visualiser mes rendez-vous. & Élevée & 1.5 \\
+\cline{2-5}
+ & 3.3 & En tant qu'\textbf{Agent}, je veux enregistrer un appel afin de tracer l'interaction. & Élevée & 2 \\
+\cline{2-5}
+ & 3.4 & En tant qu'\textbf{Agent}, je veux consulter l'historique de mes appels afin de suivre mon activité. & Moyenne & 1 \\
+\cline{2-5}
+ & 3.5 & En tant que \textbf{Quality Manager}, je veux écouter un appel enregistré afin de l'évaluer. & Élevée & 2 \\
+\hline
+\multirow{8}{2.7cm}{IA et Scoring} & 4.1 & En tant que \textbf{système}, je veux transcrire automatiquement les appels via Whisper afin de produire un texte exploitable. & Élevée & 4 \\
+\cline{2-5}
+ & 4.2 & En tant que \textbf{système}, je veux scorer automatiquement chaque appel via l'IA afin d'évaluer sa qualité. & Élevée & 4 \\
+\cline{2-5}
+ & 4.3 & En tant qu'\textbf{Agent}, je veux consulter mon score IA par appel afin de connaître ma performance. & Élevée & 1 \\
+\cline{2-5}
+ & 4.4 & En tant que \textbf{Quality Manager}, je veux visualiser les scores IA détaillés par critère afin d'analyser la qualité. & Élevée & 1.5 \\
+\cline{2-5}
+ & 4.5 & En tant que \textbf{Super Admin}, je veux configurer les poids des critères de scoring afin d'adapter l'évaluation. & Élevée & 1 \\
+\cline{2-5}
+ & 4.6 & En tant que \textbf{système}, je veux analyser le sentiment des appels afin de détecter les tendances. & Moyenne & 3 \\
+\cline{2-5}
+ & 4.7 & En tant que \textbf{Supervisor}, je veux consulter un dashboard IA agrégé afin de visualiser les performances globales. & Élevée & 2 \\
+\cline{2-5}
+ & 4.8 & En tant que \textbf{Quality Manager}, je veux comparer le score IA au score manuel afin de valider la pertinence. & Moyenne & 1.5 \\
+\hline
+\multirow{6}{2.7cm}{Qualité et évaluations} & 5.1 & En tant que \textbf{Quality Manager}, je veux créer une évaluation manuelle d'un appel afin de noter la qualité. & Élevée & 2 \\
+\cline{2-5}
+ & 5.2 & En tant que \textbf{Quality Manager}, je veux consulter l'historique des évaluations afin de suivre les progrès. & Moyenne & 1 \\
+\cline{2-5}
+ & 5.3 & En tant que \textbf{Super Admin}, je veux configurer des règles d'alerte qualité afin d'être notifié des dérives. & Élevée & 1.5 \\
+\cline{2-5}
+ & 5.4 & En tant que \textbf{Quality Manager}, je veux recevoir une alerte quand un score passe sous un seuil afin d'intervenir rapidement. & Moyenne & 1 \\
+\cline{2-5}
+ & 5.5 & En tant que \textbf{Supervisor}, je veux consulter un dashboard qualité afin de piloter la performance de l'équipe. & Élevée & 2 \\
+\cline{2-5}
+ & 5.6 & En tant que \textbf{Quality Manager}, je veux exporter les résultats d'évaluation afin de les partager. & Moyenne & 1 \\
+\hline
+\multirow{5}{2.7cm}{Présence et paie} & 6.1 & En tant qu'\textbf{Agent}, je veux pointer mon arrivée et mon départ afin de déclarer ma présence. & Élevée & 2 \\
+\cline{2-5}
+ & 6.2 & En tant qu'\textbf{Agent}, je veux déclarer une pause afin de tracer mes absences. & Moyenne & 1 \\
+\cline{2-5}
+ & 6.3 & En tant qu'\textbf{Admin RH}, je veux consulter les pointages de présence afin de vérifier les horaires. & Élevée & 1.5 \\
+\cline{2-5}
+ & 6.4 & En tant qu'\textbf{Admin RH}, je veux configurer les règles de calcul des salaires afin d'automatiser la paie. & Élevée & 2.5 \\
+\cline{2-5}
+ & 6.5 & En tant qu'\textbf{Admin RH}, je veux générer les bulletins de paie afin de préparer la rémunération. & Élevée & 2 \\
+\hline
+\multirow{4}{2.7cm}{Campagnes et analytics} & 7.1 & En tant que \textbf{Supervisor}, je veux créer une campagne afin d'organiser une action commerciale. & Élevée & 2 \\
+\cline{2-5}
+ & 7.2 & En tant que \textbf{Supervisor}, je veux suivre les performances d'une campagne afin d'évaluer son efficacité. & Élevée & 2 \\
+\cline{2-5}
+ & 7.3 & En tant que \textbf{Supervisor}, je veux consulter les KPIs du centre d'appels afin de piloter l'activité. & Élevée & 2 \\
+\cline{2-5}
+ & 7.4 & En tant que \textbf{Supervisor}, je veux exporter les rapports en PDF afin de les diffuser. & Moyenne & 1.5 \\
+\hline
+\end{longtable}
+\endgroup
+
+%==========================================================
+\section{Répartition des sprints}
+\label{sec:repartition_sprints}
+%==========================================================
+
+Le tableau~\ref{tab:sprints} résume la planification selon une progression en trois releases.
+La durée totale du stage est structurée en \textbf{6 sprints de 20 jours}, soit \textbf{120 jours}.
+
+\begin{table}[H]
+    \centering
+    \caption{Planification des sprints sur trois releases}
+    \label{tab:sprints}
+    \scriptsize
+    \setlength{\tabcolsep}{3pt}
+    \renewcommand{\arraystretch}{1.35}
+    \begin{tabular}{|>{\raggedright\arraybackslash}m{2.8cm}
+                     |>{\centering\arraybackslash}m{1.6cm}
+                     |>{\raggedright\arraybackslash}m{8.3cm}
+                     |>{\centering\arraybackslash}m{2.2cm}|}
+        \hline
+        \rowcolor[gray]{0.80}
+        \textbf{Phase / Release} & \textbf{Sprint} & \textbf{Fonctionnalités du Sprint} & \textbf{Estimation en jours} \\
+        \hline
+        \multirow{2}{2.65cm}{\textbf{Release 1 : Socle de la plateforme}} & Sprint 1 &
+        \begin{itemize}[leftmargin=*,nosep]
+            \item Authentification JWT, gestion des utilisateurs et des rôles.
+            \item Permissions granulaires et RBAC.
+        \end{itemize} & 20 jours \\
+        \cline{2-4}
+        & Sprint 2 &
+        \begin{itemize}[leftmargin=*,nosep]
+            \item Gestion des leads (CRUD, qualification, folders, follow-ups).
+            \item Rendez-vous, appels et campagnes.
+        \end{itemize} & 20 jours \\
+        \hline
+        \multirow{2}{2.65cm}{\textbf{Release 2 : IA et Qualité}} & Sprint 3 &
+        \begin{itemize}[leftmargin=*,nosep]
+            \item Intégration Whisper pour la transcription des appels.
+            \item Moteur de scoring IA basé sur gemma3:4b avec critères pondérés.
+        \end{itemize} & 20 jours \\
+        \cline{2-4}
+        & Sprint 4 &
+        \begin{itemize}[leftmargin=*,nosep]
+            \item Évaluation qualité manuelle et automatique.
+            \item Alertes, règles qualité et dashboard qualité.
+        \end{itemize} & 20 jours \\
+        \hline
+        \multirow{2}{2.65cm}{\textbf{Release 3 : Consolidation}} & Sprint 5 &
+        \begin{itemize}[leftmargin=*,nosep]
+            \item Gestion de présence (pointage, pauses).
+            \item Calcul automatique des salaires.
+        \end{itemize} & 20 jours \\
+        \cline{2-4}
+        & Sprint 6 &
+        \begin{itemize}[leftmargin=*,nosep]
+            \item Tableaux de bord analytics et KPIs.
+            \item Exports PDF, CI/CD et déploiement Docker.
+        \end{itemize} & 20 jours \\
+        \hline
+    \end{tabular}
+\end{table}
+
+%----------------------------------------------------------
+\section{Conclusion}
+\phantomsection
+\label{sec:chap2_conclusion}
+%----------------------------------------------------------
+
+Ce chapitre a présenté l'analyse complète des besoins de la plateforme CRM intelligente. Les
+cinq acteurs (\textbf{Agent}, \textbf{Quality Manager}, \textbf{Admin RH}, \textbf{Supervisor}
+et \textbf{Super Admin}) ont été identifiés avec une description détaillée des cas
+d'utilisation par rôle. Le Product Backlog, organisé en \textbf{7 Epics métier} et \textbf{6
+sprints} planifiés sur trois releases, constitue la feuille de route du projet. Le chapitre
+suivant détaille l'environnement de travail et les choix technologiques retenus.

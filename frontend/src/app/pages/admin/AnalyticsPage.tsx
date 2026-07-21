@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Phone, TrendingUp, Users, MapPin, AlertTriangle, Target, Loader2 } from 'lucide-react';
+import { Phone, TrendingUp, Users, MapPin, AlertTriangle, Target, Loader2, Clock } from 'lucide-react';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -15,6 +15,12 @@ const tooltipStyle = {
   border: '1px solid var(--color-border)',
   borderRadius: '8px',
   color: 'var(--foreground)',
+};
+
+const formatDuration = (sec: number) => {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}m ${s}s`;
 };
 
 type TabId = 'overview' | 'performance' | 'supervision' | 'geo';
@@ -378,10 +384,11 @@ export default function AnalyticsPage() {
         {/* TAB: Géo */}
         {activeTab === 'geo' && geo && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <KPICard title="Appels localisés" value={geo.total_localized} icon={MapPin} color="primary" />
               <KPICard title="Top Département" value={geo.top_dept} icon={MapPin} color="success" />
               <KPICard title="Départements couverts" value={geo.dept_count} icon={MapPin} color="info" />
+              <KPICard title="Durée Moyenne" value={formatDuration(geo.departments?.length ? Math.round(geo.departments.reduce((s: number, d: any) => s + (d.avg_duration || 0), 0) / geo.departments.length) : 0)} icon={Clock} color="warning" />
             </div>
 
             <div className="bg-card rounded-lg border border-border p-6 shadow-sm overflow-hidden relative">
@@ -421,6 +428,7 @@ export default function AnalyticsPage() {
                         <th className="text-left p-3 text-muted-foreground">Département</th>
                         <th className="text-left p-3 text-muted-foreground">Appels</th>
                         <th className="text-left p-3 text-muted-foreground">Score moyen</th>
+                        <th className="text-left p-3 text-muted-foreground">Durée moyenne</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -433,6 +441,7 @@ export default function AnalyticsPage() {
                               {d.avg_score}%
                             </span>
                           </td>
+                          <td className="p-3 text-foreground font-medium">{formatDuration(Math.round(d.avg_duration || 0))}</td>
                         </tr>
                       ))}
                     </tbody>

@@ -1,0 +1,460 @@
+%==========================================================
+%  CHAPITRE 3 — Environnement de travail
+%  CRM Intelligent avec IA pour Centres d'Appels
+%==========================================================
+
+\chapter{Environnement de travail}
+\chapterplan{%
+\chapterplanitem{1}{Introduction}{sec:chap3_introduction}
+\chapterplanitem{2}{Architecture Logicielle}{sec:chap3_architecture_logicielle}
+\chapterplanitem{3}{Outils et Technologies}{sec:chap3_outils_technologies}
+\chapterplanitem{4}{Environnement de développement}{sec:chap3_environnement_developpement}
+\chapterplanitem{5}{Conclusion}{sec:chap3_conclusion}
+}
+
+%----------------------------------------------------------
+\section*{Introduction}
+\phantomsection
+\label{sec:chap3_introduction}
+\addcontentsline{toc}{section}{Introduction}
+%----------------------------------------------------------
+
+\noindent Ce chapitre présente l'environnement complet retenu pour la réalisation de la
+plateforme CRM intelligente développée dans le cadre du projet 3LM Solution.
+Il s'articule autour de trois axes principaux : le choix d'une architecture clean architecture
+avec .NET 8, l'arsenal technologique sélectionné (backend, frontend, IA, DevOps), ainsi que
+l'environnement matériel et logiciel qui a soutenu le déroulement des différents sprints.
+
+%==========================================================
+\section{Architecture Logicielle}
+\label{sec:chap3_architecture_logicielle}
+%==========================================================
+
+\noindent L'adoption d'une \textbf{architecture en couches} avec le pattern Repository et
+Unit of Work constitue le socle architectural de la plateforme. Ce choix garantit une
+séparation claire des responsabilités, une testabilité accrue et une maintenabilité à long
+terme.
+
+%----------------------------------------------------------
+\subsection{Description de l'Architecture}
+%----------------------------------------------------------
+
+\noindent L'architecture repose sur les principes de \textbf{Clean Architecture} et de
+\textbf{Domain-Driven Design}~: chaque couche possède une responsabilité bien définie et
+les dépendances pointent vers l'intérieur.
+
+\begin{itemize}[label=---]
+    \item \textbf{Couche Présentation (API)}~: contrôleurs ASP.NET Core exposant des
+    endpoints REST. Valide les entrées, orchestre les appels aux services et retourne
+    des réponses standardisées.
+    \item \textbf{Couche Application (Services)}~: contient la logique métier, les DTOs
+    et les profils AutoMapper. Implémente les cas d'utilisation du système.
+    \item \textbf{Couche Domaine (Models)}~: entités métier, value objects et interfaces
+    de repository. Aucune dépendance externe.
+    \item \textbf{Couche Infrastructure (Data)}~: implémentation des repositories avec
+    Entity Framework Core, migrations PostgreSQL, DbContext et configuration des entités.
+\end{itemize}
+
+%----------------------------------------------------------
+\subsection{Avantages de notre choix}
+%----------------------------------------------------------
+
+\noindent Le choix de cette architecture est justifié par les avantages suivants :
+
+\begin{itemize}[label=---]
+    \item \textbf{Testabilité}~: chaque couche peut être testée indépendamment grâce à
+    l'injection de dépendances et aux interfaces.
+    \item \textbf{Maintenabilité}~: la séparation des préoccupations facilite la
+    compréhension et l'évolution du code.
+    \item \textbf{Indépendance technologique}~: le domaine est totalement découplé des
+    frameworks (EF Core, ASP.NET), permettant des changements d'infrastructure sans
+    impact sur la logique métier.
+    \item \textbf{Réutilisabilité}~: les services métier peuvent être réutilisés par
+    différents points d'entrée (API REST, jobs, WebSocket).
+\end{itemize}
+
+%==========================================================
+\section{Outils et Technologies}
+\label{sec:chap3_outils_technologies}
+%==========================================================
+
+\noindent Le choix de l'arsenal technologique a été guidé par la recherche d'efficacité,
+de performance et de cohérence avec l'architecture cible.
+
+%----------------------------------------------------------
+\subsection{Développement Backend}
+%----------------------------------------------------------
+
+\subsubsection{.NET 8 — ASP.NET Core}
+
+\noindent .NET 8 est le runtime principal du backend de la plateforme. Cette version LTS
+(Long-Term Support) offre stabilité, support à long terme et des performances optimisées
+\cite{DotNet8}.
+
+\textbf{Avantages~:} ASP.NET Core offre un framework moderne pour la construction d'API
+REST, une intégration native avec Entity Framework Core, une injection de dépendances
+intégrée et un pipeline middleware hautement configurable \cite{AspNetCore}.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.4\linewidth}{
+    \centering\vspace{0.3cm}
+    \textit{[Logo .NET 8]}\\[0.2cm]
+    \vspace{0.3cm}
+    }}
+    \caption{Logo --- .NET 8}
+    \label{fig:logo_dotnet}
+\end{figure}
+
+\subsubsection{Entity Framework Core}
+
+\noindent Entity Framework Core (EF Core) est l'ORM (Object-Relational Mapping) utilisé
+pour la persistance des données. Il permet d'interagir avec PostgreSQL sans écrire de
+requêtes SQL \cite{EFCore}.
+
+\textbf{Avantages~:} EF Core offre un mapping objet-relationnel performant, des migrations
+automatisées, un chargement eager/lazy configurable et une intégration native avec le
+pattern Repository \cite{Npgsql}.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.4\linewidth}{
+    \centering\vspace{0.3cm}
+    \textit{[Logo Entity Framework Core]}\\[0.2cm]
+    \vspace{0.3cm}
+    }}
+    \caption{Logo --- Entity Framework Core}
+    \label{fig:logo_efcore}
+\end{figure}
+
+\subsubsection{AutoMapper}
+
+\noindent AutoMapper est utilisé pour automatiser le mapping entre les entités du domaine
+et les DTOs (Data Transfer Objects) \cite{AutoMapper}.
+
+\textbf{Avantages~:} Réduction significative du code de mapping, profils de configuration
+centralisés et validation des mappings au démarrage.
+
+\subsubsection{FluentValidation}
+
+\noindent FluentValidation est la bibliothèque de validation utilisée pour les DTOs
+d'entrée des contrôleurs \cite{FluentValidation}.
+
+\textbf{Avantages~:} Règles de validation déclaratives, séparation des validations de la
+logique métier et intégration automatique avec le pipeline ASP.NET Core.
+
+%----------------------------------------------------------
+\subsection{Développement Frontend}
+%----------------------------------------------------------
+
+\subsubsection{React 18 et TypeScript}
+
+\noindent React 18 constitue le framework frontend de la plateforme, avec TypeScript pour
+le typage statique \cite{React}\cite{TypeScript}.
+
+\textbf{Avantages~:} React offre une architecture composant modulaire, un écosystème riche
+et des performances élevées grâce au Virtual DOM. TypeScript apporte la sécurité du typage
+et une meilleure maintenabilité du code.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.4\linewidth}{
+    \centering\vspace{0.3cm}
+    \textit{[Logo React 18]}\\[0.2cm]
+    \vspace{0.3cm}
+    }}
+    \caption{Logo --- React 18}
+    \label{fig:logo_react}
+\end{figure}
+
+\subsubsection{Vite et TailwindCSS}
+
+\noindent Vite est l'outil de build utilisé pour le frontend, offrant un rechargement à
+chaud instantané \cite{Vite}. TailwindCSS est le framework CSS utilitaire pour le
+styling \cite{TailwindCSS}.
+
+\textbf{Avantages~:} Vite offre des temps de build extrêmement rapides comparé aux
+bundlers traditionnels. TailwindCSS permet un développement rapide et cohérent avec
+des classes utilitaires.
+
+\subsubsection{Radix UI et Recharts}
+
+\noindent Radix UI fournit les primitives d'interface accessibles et non stylisées
+(boutons, modales, select, tabs, etc.) \cite{RadixUI}. Recharts est utilisé pour les
+graphiques et les tableaux de bord \cite{Recharts}.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.4\linewidth}{
+    \centering\vspace{0.3cm}
+    \textit{[Logo Radix UI]}\\[0.2cm]
+    \vspace{0.3cm}
+    }}
+    \caption{Logo --- Radix UI}
+    \label{fig:logo_radix}
+\end{figure}
+
+%----------------------------------------------------------
+\subsection{Base de Données}
+%----------------------------------------------------------
+
+\subsubsection{PostgreSQL 16}
+
+\noindent PostgreSQL 16 est le système de gestion de bases de données relationnelles
+utilisé pour la persistance de l'ensemble des données métier \cite{PostgreSQL}.
+
+\textbf{Avantages~:} PostgreSQL offre une fiabilité éprouvée, une intégrité transactionnelle
+ACID, un support natif des JSON, des index performants et une excellente scalabilité.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.4\linewidth}{\centering\vspace{0.3cm}\textit{[Logo PostgreSQL 16]}\\[0.2cm]\vspace{0.3cm}}}
+    \caption{Logo --- PostgreSQL 16}
+    \label{fig:logo_postgresql}
+\end{figure}
+
+%----------------------------------------------------------
+\subsection{Intelligence Artificielle}
+%----------------------------------------------------------
+
+\subsubsection{Ollama et Gemma 3}
+
+\noindent Ollama est la plateforme d'exécution locale de modèles de langage utilisée
+pour le scoring automatique des appels \cite{Ollama}. Le modèle \textbf{gemma3:4b} de
+Google DeepMind est utilisé pour l'analyse qualitative des transcriptions \cite{Gemma3}.
+
+\textbf{Avantages~:} L'exécution locale garantit la confidentialité des données audio
+et des transcriptions, sans dépendance à une API externe ni coût récurrent. Gemma 3
+offre des performances remarquables pour sa taille (4B paramètres).
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.4\linewidth}{\centering\vspace{0.3cm}\textit{[Logo Ollama]}\\[0.2cm]\vspace{0.3cm}}}
+    \caption{Logo --- Ollama}
+    \label{fig:logo_ollama}
+\end{figure}
+
+\subsubsection{Whisper (OpenAI)}
+
+\noindent Whisper est le modèle de reconnaissance vocale (ASR) utilisé pour la
+transcription automatique des appels audio \cite{Whisper}.
+
+\textbf{Avantages~:} Whisper supporte nativement le français, offre une excellente
+précision de transcription et peut être exécuté localement.
+
+\subsubsection{DistilBERT}
+
+\noindent DistilBERT est utilisé pour l'analyse de sentiment des transcriptions
+d'appels \cite{DistilBERT}.
+
+\textbf{Avantages~:} Modèle léger et rapide, adapté à l'inférence en temps réel
+avec une précision proche de BERT.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.4\linewidth}{\centering\vspace{0.3cm}\textit{[Logo Intelligence Artificielle]}\\[0.2cm]\vspace{0.3cm}}}
+    \caption{Logo --- Intelligence Artificielle}
+    \label{fig:logo_ai}
+\end{figure}
+
+%----------------------------------------------------------
+\subsection{Sécurité et Authentification}
+%----------------------------------------------------------
+
+\subsubsection{JWT (JSON Web Token)}
+
+\noindent JWT est le standard d'authentification utilisé par la plateforme \cite{JWTRFC}.
+Les tokens sont signés avec une clé secrète configurable et contiennent l'identité de
+l'utilisateur ainsi que ses permissions.
+
+\textbf{Avantages~:} JWT permet une authentification sans état (stateless), idéale pour
+les architectures REST. Les tokens peuvent être validés par n'importe quel service sans
+requête à une base de données.
+
+\subsubsection{Permission-Based Authorization}
+
+\noindent En complément des rôles, un système de permissions granulaires a été implémenté.
+Chaque action (créer un lead, évaluer un appel, configurer les règles, etc.) est protégée
+par une permission spécifique.
+
+\textbf{Avantages~:} Ce système offre un contrôle d'accès fin et flexible, permettant de
+définir précisément ce que chaque utilisateur peut faire dans la plateforme.
+
+%----------------------------------------------------------
+\subsection{Communication Temps Réel}
+%----------------------------------------------------------
+
+\subsubsection{WebSocket}
+
+\noindent WebSocket est utilisé pour la messagerie instantanée (chat) et les notifications
+en temps réel \cite{WebSocket}.
+
+\textbf{Avantages~:} WebSocket permet une communication bidirectionnelle et persistante
+entre le client et le serveur, idéale pour le chat et les mises à jour en direct des
+tableaux de bord.
+
+%----------------------------------------------------------
+\subsection{DevOps et Hébergement}
+%----------------------------------------------------------
+
+\subsubsection{Docker et Docker Compose}
+
+\noindent Docker est utilisé pour la conteneurisation de l'ensemble des services de la
+plateforme \cite{Docker}. Docker Compose orchestre les trois conteneurs~: backend .NET 8,
+frontend Nginx et PostgreSQL 16.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.4\linewidth}{\centering\vspace{0.3cm}\textit{[Logo Docker]}\\[0.2cm]\vspace{0.3cm}}}
+    \caption{Logo --- Docker}
+    \label{fig:logo_docker}
+\end{figure}
+
+\subsubsection{GitHub Actions (CI/CD)}
+
+\noindent GitHub Actions automatise les pipelines d'intégration continue et de déploiement
+continu \cite{GitHubActions}.
+
+\textbf{Avantages~:} La pipeline exécute les tests unitaires, d'intégration et E2E, vérifie
+la couverture de code, scanne les dépendances pour les vulnérabilités et déploie
+automatiquement.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.4\linewidth}{\centering\vspace{0.3cm}\textit{[Logo GitHub Actions]}\\[0.2cm]\vspace{0.3cm}}}
+    \caption{Logo --- GitHub Actions}
+    \label{fig:logo_github}
+\end{figure}
+
+\subsubsection{Swagger / OpenAPI}
+
+\noindent Swagger est utilisé pour la documentation automatique des API REST \cite{Swagger}.
+
+\textbf{Avantages~:} Les endpoints sont documentés et testables directement depuis
+l'interface Swagger UI, facilitant l'intégration et les tests.
+
+\subsubsection{Nginx}
+
+\noindent Nginx sert les fichiers statiques du frontend en production et agit comme
+reverse proxy \cite{Nginx}.
+
+%----------------------------------------------------------
+\subsection{Outils de Développement}
+%----------------------------------------------------------
+
+\subsubsection{Visual Studio Code}
+
+\noindent Visual Studio Code est l'IDE principal utilisé pour le développement frontend
+(React/TypeScript) et la configuration DevOps \cite{VSCode}.
+
+\subsubsection{Postman}
+
+\noindent Postman est utilisé pour les tests manuels des API REST \cite{Postman}.
+
+\subsubsection{Git}
+
+\noindent Git est le système de gestion de versions utilisé tout au long du projet
+\cite{Git}.
+
+%==========================================================
+\section{Environnement de développement}
+\label{sec:chap3_environnement_developpement}
+%==========================================================
+
+\noindent Cette section présente les ressources matérielles et logicielles mobilisées
+pour le développement, les tests et le déploiement de la plateforme CRM.
+
+%----------------------------------------------------------
+\subsection{Environnement matériel}
+%----------------------------------------------------------
+
+\noindent Les développements et tests ont été réalisés sur un poste de travail dont les
+caractéristiques sont présentées dans le tableau~\ref{tab:env_materiel}.
+
+\begin{table}[H]
+    \centering
+    \caption{Caractéristiques de l'environnement matériel}
+    \label{tab:env_materiel}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|l|l|}
+        \hline
+        \textbf{Composant} & \textbf{Spécification} \\
+        \hline
+        Processeur & Intel Core i7 (12\textsuperscript{e} génération) \\
+        \hline
+        Mémoire vive (RAM) & 16 Go minimum (32 Go recommandés) \\
+        \hline
+        Stockage & SSD 512 Go \\
+        \hline
+        Système d'exploitation & Windows 11 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+%----------------------------------------------------------
+\subsection{Environnement logiciel}
+%----------------------------------------------------------
+
+\noindent Le tableau~\ref{tab:env_logiciel} récapitule l'ensemble des outils et
+technologies logicielles constituant l'environnement de développement.
+
+\begin{table}[H]
+    \centering
+    \caption{Environnement logiciel de développement}
+    \label{tab:env_logiciel}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|l|l|}
+        \hline
+        \textbf{Outil / Technologie} & \textbf{Rôle} \\
+        \hline
+        .NET 8 SDK & Runtime et framework backend \\
+        \hline
+        ASP.NET Core & Framework d'API REST \\
+        \hline
+        Entity Framework Core & ORM et persistance PostgreSQL \\
+        \hline
+        Npgsql & Provider PostgreSQL pour .NET \\
+        \hline
+        Node.js 20 / npm & Runtime frontend et gestion des dépendances \\
+        \hline
+        React 18 / TypeScript & Framework frontend \\
+        \hline
+        Vite 5 & Bundler et serveur de développement \\
+        \hline
+        TailwindCSS 3/4 & Framework CSS utilitaire \\
+        \hline
+        Radix UI & Primitives d'interface accessibles \\
+        \hline
+        Recharts & Bibliothèque de graphiques \\
+        \hline
+        Visual Studio Code & IDE principal \\
+        \hline
+        Docker & Conteneurisation des services \\
+        \hline
+        PostgreSQL 16 / pgAdmin & Base de données et interface d'administration \\
+        \hline
+        Ollama / Gemma 3:4b & Moteur d'IA local (scoring) \\
+        \hline
+        Whisper (OpenAI) & Transcription automatique audio \\
+        \hline
+        Git / GitHub & Gestion de versions et CI/CD \\
+        \hline
+        Postman / Swagger & Tests et documentation des API \\
+        \hline
+        xUnit / Vitest / Playwright & Tests unitaires, composants et E2E \\
+        \hline
+    \end{tabular}
+\end{table}
+
+%==========================================================
+\section{Conclusion}
+\label{sec:chap3_conclusion}
+%==========================================================
+
+\noindent Ce chapitre a présenté l'environnement complet retenu pour la conception et le
+développement de la plateforme CRM intelligente. L'adoption d'une architecture en couches
+avec .NET 8 et EF Core garantit la maintenabilité et la testabilité du code. Le frontend
+React/TypeScript avec TailwindCSS et Radix UI offre une expérience utilisateur moderne et
+accessible. Le moteur d'IA local (Ollama, Whisper) assure la confidentialité des données
+tout en offrant des capacités avancées d'analyse. Le chapitre suivant abordera la réalisation
+des deux premiers sprints constituant le socle de la plateforme.
