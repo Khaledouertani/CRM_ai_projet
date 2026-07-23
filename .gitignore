@@ -103,6 +103,7 @@ __build__/
 
 # ------------------------- Model Files (if downloaded) -----------------
 models/
+!BackendDotNet/**/Models/
 *.bin
 *.h5
 *.onnx
@@ -111,8 +112,10 @@ models/
 # ------------------------- Sensitive Data -------------------------------
 credentials.json
 secrets.yaml
-*password*
-*secret*
+*password*.txt
+*password*.json
+*secret*.txt
+*secret*.json
 *.key
 
 # ------------------------- OS Generated Files ---------------------------
@@ -131,9 +134,29 @@ rapport_agents.csv
 *.xlsx
 gap_analysis.md
 
+# ------------------------- Docker / Deploy ----------------------------
+backups/
+ssl/
+*.pid
+
 # ------------------------- Cache & Temporary Data ----------------------
 .cache/
 *.cache
 #-------------------------------- ai Agent ----------------------------------
 agent.md
 .opencode/
+node_modules
+
+# .NET build artifacts
+BackendDotNet/**/bin/
+BackendDotNet/**/obj/
+BackendDotNet/TestResults/
+Backend/**/bin/
+Backend/**/obj/
+Backend/TestResults/
+
+# Frontend test & coverage
+frontend/coverage/
+
+# Performance tests
+performance-tests/
