@@ -11,12 +11,14 @@ namespace CrmApi.Tests;
 public class AuthControllerTests : ControllerTestBase
 {
     private readonly Mock<IAuthService> _mockService;
+    private readonly Mock<IPermissionService> _mockPermission;
     private readonly AuthController _sut;
 
     public AuthControllerTests()
     {
         _mockService = new Mock<IAuthService>(MockBehavior.Strict);
-        _sut = new AuthController(_mockService.Object);
+        _mockPermission = new Mock<IPermissionService>(MockBehavior.Strict);
+        _sut = new AuthController(_mockService.Object, _mockPermission.Object);
     }
 
     [Fact]

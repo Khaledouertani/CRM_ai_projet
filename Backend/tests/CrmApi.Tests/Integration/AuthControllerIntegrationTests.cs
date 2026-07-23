@@ -10,12 +10,14 @@ namespace CrmApi.Tests.Integration;
 public class AuthControllerIntegrationTests : ControllerTestBase
 {
     private readonly Mock<IAuthService> _mockService;
+    private readonly Mock<IPermissionService> _mockPermission;
     private readonly AuthController _adminController;
 
     public AuthControllerIntegrationTests()
     {
         _mockService = CreateMockService<IAuthService>();
-        _adminController = CreateController(() => new AuthController(_mockService.Object), role: "admin");
+        _mockPermission = CreateMockService<IPermissionService>();
+        _adminController = CreateController(() => new AuthController(_mockService.Object, _mockPermission.Object), role: "admin");
     }
 
     [Fact]
