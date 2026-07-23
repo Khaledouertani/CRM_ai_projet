@@ -123,9 +123,12 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       { icon: MessageCircle, label: 'Chatbot IA', path: '/chatbot', accent: 'purple' },
     ],
     },
-{
-  label: 'COMMUNICATION',
-    items: [{ icon: Mail, label: 'Messages', path: '/admin/messages', accent: 'blue' }],
+    {
+      label: 'COMMUNICATION',
+        items: [
+          { icon: Phone, label: 'Centre d\'appels', path: '/admin/calls', accent: 'green' },
+          { icon: Mail, label: 'Messages', path: '/admin/messages', accent: 'blue' },
+        ],
     },
   ];
 
@@ -149,12 +152,13 @@ const qualitySections: NavSection[] = [
       { icon: Mic, label: 'Analyse', path: '/qualite/analysis', accent: 'blue' }
     ]
   },
-  {
-    label: 'COMMUNICATION',
-    items: [
-      { icon: Mail, label: 'Messages', path: '/qualite/messages', accent: 'blue' }
-    ]
-  },
+    {
+      label: 'COMMUNICATION',
+      items: [
+        { icon: Phone, label: 'Centre d\'appels', path: '/qualite/calls', accent: 'green' },
+        { icon: Mail, label: 'Messages', path: '/qualite/messages', accent: 'blue' }
+      ]
+    },
 
  
     {

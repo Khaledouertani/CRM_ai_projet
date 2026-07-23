@@ -151,6 +151,9 @@ node_modules
 BackendDotNet/**/bin/
 BackendDotNet/**/obj/
 BackendDotNet/TestResults/
+Backend/**/bin/
+Backend/**/obj/
+Backend/TestResults/
 
 # Frontend test & coverage
 frontend/coverage/

@@ -53,6 +53,9 @@ import PermissionsPage from './pages/admin/PermissionsPage';
 import AnalysisPage from './pages/AnalysisPage';
 import ChatbotPage from './pages/ChatbotPage';
 
+// Call Workspace
+import CallWorkspace from './pages/admin/CallWorkspace';
+
 // Quality
 import QualityDashboard from './pages/quality/QualityDashboard';
 import AgentQualityDetail from './pages/quality/AgentQualityDetail';
@@ -162,6 +165,7 @@ function AppRoutes() {
       <Route path="/admin/alerts" element={<AlertsPage />} />
       <Route path="/admin/salaries" element={<SalaryPage />} />
       <Route path="/admin/permissions" element={<PermissionsPage />} />
+      <Route path="/admin/calls" element={<CallWorkspace />} />
 
     </Route>
 
@@ -180,6 +184,7 @@ function AppRoutes() {
       <Route path="/qualite/chatbot" element={<ChatbotPage />} />
       <Route path="/qualite/analysis" element={<AnalysisPage />} />
         <Route path="/qualite/messages" element={<AdminMessagesPage />} />
+        <Route path="/qualite/calls" element={<CallWorkspace />} />
       </Route>
 
       {/* Redirect */}
