@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import {
   TrendingUp, TrendingDown, Users, Phone, Clock,
-  Trophy, Target, Download, RefreshCw, Calendar,
+  Target, Download, RefreshCw,
   ArrowUp, ArrowDown, Activity, AlertTriangle,
   BarChart3, Brain, Zap, ArrowUpRight, FileText,
-  Coffee, UserCheck, UserX, WifiOff, PlayCircle
+  Coffee, UserCheck, UserX, WifiOff, PlayCircle, Search
 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../../services/api';
 import { useChartTheme } from '../../hooks/useChartTheme';
 import { jsPDF } from 'jspdf';
@@ -29,6 +29,13 @@ interface ComparisonData {
   month: { current: any; previous: any; evolution: number; score_evol: number };
 }
 
+const KPI_ICONS = {
+  calls: { icon: Phone, color: 'text-blue-500', bg: 'bg-blue-500/10', grad: 'from-blue-500 to-cyan-400' },
+  score: { icon: Target, color: 'text-emerald-500', bg: 'bg-emerald-500/10', grad: 'from-emerald-500 to-teal-400' },
+  conversion: { icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-500/10', grad: 'from-purple-500 to-fuchsia-400' },
+  agents: { icon: Users, color: 'text-orange-500', bg: 'bg-orange-500/10', grad: 'from-orange-500 to-amber-400' },
+};
+
 export default function DashboardPage() {
   const chartTheme = useChartTheme();
   const [loading, setLoading] = useState(true);
@@ -48,8 +55,8 @@ export default function DashboardPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingAgent, setEditingAgent] = useState<any>(null);
   const [searchClient, setSearchClient] = useState("");
-const [selectedAgent, setSelectedAgent] = useState("");
-const [selectedProject, setSelectedProject] = useState("");
+  const [selectedAgent, setSelectedAgent] = useState("");
+  const [selectedProject, setSelectedProject] = useState("");
   const [formData, setFormData] = useState({
     username: '', password: '', name: '', role: 'agent', email: ''
   });
@@ -82,11 +89,8 @@ const [selectedProject, setSelectedProject] = useState("");
       });
 
       setComparison(comparisonRes);
-      console.log("COMPARISON =", comparisonRes);
       setAgents(agentsRes);
       setAppointments(Array.isArray(appointmentsRes) ? appointmentsRes : []);
-
-      console.log("APPOINTMENTS =", appointmentsRes);
 
       if (overviewRes.hourly && overviewRes.hourly.length > 0) {
         setChartData(overviewRes.hourly.map((h: any) => ({
@@ -114,7 +118,6 @@ const [selectedProject, setSelectedProject] = useState("");
       const doc = new jsPDF();
       const now = new Date().toLocaleString('fr-FR');
 
-      // Title
       doc.setFontSize(22);
       doc.setTextColor(30, 41, 59);
       doc.text("RAPPORT DE PERFORMANCE CRM AI", 14, 22);
@@ -124,7 +127,6 @@ const [selectedProject, setSelectedProject] = useState("");
       doc.text(`Genere le : ${now}`, 14, 30);
       doc.text("Analyse comparative de l'activite du centre", 14, 35);
 
-      // Summary Table
       const tableData = [
         ["Periode", "Appels (Actuel)", "Evolution", "Score Moyen", "Evol. Score"],
         ["Aujourd'hui", comparison.day.current.total, `${comparison.day.evolution}%`, `${comparison.day.current.avg_score}%`, `${comparison.day.score_evol}%`],
@@ -141,7 +143,6 @@ const [selectedProject, setSelectedProject] = useState("");
         alternateRowStyles: { fillColor: [248, 250, 252] },
       });
 
-      // Agents Performance
       if (agents.length > 0) {
         doc.setFontSize(16);
         doc.setTextColor(30, 41, 59);
@@ -206,39 +207,60 @@ const [selectedProject, setSelectedProject] = useState("");
       alert(err.message);
     }
   };
+
   const filteredAppointments = appointments.filter((item: any) => {
+    const clientMatch =
+      item.client_name
+        ?.toLowerCase()
+        .includes(searchClient.toLowerCase());
 
-  const clientMatch =
-    item.client_name
-      ?.toLowerCase()
-      .includes(searchClient.toLowerCase());
+    const agentMatch =
+      selectedAgent === "" ||
+      item.agent_name === selectedAgent;
 
-  const agentMatch =
-    selectedAgent === "" ||
-    item.agent_name === selectedAgent;
+    const projectMatch =
+      selectedProject === "" ||
+      item.project_type === selectedProject;
 
-  const projectMatch =
-    selectedProject === "" ||
-    item.project_type === selectedProject;
+    return clientMatch && agentMatch && projectMatch;
+  });
 
-  return clientMatch && agentMatch && projectMatch;
-});
+  const statusBadge = (status?: string) => {
+    const s = (status || '').toLowerCase();
+    if (s === 'confirmed' || s === 'confirme') return 'badge-premium';
+    if (s === 'cancelled' || s === 'refus') return 'badge-refuse';
+    return 'badge-attente';
+  };
+
+  const statusLabel = (status?: string) => {
+    const s = (status || '').toLowerCase();
+    if (s === 'confirmed' || s === 'confirme') return 'Confirmé';
+    if (s === 'cancelled' || s === 'refus') return 'Refusé';
+    return 'En attente';
+  };
+
+  const kpiCards = [
+    { label: 'Appels Totaux', value: kpis.totalCalls, key: 'calls' },
+    { label: 'Score Moyen', value: `${kpis.avgScore}%`, key: 'score' },
+    { label: 'Conversion', value: `${kpis.conversionRate}%`, key: 'conversion' },
+    { label: 'Agents Actifs', value: kpis.activeAgents, key: 'agents' },
+  ] as const;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black italic tracking-tighter text-foreground uppercase">
-            Vue d'ensemble <span className="text-primary">Dashboard</span>
+          <h1 className="text-3xl font-black tracking-tight text-foreground">
+            Vue d'ensemble <span className="text-gradient-primary">Dashboard</span>
           </h1>
-
+          <p className="text-sm text-muted-foreground mt-1">Pilotage de l'activité en temps réel</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={generatePDF}
             disabled={exporting || loading}
-            className="h-10 px-4 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 hover:opacity-90 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-10 px-4 bg-emerald-500 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest shadow-lg shadow-emerald-500/25 hover:opacity-90 hover:-translate-y-[1px] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 cursor-pointer"
           >
             {exporting ? (
               <>
@@ -255,15 +277,16 @@ const [selectedProject, setSelectedProject] = useState("");
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
-            className="h-10 px-4 bg-slate-800 border border-border rounded-xl text-xs font-black uppercase tracking-widest text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+            className="h-10 px-4 bg-card border border-border rounded-xl text-xs font-bold uppercase tracking-widest text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer transition-colors hover:border-primary/40"
           >
-            <option value="today" className="text-slate-900">Aujourd'hui</option>
-            <option value="week" className="text-slate-900">Cette semaine</option>
-            <option value="month" className="text-slate-900">Ce mois</option>
+            <option value="today">Aujourd'hui</option>
+            <option value="week">Cette semaine</option>
+            <option value="month">Ce mois</option>
           </select>
           <button
             onClick={fetchDashboardData}
-            className="p-2.5 bg-card border border-border rounded-xl hover:bg-muted transition-all text-primary"
+            className="p-2.5 bg-card border border-border rounded-xl hover:bg-accent hover:border-primary/40 transition-all text-primary cursor-pointer"
+            aria-label="Actualiser"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -271,56 +294,57 @@ const [selectedProject, setSelectedProject] = useState("");
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Appels Totaux', value: kpis.totalCalls, icon: Phone, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-          { label: 'Score Moyen', value: `${kpis.avgScore}%`, icon: Target, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-          { label: 'Conversion', value: `${kpis.conversionRate}%`, icon: TrendingUp, color: 'text-purple-400', bg: 'bg-purple-500/10' },
-          { label: 'Agents Actifs', value: kpis.activeAgents, icon: Users, color: 'text-orange-400', bg: 'bg-orange-500/10' },
-        ].map((kpi, i) => (
-          <div key={i} className="bg-card border border-border p-5 rounded-2xl shadow-sm relative overflow-hidden group">
-            <div className={`w-10 h-10 rounded-xl ${kpi.bg} flex items-center justify-center mb-3 ${kpi.color}`}>
-              <kpi.icon className="w-5 h-5" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
+        {kpiCards.map((kpi, i) => {
+          const style = KPI_ICONS[kpi.key];
+          const Icon = style.icon;
+          return (
+            <div key={i} className="glass-card-hover p-5 relative overflow-hidden group">
+              <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-gradient-to-br opacity-[0.06] group-hover:opacity-[0.12] transition-opacity duration-300" />
+              <div className={`w-11 h-11 rounded-xl ${style.bg} flex items-center justify-center mb-3 ${style.color} transition-transform duration-300 group-hover:scale-110`}>
+                <Icon className="w-5 h-5" />
+              </div>
+              <div className="text-2xl font-black text-foreground tabular-nums">{loading ? '...' : kpi.value}</div>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1">{kpi.label}</div>
+              <div className={`absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r ${style.grad} opacity-0 group-hover:opacity-100 transition-opacity`} />
             </div>
-            <div className="text-2xl font-black text-foreground">{loading ? '...' : kpi.value}</div>
-            <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-1">{kpi.label}</div>
-            <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-10 transition-opacity">
-              <kpi.icon className="w-16 h-16" />
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Comparison Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 stagger-children">
         {comparison && [
           { title: 'Aujourd\'hui vs Hier', period: comparison.day },
           { title: 'Cette Semaine vs Précédente', period: comparison.week },
           { title: 'Ce Mois vs Précédent', period: comparison.month },
-        ].map((item, i) => (
-          <div key={i} className="bg-card border border-border p-4 rounded-2xl shadow-sm">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">{item.title}</h4>
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-xl font-black text-foreground">{item.period?.current?.total ?? 0} appels</div>
-                <div className={`flex items-center gap-1 text-xs font-bold mt-1 ${item.period.evolution >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                  {item.period.evolution >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                  {item.period.evolution > 0 ? '+' : ''}{item.period?.evolution ?? 0}% volume
+        ].map((item, i) => {
+          const positive = (item.period?.evolution ?? 0) >= 0;
+          return (
+            <div key={i} className="glass-card p-4">
+              <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">{item.title}</h4>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xl font-black text-foreground tabular-nums">{item.period?.current?.total ?? 0} appels</div>
+                  <div className={`flex items-center gap-1 text-xs font-bold mt-1 ${positive ? 'text-emerald-500' : 'text-red-500'}`}>
+                    {positive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                    {item.period.evolution > 0 ? '+' : ''}{item.period?.evolution ?? 0}% volume
+                  </div>
                 </div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm font-bold text-primary">{item.period?.current?.avg_score ?? 0}%</div>
-                <div className={`text-[10px] font-bold mt-1 ${item.period.score_evol >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                  {item.period.score_evol > 0 ? '+' : ''}{item.period?.score_evol ?? 0}% qualité
+                <div className="text-right">
+                  <div className="text-sm font-bold text-primary tabular-nums">{item.period?.current?.avg_score ?? 0}%</div>
+                  <div className={`text-[10px] font-bold mt-1 ${item.period.score_evol >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                    {item.period.score_evol > 0 ? '+' : ''}{item.period?.score_evol ?? 0}% qualité
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Pointage Section */}
-      <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+      <div className="glass-card overflow-hidden">
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-primary" />
@@ -328,7 +352,7 @@ const [selectedProject, setSelectedProject] = useState("");
           </div>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5 text-[10px] font-bold">
-              <span className="w-2 h-2 bg-emerald-400 rounded-full" />
+              <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
               {pointageData.filter((a: any) => a.status === "active").length} en poste
             </span>
             <span className="flex items-center gap-1.5 text-[10px] font-bold">
@@ -344,12 +368,12 @@ const [selectedProject, setSelectedProject] = useState("");
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-muted/10 border-b border-border">
-                <th className="px-4 py-3 text-left">Agent</th>
-                <th className="px-4 py-3 text-left">Statut</th>
-                <th className="px-4 py-3 text-left">Début</th>
-                <th className="px-4 py-3 text-left">Travail</th>
-                <th className="px-4 py-3 text-left">Pause</th>
+              <tr className="bg-muted/30 border-b border-border">
+                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Agent</th>
+                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Statut</th>
+                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Début</th>
+                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Travail</th>
+                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Pause</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -357,7 +381,7 @@ const [selectedProject, setSelectedProject] = useState("");
                 const isOnline = agent.status === "active";
                 const isBreak = agent.status === "break";
                 return (
-                  <tr key={agent.user_id || index} className="hover:bg-muted/20 transition-colors">
+                  <tr key={agent.user_id || index} className="hover:bg-primary/[0.03] transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400' : isBreak ? 'bg-amber-400' : 'bg-slate-500'}`} />
@@ -366,27 +390,27 @@ const [selectedProject, setSelectedProject] = useState("");
                     </td>
                     <td className="px-4 py-3">
                       {isOnline ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-bold">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-bold border border-emerald-500/25">
                           <PlayCircle className="w-3 h-3" /> EN POSTE
                         </span>
                       ) : isBreak ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-500/10 text-amber-400 rounded-full text-[10px] font-bold">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 text-amber-400 rounded-full text-[10px] font-bold border border-amber-500/25">
                           <Coffee className="w-3 h-3" /> {agent.current_break_type || 'PAUSE'}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-500/10 text-slate-400 rounded-full text-[10px] font-bold">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-500/10 text-slate-400 rounded-full text-[10px] font-bold border border-slate-500/25">
                           <WifiOff className="w-3 h-3" /> HORS LIGNE
                         </span>
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-xs text-muted-foreground">{agent.clock_in ? new Date(agent.clock_in).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--'}</span>
+                      <span className="text-xs text-muted-foreground tabular-nums">{agent.clock_in ? new Date(agent.clock_in).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--'}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-xs font-mono">{agent.work_duration_minutes != null ? `${Math.floor(agent.work_duration_minutes)} min` : '—'}</span>
+                      <span className="text-xs font-mono tabular-nums">{agent.work_duration_minutes != null ? `${Math.floor(agent.work_duration_minutes)} min` : '—'}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-xs font-mono text-amber-400/80">{agent.total_break_minutes != null ? `${Math.floor(agent.total_break_minutes)} min` : '—'}</span>
+                      <span className="text-xs font-mono text-amber-400/80 tabular-nums">{agent.total_break_minutes != null ? `${Math.floor(agent.total_break_minutes)} min` : '—'}</span>
                     </td>
                   </tr>
                 );
@@ -405,7 +429,7 @@ const [selectedProject, setSelectedProject] = useState("");
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Chart */}
-        <div className="lg:col-span-2 bg-card border border-border rounded-2xl p-6 shadow-sm">
+        <div className="lg:col-span-2 glass-card p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-primary" />
@@ -436,9 +460,11 @@ const [selectedProject, setSelectedProject] = useState("");
 
         {/* AI Insights Sidebar */}
         <div className="space-y-4">
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+          <div className="glass-card p-6">
             <div className="flex items-center gap-2 mb-4">
-              <Brain className="w-4 h-4 text-purple-400" />
+              <div className="w-8 h-8 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                <Brain className="w-4 h-4 text-purple-400" />
+              </div>
               <h3 className="text-sm font-black uppercase tracking-widest text-foreground">AI Intelligence</h3>
             </div>
             <div className="space-y-4">
@@ -459,134 +485,100 @@ const [selectedProject, setSelectedProject] = useState("");
                      - Recommandation: Concentrer les effectifs sur le créneau de l'après-midi.`;
                   alert(report);
                 }}
-                className="w-full py-2.5 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                className="w-full py-2.5 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/25 hover:opacity-90 hover:-translate-y-[1px] transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 Générer Rapport IA <Zap className="w-3 h-3" />
               </button>
             </div>
           </div>
 
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm flex-1">
+          <div className="glass-card p-6 flex-1">
             <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">Récapitulatif Rapide</h3>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-xs font-medium text-muted-foreground">Appels Aujourd'hui</span>
-                <span className="text-xs font-black">{kpis.callsToday}</span>
+                <span className="text-xs font-black tabular-nums">{kpis.callsToday}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-xs font-medium text-muted-foreground">Durée Moyenne</span>
-                <span className="text-xs font-black">{kpis.avgCallDuration} min</span>
+                <span className="text-xs font-black tabular-nums">{kpis.avgCallDuration} min</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-xs font-medium text-muted-foreground">Relances en attente</span>
-                <span className="px-2 py-0.5 bg-orange-500/10 text-orange-500 rounded text-[10px] font-black uppercase">{kpis.pendingFollowups}</span>
+                <span className="px-2 py-0.5 bg-orange-500/10 text-orange-500 rounded-full text-[10px] font-black uppercase tabular-nums">{kpis.pendingFollowups}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Agents Management Table */}
-      <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+      {/* Historique Production */}
+      <div className="glass-card overflow-hidden">
+        <div className="px-6 py-4 border-b border-border flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-primary" />
             <h3 className="text-sm font-black uppercase tracking-widest text-foreground">HISTORIQUE PRODUCTION</h3>
+            <span className="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-[10px] font-black tabular-nums">
+              {filteredAppointments.length}
+            </span>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Rechercher client..."
+                value={searchClient}
+                onChange={(e) => setSearchClient(e.target.value)}
+                className="pl-9 pr-3 py-2 rounded-xl border border-border bg-background/50 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              />
+            </div>
 
-  <input
-    type="text"
-    placeholder="🔍 Rechercher client..."
-    value={searchClient}
-    onChange={(e) => setSearchClient(e.target.value)}
-    className="px-4 py-2 rounded-xl border border-border bg-background"
-  />
+            <select
+              value={selectedAgent}
+              onChange={(e) => setSelectedAgent(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-border bg-background/50 text-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            >
+              <option value="">Tous les agents</option>
+              {[...new Set(appointments.map((a: any) => a.agent_name))].map((agent: any) => (
+                <option key={agent} value={agent}>{agent}</option>
+              ))}
+            </select>
 
-  <select
-    value={selectedAgent}
-    onChange={(e) => setSelectedAgent(e.target.value)}
-    className="px-4 py-2 rounded-xl border border-border bg-background"
-  >
-    <option value="">Tous les agents</option>
-
-    {[...new Set(
-      appointments.map((a: any) => a.agent_name)
-    )].map((agent: any) => (
-      <option key={agent} value={agent}>
-        {agent}
-      </option>
-    ))}
-  </select>
-
-  <select
-    value={selectedProject}
-    onChange={(e) => setSelectedProject(e.target.value)}
-    className="px-4 py-2 rounded-xl border border-border bg-background"
-  >
-    <option value="">Tous les projets</option>
-
-    {[...new Set(
-      appointments.map((a: any) => a.project_type)
-    )].map((project: any) => (
-      <option key={project} value={project}>
-        {project}
-      </option>
-    ))}
-  </select>
-
-</div>
-         
+            <select
+              value={selectedProject}
+              onChange={(e) => setSelectedProject(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-border bg-background/50 text-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            >
+              <option value="">Tous les projets</option>
+              {[...new Set(appointments.map((a: any) => a.project_type))].map((project: any) => (
+                <option key={project} value={project}>{project}</option>
+              ))}
+            </select>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-muted/10 border-b border-border">
-
-                <th className="px-4 py-3 text-left">GSM</th>
-
-                <th className="px-4 py-3 text-left">Client</th>
-
-                <th className="px-4 py-3 text-left">Projet</th>
-
-                <th className="px-4 py-3 text-left">Date RDV</th>
-
-                <th className="px-4 py-3 text-left">Création du RDV</th>
-
-                <th className="px-4 py-3 text-left">Agent</th>
-
-                <th className="px-4 py-3 text-left">Statut</th>
-
-                <th className="px-4 py-3 text-left">Enregistrement</th>
-
+              <tr className="bg-muted/30 border-b border-border">
+                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">GSM</th>
+                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Client</th>
+                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Projet</th>
+                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Date RDV</th>
+                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Création du RDV</th>
+                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Agent</th>
+                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Statut</th>
+                <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Enregistrement</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-
               {filteredAppointments.map((item: any, index: number) => (
-
-                <tr
-                  key={item.id || index}
-                  className="hover:bg-muted/20 transition-colors"
-                >
-
-                  <td className="px-4 py-4">
-                    {item.client_phone}
-                  </td>
-
-                  <td className="px-4 py-4 font-semibold">
-                    {item.client_name}
-                  </td>
-
-                  <td className="px-4 py-4">
-                    {item.project_type}
-                  </td>
-
-                  <td className="px-4 py-4">
-                    {item.appointment_date}
-                  </td>
-
-                  <td className="px-4 py-4 text-xs text-muted-foreground">
+                <tr key={item.id || index} className="hover:bg-primary/[0.03] transition-colors">
+                  <td className="px-4 py-4 font-mono text-xs text-muted-foreground">{item.client_phone}</td>
+                  <td className="px-4 py-4 font-semibold">{item.client_name}</td>
+                  <td className="px-4 py-4 text-xs">{item.project_type}</td>
+                  <td className="px-4 py-4 text-xs tabular-nums">{item.appointment_date}</td>
+                  <td className="px-4 py-4 text-xs text-muted-foreground tabular-nums">
                     {item.created_at
                       ? new Date(item.created_at).toLocaleDateString('fr-FR', {
                           day: '2-digit', month: '2-digit', year: 'numeric',
@@ -594,42 +586,32 @@ const [selectedProject, setSelectedProject] = useState("");
                         })
                       : '-'}
                   </td>
-
+                  <td className="px-4 py-4 text-xs">{item.agent_name}</td>
                   <td className="px-4 py-4">
-                    {item.agent_name}
-                  </td>
-
-                  <td className="px-4 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${(() => {
-                      const s = (item.status || '').toLowerCase();
-                      if (s === 'confirmed' || s === 'confirme') return 'bg-emerald-500/10 text-emerald-400';
-                      if (s === 'cancelled' || s === 'refus') return 'bg-red-500/10 text-red-400';
-                      return 'bg-amber-500/10 text-amber-400';
-                    })()}`}>
-                      {(() => {
-                        const s = (item.status || '').toLowerCase();
-                        if (s === 'confirmed' || s === 'confirme') return 'Confirmé';
-                        if (s === 'cancelled' || s === 'refus') return 'Refusé';
-                        return 'En attente';
-                      })()}
+                    <span className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-bold border ${statusBadge(item.status)}`}>
+                      {statusLabel(item.status)}
                     </span>
                   </td>
-
                   <td className="px-4 py-4">
                     <button
                       onClick={() => toast('Aucun enregistrement disponible pour ce RDV', { icon: '🔇' })}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-xs font-medium"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 hover:border-primary/40 transition-colors text-xs font-medium cursor-pointer"
                       title="Écouter l'enregistrement"
                     >
                       <PlayCircle className="w-3.5 h-3.5" />
                       Lecture
                     </button>
                   </td>
-
                 </tr>
-
               ))}
-
+              {filteredAppointments.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="px-4 py-10 text-center">
+                    <div className="text-muted-foreground text-sm">Aucun RDV trouvé</div>
+                    <p className="text-xs text-muted-foreground/60 mt-1">Ajustez vos filtres ou réessayez plus tard</p>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -637,8 +619,8 @@ const [selectedProject, setSelectedProject] = useState("");
 
       {/* Modal Add/Edit */}
       {showModal && (
-        <div className="fixed inset-0 bg-gray-100 dark:bg-slate-800 dark:bg-slate-800/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-card border border-border w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in-scale">
+          <div className="bg-card border border-border w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-fade-in-scale duration-300">
             <div className="p-6 border-b border-border bg-muted/20">
               <h3 className="text-sm font-black uppercase tracking-[0.2em] text-foreground">
                 {editingAgent ? 'Modifier l\'agent' : 'Ajouter un agent'}
@@ -649,7 +631,7 @@ const [selectedProject, setSelectedProject] = useState("");
                 <div className="space-y-1.5">
                   <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Nom complet</label>
                   <input
-                    className="w-full px-4 py-2.5 bg-indigo-950/40 text-white placeholder:text-slate-400 border-primary/20 border border-border rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary/20 outline-none"
+                    className="w-full px-4 py-2.5 bg-background/50 text-foreground placeholder:text-muted-foreground border border-border rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary/40 outline-none transition-all"
                     placeholder="Jean Dupont"
                     value={formData.name}
                     onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -658,26 +640,7 @@ const [selectedProject, setSelectedProject] = useState("");
                 <div className="space-y-1.5">
                   <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Login (Pseudo)</label>
                   <input
-                    className="
-w-full
-px-4
-py-3
-bg-indigo-950/40
-border
-border-primary/20
-rounded-2xl
-text-white
-text-sm
-font-bold
-placeholder:text-slate-400
-backdrop-blur-md
-focus:ring-2
-focus:ring-primary/40
-focus:border-primary
-outline-none
-transition-all
-duration-300
-"
+                    className="w-full px-4 py-2.5 bg-background/50 text-foreground placeholder:text-muted-foreground border border-border rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary/40 outline-none transition-all"
                     placeholder="jdupont"
                     value={formData.username}
                     onChange={e => setFormData({ ...formData, username: e.target.value })}
@@ -688,27 +651,7 @@ duration-300
                 <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Email professionnel</label>
                 <input
                   type="email"
-                  className="
-w-full
-px-4
-py-3
-bg-indigo-950/40
-border
-border-primary/20
-rounded-2xl
-text-white
-text-sm
-font-bold
-placeholder:text-slate-400
-caret-primary
-backdrop-blur-md
-focus:ring-2
-focus:ring-primary/40
-focus:border-primary
-outline-none
-transition-all
-duration-300
-"
+                  className="w-full px-4 py-2.5 bg-background/50 text-foreground placeholder:text-muted-foreground border border-border rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary/40 outline-none transition-all"
                   value={formData.email}
                   onChange={e => setFormData({ ...formData, email: e.target.value })}
                 />
@@ -717,27 +660,7 @@ duration-300
                 <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Mot de passe</label>
                 <input
                   type="password"
-                  className="
-w-full
-px-4
-py-3
-bg-indigo-950/40
-border
-border-primary/20
-rounded-2xl
-text-white
-text-sm
-font-bold
-placeholder:text-slate-400
-caret-primary
-backdrop-blur-md
-focus:ring-2
-focus:ring-primary/40
-focus:border-primary
-outline-none
-transition-all
-duration-300
-"
+                  className="w-full px-4 py-2.5 bg-background/50 text-foreground placeholder:text-muted-foreground border border-border rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary/40 outline-none transition-all"
                   placeholder={editingAgent ? "•••••••• (vide pour garder)" : "8 caractères min."}
                   value={formData.password}
                   onChange={e => setFormData({ ...formData, password: e.target.value })}
@@ -746,24 +669,7 @@ duration-300
               <div className="space-y-1.5">
                 <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Rôle système</label>
                 <select
-                  className="
-w-full
-px-4
-py-3
-bg-indigo-950/40
-border
-border-primary/20
-rounded-2xl
-text-white
-text-sm
-font-bold
-outline-none
-cursor-pointer
-focus:ring-2
-focus:ring-primary/40
-transition-all
-duration-300
-"
+                  className="w-full px-4 py-2.5 bg-background/50 text-foreground border border-border rounded-xl text-xs font-bold outline-none cursor-pointer focus:ring-2 focus:ring-primary/20 transition-all"
                   value={formData.role}
                   onChange={e => setFormData({ ...formData, role: e.target.value })}
                 >
@@ -776,13 +682,13 @@ duration-300
             <div className="p-6 bg-muted/20 border-t border-border flex justify-end gap-3">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-muted rounded-xl transition-all"
+                className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-muted rounded-xl transition-all cursor-pointer"
               >
                 Annuler
               </button>
               <button
                 onClick={handleSubmit}
-                className="px-6 py-2.5 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:opacity-90 transition-all"
+                className="px-6 py-2.5 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/25 hover:opacity-90 transition-all cursor-pointer"
               >
                 {editingAgent ? 'Sauvegarder' : 'Créer l\'agent'}
               </button>

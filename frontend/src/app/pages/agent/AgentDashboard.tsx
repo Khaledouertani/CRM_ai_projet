@@ -188,25 +188,25 @@ function AttendanceManager() {
   const breakLabel = BREAK_LABELS[status?.break_type] || status?.break_type || '';
 
   return (
-    <div className="bg-card border border-border rounded-[32px] p-6 shadow-xl mb-8 animate-in fade-in slide-in-from-top-4 duration-500">
+    <div className="glass-card p-6 mb-8 animate-fade-in-up">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${
             status?.status === 'online' || status?.status === 'active' ? 'bg-emerald-500 text-white shadow-emerald-500/20' :
             status?.status === 'break' ? 'bg-amber-500 text-white shadow-amber-500/20' :
-            'bg-slate-500 text-white shadow-slate-500/20'
+            'bg-muted-foreground text-background shadow-muted-foreground/20'
           }`}>
             <Clock className={`w-7 h-7 ${status?.status === 'online' || status?.status === 'active'? 'animate-pulse' : ''}`} />
           </div>
           <div>
-            <h3 className="text-lg font-black uppercase italic tracking-tighter">Mon <span className="text-primary">Pointage</span></h3>
+            <h3 className="text-lg font-black tracking-tight">Mon <span className="text-gradient-primary">Pointage</span></h3>
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-              Statut : <span className={status?.status === 'online' || status?.status === 'active' ? 'text-emerald-500' : status?.status === 'break' ? 'text-amber-500' : 'text-slate-500'}>
+              Statut : <span className={status?.status === 'online' || status?.status === 'active' ? 'text-emerald-500' : status?.status === 'break' ? 'text-amber-500' : 'text-muted-foreground'}>
                 {status?.status === 'online' || status?.status === 'active' ? 'EN POSTE' : status?.status === 'break' ? `EN PAUSE (${breakLabel})` : 'HORS LIGNE'}
               </span>
             </p>
             {status?.status === 'break' && (
-              <p className="text-lg font-mono font-bold text-amber-400 mt-1">
+              <p className="text-lg font-mono font-bold text-amber-400 mt-1 tabular-nums">
                 {formatElapsed(pauseSeconds)}
               </p>
             )}
@@ -226,12 +226,12 @@ function AttendanceManager() {
                     <button
                       key={opt.id}
                       onClick={() => handleStartBreak(opt.id)}
-                      className={`px-4 py-3 ${PAUSE_BG[opt.color]} border border-current/10 ${PAUSE_TEXT[opt.color]} rounded-2xl font-black text-[10px] uppercase tracking-widest ${PAUSE_HOVER_BG[opt.color]} hover:text-white transition-all`}
+                      className={`px-4 py-3 ${PAUSE_BG[opt.color]} border border-transparent ${PAUSE_TEXT[opt.color]} rounded-2xl font-black text-[10px] uppercase tracking-widest ${PAUSE_HOVER_BG[opt.color]} hover:text-white transition-all`}
                     >
                       {opt.label}
                     </button>
                   ))}
-                  <button onClick={handleClockOut} className="px-6 py-3 bg-slate-800 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg hover:bg-slate-900 transition-all">Terminer Journée</button>
+                  <button onClick={handleClockOut} className="px-6 py-3 bg-muted-foreground text-background rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg hover:opacity-90 transition-all">Terminer Journée</button>
                 </div>
               ) : (
                 <button onClick={handleEndBreak} className="px-8 py-3 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
@@ -331,12 +331,13 @@ export default function AgentDashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-black italic tracking-tighter text-foreground uppercase">Mon <span className="text-primary">Dashboard</span></h2>
+          <h2 className="text-3xl font-black tracking-tight text-foreground">Mon <span className="text-gradient-primary">Dashboard</span></h2>
+          <p className="text-sm text-muted-foreground mt-1">Votre activité du jour en un coup d'œil</p>
         </div>
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-primary/25 hover:-translate-y-[1px] active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
         >
           <Save className="w-4 h-4" />
           {saving ? 'Sauvegarde...' : 'Sauvegarder'}
@@ -345,59 +346,60 @@ export default function AgentDashboard() {
 
         <AttendanceManager />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-3xl p-6 text-white shadow-xl shadow-indigo-500/20 border-b-4 border-indigo-900/20 transform hover:scale-[1.02] transition-all">
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
+          <div className="glass-card-hover p-6 relative overflow-hidden group bg-gradient-to-br from-indigo-500 to-indigo-700 text-white border-indigo-500/30">
+            <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-white/10 group-hover:scale-150 transition-transform duration-500" />
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-white/20 dark:bg-slate-900/20 rounded-xl backdrop-blur-md">
+              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-md">
                 <Phone className="w-5 h-5 text-white" />
               </div>
               <span className="text-[10px] font-black uppercase tracking-widest opacity-60 text-white">Quotidien</span>
             </div>
-            <h3 className="text-sm font-black uppercase tracking-tighter opacity-80 italic text-white">Appels du jour</h3>
-            <p className="text-4xl font-black italic tracking-tighter mt-1 text-white">{totalCalls}</p>
+            <h3 className="text-sm font-black uppercase tracking-tighter opacity-80 text-white">Appels du jour</h3>
+            <p className="text-4xl font-black tracking-tighter mt-1 text-white tabular-nums">{totalCalls}</p>
           </div>
 
-          <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-3xl p-6 text-white shadow-xl shadow-emerald-500/20 border-b-4 border-emerald-900/20 transform hover:scale-[1.02] transition-all">
+          <div className="glass-card p-5 bg-gradient-to-br from-emerald-500 to-emerald-700 border-emerald-500/30">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-white/20 dark:bg-slate-900/20 rounded-xl backdrop-blur-md">
+              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-md">
                 <CheckCircle className="w-5 h-5 text-white" />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-60 text-white">Réussite</span>
+              <span className="text-[10px] font-black uppercase tracking-wider opacity-60 text-white">Réussite</span>
             </div>
-            <h3 className="text-sm font-black uppercase tracking-tighter opacity-80 italic text-white">Conversions</h3>
-            <p className="text-4xl font-black italic tracking-tighter mt-1 text-white">{positiveCalls}</p>
-            <p className="text-[10px] font-black uppercase mt-2 inline-flex items-center gap-1 bg-white/20 dark:bg-slate-900/20 px-2 py-1 rounded-full text-white">
+            <h3 className="text-sm font-black uppercase tracking-tighter opacity-80 text-white">Conversions</h3>
+            <p className="text-4xl font-black tracking-tight mt-1 text-white tabular-nums">{positiveCalls}</p>
+            <p className="text-[10px] font-black uppercase mt-2 inline-flex items-center gap-1 bg-white/20 px-2.5 py-1 rounded-full text-white">
               TAUX: {conversionRate}%
             </p>
           </div>
 
-          <div className="bg-gradient-to-br from-amber-500 to-amber-700 rounded-3xl p-6 text-white shadow-xl shadow-amber-500/20 border-b-4 border-amber-900/20 transform hover:scale-[1.02] transition-all">
+          <div className="glass-card p-5 bg-gradient-to-br from-amber-500 to-amber-700 border-amber-500/30">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-white/20 dark:bg-slate-900/20 rounded-xl backdrop-blur-md">
+              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-md">
                 <Clock className="w-5 h-5 text-white" />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-60 text-white">Actif</span>
+              <span className="text-[10px] font-black uppercase tracking-wider opacity-60 text-white">Actif</span>
             </div>
-            <h3 className="text-sm font-black uppercase tracking-tighter opacity-80 italic text-white">Temps productif</h3>
-            <p className="text-4xl font-black italic tracking-tighter mt-1 text-white">{workDuration}</p>
+            <h3 className="text-sm font-black uppercase tracking-tighter opacity-80 text-white">Temps productif</h3>
+            <p className="text-3xl font-black tracking-tight mt-1 text-white tabular-nums">{workDuration}</p>
           </div>
 
-          <div className="bg-gradient-to-br from-rose-500 to-rose-700 rounded-3xl p-6 text-white shadow-xl shadow-rose-500/20 border-b-4 border-rose-900/20 transform hover:scale-[1.02] transition-all">
+          <div className="glass-card p-5 bg-gradient-to-br from-rose-500 to-rose-700 border-rose-500/30">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-white/20 dark:bg-slate-900/20 rounded-xl backdrop-blur-md">
+              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-md">
                 <TrendingUp className="w-5 h-5 text-white" />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-60 text-white">Niveau</span>
+              <span className="text-[10px] font-black uppercase tracking-wider opacity-60 text-white">Niveau</span>
             </div>
-            <h3 className="text-sm font-black uppercase tracking-tighter opacity-80 italic text-white">Score Qualité</h3>
-            <p className="text-4xl font-black italic tracking-tighter mt-1 text-white">{avgScore > 0 ? `${Math.round(avgScore)}/100` : '—'}</p>
-          </div>
+            <h3 className="text-sm font-black uppercase tracking-tighter opacity-80 text-white">Score Qualité</h3>
+            <p className="text-4xl font-black tracking-tight mt-1 text-white tabular-nums">{avgScore > 0 ? `${Math.round(avgScore)}/100` : '—'}</p>
+</div>
         </div>
 
         {hourlyData.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-card rounded-lg border border-border p-6">
-              <h3 className="mb-4">Performance du jour</h3>
+            <div className="glass-card p-6">
+              <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-foreground">Performance du jour</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={hourlyData}>
                   <defs>
@@ -421,8 +423,8 @@ export default function AgentDashboard() {
               </ResponsiveContainer>
             </div>
 
-            <div className="bg-card rounded-lg border border-border p-6">
-              <h3 className="mb-4">Taux de conversion par heure</h3>
+            <div className="glass-card p-6">
+              <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-foreground">Taux de conversion par heure</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={hourlyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} />
@@ -438,19 +440,24 @@ export default function AgentDashboard() {
           </div>
         )}
 
-        <div className="bg-card rounded-lg border border-border">
-          <div className="p-6 border-b border-border">
-            <h3>Appels récents</h3>
+        <div className="glass-card overflow-hidden">
+          <div className="p-6 border-b border-border flex items-center justify-between">
+            <h3 className="text-sm font-black uppercase tracking-widest text-foreground">Appels récents</h3>
+            {recentCalls.length > 0 && (
+              <span className="px-2.5 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-black tabular-nums">
+                {recentCalls.length}
+              </span>
+            )}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-muted/50">
+              <thead className="bg-muted/30">
                 <tr>
-                  <th className="text-left p-4 text-muted-foreground">Agent</th>
-                  <th className="text-left p-4 text-muted-foreground">Sentiment</th>
-                  <th className="text-left p-4 text-muted-foreground">Score</th>
-                  <th className="text-left p-4 text-muted-foreground">Performance</th>
-                  <th className="text-left p-4 text-muted-foreground">Date</th>
+                  <th className="text-left p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Agent</th>
+                  <th className="text-left p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sentiment</th>
+                  <th className="text-left p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Score</th>
+                  <th className="text-left p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Performance</th>
+                  <th className="text-left p-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Date</th>
                 </tr>
               </thead>
               <tbody>
