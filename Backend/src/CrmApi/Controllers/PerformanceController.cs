@@ -23,7 +23,7 @@ public class PerformanceController : ControllerBase
         {
             var now = DateTime.UtcNow;
             var currentMonth = month ?? now.ToString("yyyy-MM");
-            var currentMonthStart = DateTime.ParseExact(currentMonth + "-01", "yyyy-MM-dd", null);
+            var currentMonthStart = DateTime.SpecifyKind(DateTime.ParseExact(currentMonth + "-01", "yyyy-MM-dd", null), DateTimeKind.Utc);
             var currentMonthEnd = currentMonthStart.AddMonths(1).AddDays(-1);
             var lastMonthStart = currentMonthStart.AddMonths(-1);
             var lastMonthEnd = currentMonthStart.AddDays(-1);
@@ -142,7 +142,7 @@ public class PerformanceController : ControllerBase
         {
             var now = DateTime.UtcNow;
             var currentMonth = month ?? now.ToString("yyyy-MM");
-            var monthStart = DateTime.ParseExact(currentMonth + "-01", "yyyy-MM-dd", null);
+            var monthStart = DateTime.SpecifyKind(DateTime.ParseExact(currentMonth + "-01", "yyyy-MM-dd", null), DateTimeKind.Utc);
             var monthEnd = monthStart.AddMonths(1).AddDays(-1);
 
             var calls = await _context.Calls.AsNoTracking()

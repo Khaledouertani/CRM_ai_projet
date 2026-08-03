@@ -245,7 +245,7 @@ public class QualityDashboardService : IQualityDashboardService
             {
                 alerts.Add(new QualityAlertItemDto
                 {
-                    Id = -(att.Id * 10 + longBreak.Id),
+                    Id = (int)(-(att.Id * 10 + longBreak.Id)),
                     Type = "warning",
                     Agent = att.User?.Name ?? "Unknown",
                     Message = $"Pause déjeuner dépassée de {longBreak.DurationMinutes - 60} minutes",
@@ -265,7 +265,7 @@ public class QualityDashboardService : IQualityDashboardService
                 {
                     alerts.Add(new QualityAlertItemDto
                     {
-                        Id = -(att.Id * 100),
+                        Id = (int)(-(att.Id * 100)),
                         Type = "warning",
                         Agent = att.User?.Name ?? "Unknown",
                         Message = $"Pause en cours depuis {Math.Round(breakMinutes)} minutes (seuil: {threshold}min)",
@@ -309,7 +309,7 @@ public class QualityDashboardService : IQualityDashboardService
                     {
                         alerts.Add(new QualityAlertItemDto
                         {
-                            Id = -(att.Id * 1000),
+                            Id = (int)(-(att.Id * 1000)),
                             Type = "critical",
                             Agent = agentName ?? "Unknown",
                             Message = $"Aucun appel depuis {Math.Round(inactiveMin)} minutes (inactivité)",
@@ -327,7 +327,7 @@ public class QualityDashboardService : IQualityDashboardService
                 {
                     alerts.Add(new QualityAlertItemDto
                     {
-                        Id = -(todayAttendances.First(a => a.User?.Name == agentName).Id * 10000),
+                        Id = (int)(-(todayAttendances.First(a => a.User?.Name == agentName).Id * 10000)),
                         Type = "warning",
                         Agent = agentName ?? "Unknown",
                         Message = $"Aucun appel depuis {Math.Round(minSinceLastCall)} minutes (inactivité)",

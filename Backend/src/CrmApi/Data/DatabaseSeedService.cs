@@ -3,22 +3,47 @@ using CrmApi.Authorization;
 using CrmApi.Helpers;
 using CrmApi.Models.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace CrmApi.Data;
 
 public class DatabaseSeedService : IHostedService
 {
     private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<DatabaseSeedService> _logger;
     private static readonly Random Rng = new();
 
-    public DatabaseSeedService(IServiceProvider serviceProvider) => _serviceProvider = serviceProvider;
+    public DatabaseSeedService(IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+        _logger = serviceProvider.GetRequiredService<ILogger<DatabaseSeedService>>();
+    }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         using var scope = _serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        await context.Database.MigrateAsync(cancellationToken);
+        try
+        {
+            await context.Database.MigrateAsync(cancellationToken);
+        }
+        catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P07")
+        {
+            _logger.LogWarning("Les tables existent déjà dans la base de données. Migration ignorée. ({Message})", ex.MessageText);
+            // Tables already exist — ensure migration history is marked so this won't repeat
+            var pendingMigrations = await context.Database.GetPendingMigrationsAsync(cancellationToken);
+            if (pendingMigrations.Any())
+            {
+                _logger.LogInformation("Marquage des migrations comme appliquées: {Migrations}", string.Join(", ", pendingMigrations));
+                foreach (var migration in pendingMigrations)
+                {
+                    await context.Database.ExecuteSqlRawAsync(
+                        "INSERT INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") VALUES ({0}, {1}) ON CONFLICT DO NOTHING",
+                        new object[] { migration, "8.0.0" }, cancellationToken);
+                }
+            }
+        }
 
         if (await context.Users.AnyAsync(u => u.Role == UserRole.Agent, cancellationToken))
             return;
@@ -348,6 +373,7 @@ public class DatabaseSeedService : IHostedService
         context.Followups.AddRange(agentTiers.SelectMany(t =>
             Enumerable.Range(0, Rng.Next(5, 18)).Select(_ => new Followup
             {
+                AgentId = t.user.Id,
                 AgentName = t.user.Name,
                 AppointmentDate = now.AddDays(Rng.Next(-35, 20)),
                 Status = followupStatuses[Rng.Next(followupStatuses.Length)],

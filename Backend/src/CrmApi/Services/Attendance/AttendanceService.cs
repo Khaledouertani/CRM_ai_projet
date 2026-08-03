@@ -58,7 +58,7 @@ public class AttendanceService : IAttendanceService
         };
         _context.Attendances.Add(attendance);
         await _context.SaveChangesAsync();
-        return new ClockResultDto { Success = true, AttendanceId = attendance.Id, Message = "Pointage d'entrée enregistré" };
+        return new ClockResultDto { Success = true, AttendanceId = (int)attendance.Id, Message = "Pointage d'entrée enregistré" };
     }
 
     public async Task<ClockResultDto> StartBreakAsync(int userId, string breakType)
@@ -113,7 +113,7 @@ await _context.SaveChangesAsync();
         return new ClockResultDto
         {
             Success = true,
-            AttendanceId = attendance.Id,
+            AttendanceId = (int)attendance.Id,
             Message = "Pause démarrée"
         };
     }
@@ -226,7 +226,7 @@ foreach (var a in all)
     public async Task<List<AttendanceReportDto>> GetReportAsync()
     {
         var records = await _context.Attendances.AsNoTracking().Include(a => a.User).Include(a => a.Breaks).OrderByDescending(a => a.Date).ToListAsync();
-        return records.Select(r => new AttendanceReportDto { Id = r.Id, UserId = r.UserId, UserName = r.User?.Name ?? "", Date = r.Date, ClockIn = r.ClockIn, ClockOut = r.ClockOut, Status = r.Status, Breaks = r.Breaks.Select(b => new BreakDto { Id = b.Id, Type = b.Type, StartTime = b.StartTime, EndTime = b.EndTime, DurationMinutes = b.DurationMinutes }).ToList() }).ToList();
+        return records.Select(r => new AttendanceReportDto { Id = (int)r.Id, UserId = r.UserId, UserName = r.User?.Name ?? "", Date = r.Date, ClockIn = r.ClockIn, ClockOut = r.ClockOut, Status = r.Status, Breaks = r.Breaks.Select(b => new BreakDto { Id = b.Id, Type = b.Type, StartTime = b.StartTime, EndTime = b.EndTime, DurationMinutes = b.DurationMinutes }).ToList() }).ToList();
     }
 
     public async Task<bool> UpdateAttendanceAsync(int userId, UpdateAttendanceDto dto)
