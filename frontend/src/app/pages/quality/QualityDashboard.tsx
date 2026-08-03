@@ -292,9 +292,6 @@ export default function QualityDashboard() {
                     <p className={`text-[10px] font-black ${teamPillText[s.color]} uppercase tracking-widest`}>{s.count} {s.label}</p>
                   </div>
                 ))}
-                <button onClick={() => navigate('/qualite/pointage')} className="px-4 py-2 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:opacity-90 transition-all cursor-pointer">
-                  Voir détails
-                </button>
               </div>
             </div>
 

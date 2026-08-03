@@ -173,9 +173,9 @@ export default function ManualEvaluationPage() {
             
             <div className="space-y-4">
               <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Agent à évaluer</label>
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 block">Agent à évaluer</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <select 
                     value={selectedAgentId}
                     onChange={(e) => setSelectedAgentId(e.target.value)}
@@ -190,9 +190,9 @@ export default function ManualEvaluationPage() {
               </div>
 
               <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Date de l'appel</label>
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 block">Date de l'appel</label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input 
                     type="date"
                     value={formData.callDate}
@@ -203,9 +203,9 @@ export default function ManualEvaluationPage() {
               </div>
 
               <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Référence Appel (Audio)</label>
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2 block">Référence Appel (Audio)</label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input 
                     type="text"
                     placeholder="ex: CALL-2024-001"
@@ -275,7 +275,7 @@ export default function ManualEvaluationPage() {
                               key={star}
                               type="button"
                               onClick={() => handleScoreChange(criterion.id, star)}
-                              className={`transition-all ${star <= criterion.score ? 'text-amber-500 scale-110' : 'text-slate-200 hover:text-slate-300'}`}
+                              className={`transition-all ${star <= criterion.score ? 'text-amber-500 scale-110' : 'text-muted-foreground/40 hover:text-muted-foreground'}`}
                             >
                               <Star className={`w-5 h-5 ${star <= criterion.score ? 'fill-current' : ''}`} />
                             </button>
@@ -289,34 +289,34 @@ export default function ManualEvaluationPage() {
             </div>
           </div>
 
-          <div className="bg-[#1E293B] border border-blue-500/10 rounded-[32px] p-6 shadow-sm">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 block flex items-center gap-2">
+          <div className="bg-card border border-border rounded-3xl p-6 shadow-sm">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3 block flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-primary" /> Synthèse & Recommandations
             </label>
             <textarea 
               value={formData.comment}
               onChange={(e) => setFormData({...formData, comment: e.target.value})}
               placeholder="Points forts, axes d'amélioration et plan d'action..."
-              className="w-full bg-[#0F172A] border border-blue-500/20 rounded-2xl p-4 text-sm font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-primary/40 min-h-[150px] transition-all resize-none shadow-inner"
+              className="w-full bg-background/50 border border-border rounded-2xl p-4 text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 min-h-[150px] transition-all resize-none shadow-inner"
             />
           </div>
 
           {/* Cadre de Validation - Design Corrigé */}
-          <div className="bg-[#1E293B] border border-blue-500/20 rounded-[32px] p-10 shadow-2xl relative">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500/0 via-blue-500/50 to-blue-500/0"></div>
+          <div className="bg-card border border-primary/20 rounded-3xl p-10 shadow-2xl relative">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/0 via-primary/50 to-primary/0"></div>
             
             <div className="flex flex-col gap-8">
               <div className="text-center space-y-1">
-                <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em]">Validation Finale</h4>
-                <p className="text-lg font-black text-white italic tracking-tight">Vérifiez les scores avant de valider l'évaluation.</p>
-                <p className="text-xs text-slate-400">Une fois validée, l'évaluation sera ajoutée à l'historique de l'agent.</p>
+                <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Validation Finale</h4>
+                <p className="text-lg font-black text-foreground italic tracking-tight">Vérifiez les scores avant de valider l'évaluation.</p>
+                <p className="text-xs text-muted-foreground">Une fois validée, l'évaluation sera ajoutée à l'historique de l'agent.</p>
               </div>
 
-              <div className="flex flex-wrap items-center justify-center gap-4 border-t border-blue-500/10 pt-8">
+              <div className="flex flex-wrap items-center justify-center gap-4 border-t border-border pt-8">
                 <button 
                   type="button"
                   onClick={(e) => { e.preventDefault(); exportToPDF(); }}
-                  className="px-8 py-4 bg-[#0F172A] border border-blue-500/30 text-blue-400 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-blue-500/20 transition-all active:scale-95"
+                  className="px-8 py-4 bg-background/50 border border-primary/30 text-primary rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-primary/20 transition-all active:scale-95"
                 >
                   <FileDown className="w-4 h-4" />
                   GÉNÉRER RAPPORT PDF
@@ -325,7 +325,7 @@ export default function ManualEvaluationPage() {
                 <button 
                   type="submit"
                   disabled={loading}
-                  className="px-10 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95 disabled:opacity-50"
+                  className="px-10 py-4 bg-gradient-to-r from-primary to-indigo-600 hover:opacity-90 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-lg shadow-primary/25 transition-all active:scale-95 disabled:opacity-50"
                 >
                   {loading ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

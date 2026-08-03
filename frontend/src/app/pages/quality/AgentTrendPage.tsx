@@ -75,7 +75,7 @@ export default function AgentTrendPage() {
 
   if (loading && !performance) {
     return (
-      <div className="flex items-center justify-center h-full text-gray-400">Chargement...</div>
+      <div className="flex items-center justify-center h-full text-muted-foreground">Chargement...</div>
     );
   }
 
@@ -118,28 +118,28 @@ export default function AgentTrendPage() {
     <div className="space-y-8 p-6 animate-in fade-in duration-700">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <TrendingUp className="w-6 h-6 text-orange-400" />
-        <h2 className="text-xl font-bold text-white">Rendement mensuel</h2>
+        <TrendingUp className="w-6 h-6 text-amber-400" />
+        <h2 className="text-xl font-bold text-foreground">Rendement mensuel</h2>
       </div>
 
       {/* Agent selector */}
       <div className="flex items-center gap-4">
-        <label className="text-sm font-bold uppercase text-gray-300 whitespace-nowrap">Agent</label>
+        <label className="text-sm font-bold uppercase text-muted-foreground whitespace-nowrap">Agent</label>
         <div className="relative w-64">
           <select
             value={selectedAgentId ?? ''}
             onChange={e => setSelectedAgentId(Number(e.target.value))}
-            className="w-full bg-[#0F172A] border border-orange-500/20 rounded-2xl p-3 text-sm font-medium text-white appearance-none focus:outline-none focus:border-orange-500 transition-all cursor-pointer"
+            className="w-full bg-background/50 border border-border rounded-2xl p-3 text-sm font-medium text-foreground appearance-none focus:outline-none focus:border-primary/50 transition-all cursor-pointer"
           >
             <option value="" disabled>Choisir un agent...</option>
             {agents.map(agent => (
               <option key={agent.id} value={agent.id}>{agent.name}</option>
             ))}
           </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
         </div>
         {performance && (
-          <span className="text-sm text-gray-400 ml-2">
+          <span className="text-sm text-muted-foreground ml-2">
             <Calendar className="w-4 h-4 inline mr-1" />
             {MONTH_NAMES[new Date().getMonth()]} vs {MONTH_NAMES[new Date().getMonth() === 0 ? 11 : new Date().getMonth() - 1]}
           </span>
@@ -155,14 +155,14 @@ export default function AgentTrendPage() {
             const displayVal = item.isPct ? `${item.curr}%` : `${fmt(item.curr)}${item.suffix ?? ''}`;
             const prevVal = item.isPct ? `${item.prev}%` : `${fmt(item.prev)}${item.suffix ?? ''}`;
             return (
-              <div key={item.label} className="bg-[#1E293B] p-4 rounded-xl shadow-lg">
-                <h3 className="text-xs font-bold uppercase text-gray-400 mb-1">{item.label}</h3>
+              <div key={item.label} className="bg-card border border-border p-4 rounded-2xl shadow-lg">
+                <h3 className="text-xs font-bold uppercase text-muted-foreground mb-1">{item.label}</h3>
                 <div className="flex items-end justify-between">
                   <div>
-                    <p className="text-2xl font-black text-white">{displayVal}</p>
-                    <p className="text-xs text-gray-500 mt-1">Précédent : {prevVal}</p>
+                    <p className="text-2xl font-black text-foreground">{displayVal}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Précédent : {prevVal}</p>
                   </div>
-                  <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[#0F172A]">
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-background/50 border border-border">
                     {positive ? (
                       <ArrowUp className="w-4 h-4 text-emerald-400" />
                     ) : (
@@ -181,8 +181,8 @@ export default function AgentTrendPage() {
 
       {/* Bar chart: mois précédent vs mois actuel */}
       {monthlyBarData.length > 0 && (
-        <div className="bg-[#1E293B] p-4 rounded-xl shadow-lg">
-          <h3 className="mb-4 text-sm font-bold uppercase text-gray-400">Comparaison mensuelle</h3>
+        <div className="bg-card border border-border p-6 rounded-3xl">
+          <h3 className="mb-4 text-sm font-bold uppercase text-muted-foreground">Comparaison mensuelle</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={monthlyBarData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} />
@@ -191,7 +191,7 @@ export default function AgentTrendPage() {
               <Tooltip contentStyle={chartTheme.tooltipStyle} />
               <Legend />
               <Bar dataKey="Mois précédent" fill="#64748B" />
-              <Bar dataKey="Mois actuel" fill="#F97316" />
+              <Bar dataKey="Mois actuel" fill="#06b6d4" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -199,14 +199,14 @@ export default function AgentTrendPage() {
 
       {/* Area chart: RDV journaliers */}
       {dailyData.length > 0 && (
-        <div className="bg-[#1E293B] p-4 rounded-xl shadow-lg">
-          <h3 className="mb-4 text-sm font-bold uppercase text-gray-400">Rendez‑vous journaliers</h3>
+        <div className="bg-card border border-border p-6 rounded-3xl">
+          <h3 className="mb-4 text-sm font-bold uppercase text-muted-foreground">Rendez‑vous journaliers</h3>
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={dailyData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
               <defs>
                 <linearGradient id="gradCurrent" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#F97316" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#F97316" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="gradPrevious" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#64748B" stopOpacity={0.3} />
@@ -218,7 +218,7 @@ export default function AgentTrendPage() {
               <YAxis stroke={chartTheme.axisColor} />
               <Tooltip contentStyle={chartTheme.tooltipStyle} />
               <Legend />
-              <Area type="monotone" dataKey="Mois actuel" stroke="#F97316" fill="url(#gradCurrent)" strokeWidth={2} />
+              <Area type="monotone" dataKey="Mois actuel" stroke="#06b6d4" fill="url(#gradCurrent)" strokeWidth={2} />
               <Area type="monotone" dataKey="Mois précédent" stroke="#64748B" fill="url(#gradPrevious)" strokeWidth={2} strokeDasharray="5 5" />
             </AreaChart>
           </ResponsiveContainer>
@@ -227,8 +227,8 @@ export default function AgentTrendPage() {
 
       {/* Line chart: quality / conversion / attendance trend */}
       {trendScoreData.length > 0 && (
-        <div className="bg-[#1E293B] p-4 rounded-xl shadow-lg">
-          <h3 className="mb-4 text-sm font-bold uppercase text-gray-400">Évolution des scores</h3>
+        <div className="bg-card border border-border p-6 rounded-3xl">
+          <h3 className="mb-4 text-sm font-bold uppercase text-muted-foreground">Évolution des scores</h3>
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={trendScoreData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} />
@@ -236,7 +236,7 @@ export default function AgentTrendPage() {
               <YAxis domain={[0, 100]} stroke={chartTheme.axisColor} />
               <Tooltip contentStyle={chartTheme.tooltipStyle} />
               <Legend />
-              <Line type="monotone" dataKey="Score qualité" stroke="#F97316" strokeWidth={3} dot={{ r: 6 }} />
+              <Line type="monotone" dataKey="Score qualité" stroke="#06b6d4" strokeWidth={3} dot={{ r: 6 }} />
               <Line type="monotone" dataKey="Conversion" stroke="#10B981" strokeWidth={3} dot={{ r: 6 }} />
               <Line type="monotone" dataKey="Présence" stroke="#3B82F6" strokeWidth={3} dot={{ r: 6 }} />
             </LineChart>
@@ -246,9 +246,9 @@ export default function AgentTrendPage() {
 
       {/* AI Summary */}
       {performance && (
-        <div className="p-4 bg-gradient-to-br from-[#F97316]/10 to-[#F97316]/5 rounded-xl shadow-sm">
-          <h3 className="mb-2 text-sm font-bold uppercase text-gray-400">Résumé IA — Rendement</h3>
-          <p className="text-sm text-gray-200">{generateSummary()}</p>
+        <div className="p-4 bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/10 rounded-xl shadow-sm">
+          <h3 className="mb-2 text-sm font-bold uppercase text-muted-foreground">Résumé IA — Rendement</h3>
+          <p className="text-sm text-foreground/85">{generateSummary()}</p>
         </div>
       )}
     </div>

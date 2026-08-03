@@ -109,10 +109,10 @@ export default function QualityComparison() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full text-gray-400">
+      <div className="flex items-center justify-center h-full text-muted-foreground">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Chargement...</p>
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Chargement...</p>
         </div>
       </div>
     );
@@ -121,17 +121,17 @@ export default function QualityComparison() {
   return (
     <div className="space-y-8 p-6 animate-in fade-in duration-700">
       <div className="flex items-center gap-3">
-        <ArrowLeftRight className="w-6 h-6 text-orange-400" />
-        <h2 className="text-xl font-bold text-white">Comparaison de rendement</h2>
+        <ArrowLeftRight className="w-6 h-6 text-amber-400" />
+        <h2 className="text-xl font-bold text-foreground">Comparaison de rendement</h2>
       </div>
 
       <div className="flex items-center gap-4">
-        <label className="text-sm font-bold uppercase text-gray-300 whitespace-nowrap">Agent</label>
+        <label className="text-sm font-bold uppercase text-muted-foreground whitespace-nowrap">Agent</label>
         <div className="relative w-64">
           <select
             value={selectedAgentId ?? ''}
             onChange={(e) => setSelectedAgentId(Number(e.target.value))}
-            className="w-full bg-[#0F172A] border border-blue-500/20 rounded-2xl p-3 text-sm font-medium text-white appearance-none focus:outline-none focus:border-blue-500 transition-all cursor-pointer"
+            className="w-full bg-background/50 border border-border rounded-2xl p-3 text-sm font-medium text-foreground appearance-none focus:outline-none focus:border-primary/50 transition-all cursor-pointer"
           >
             <option value="" disabled>
               Choisir un agent...
@@ -142,15 +142,15 @@ export default function QualityComparison() {
               </option>
             ))}
           </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
         </div>
       </div>
 
       {comparing && (
-        <div className="flex items-center justify-center py-8 text-gray-400">
+        <div className="flex items-center justify-center py-8 text-muted-foreground">
           <div className="flex items-center gap-3">
-            <div className="w-6 h-6 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Comparaison en cours...</p>
+            <div className="w-6 h-6 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Comparaison en cours...</p>
           </div>
         </div>
       )}
@@ -162,7 +162,7 @@ export default function QualityComparison() {
             {rows.map((row, i) => (
               <div
                 key={row.kpi}
-                className={`bg-[#1E293B] border border-blue-500/10 rounded-2xl p-4 ${
+                className={`bg-card border border-border rounded-2xl p-4 ${
                   row.evolution > 0
                     ? 'border-l-4 border-l-emerald-500'
                     : row.evolution < 0
@@ -170,7 +170,7 @@ export default function QualityComparison() {
                     : 'border-l-4 border-l-slate-500'
                 }`}
               >
-                <p className="text-[8px] font-black uppercase tracking-widest text-slate-500 mb-2">{row.kpi}</p>
+                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground mb-2">{row.kpi}</p>
                 <p
                   className={`text-2xl font-black italic tracking-tighter ${
                     row.evolution > 0
@@ -191,11 +191,11 @@ export default function QualityComparison() {
           </div>
 
           {/* Comparison Table */}
-          <div className="bg-[#1E293B] border border-blue-500/10 rounded-[32px] overflow-hidden">
-            <div className="p-6 border-b border-blue-500/10">
+          <div className="bg-card border border-border rounded-3xl overflow-hidden">
+            <div className="p-6 border-b border-border">
               <div className="flex items-center gap-3">
-                <ArrowLeftRight className="w-5 h-5 text-orange-400" />
-                <h3 className="font-black text-[10px] uppercase tracking-widest text-white">
+                <ArrowLeftRight className="w-5 h-5 text-amber-400" />
+                <h3 className="font-black text-[10px] uppercase tracking-widest text-foreground">
                   Tableau comparatif — Mois précédent vs Mois actuel
                 </h3>
               </div>
@@ -203,26 +203,26 @@ export default function QualityComparison() {
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-blue-500/5 bg-blue-500/5">
-                    <th className="px-6 py-4 text-[8px] font-black text-slate-500 uppercase tracking-widest">KPI</th>
-                    <th className="px-6 py-4 text-[8px] font-black text-slate-500 uppercase tracking-widest text-right">Mois précédent</th>
-                    <th className="px-6 py-4 text-[8px] font-black text-slate-500 uppercase tracking-widest text-right">Mois actuel</th>
-                    <th className="px-6 py-4 text-[8px] font-black text-slate-500 uppercase tracking-widest text-right">Évolution</th>
+                  <tr className="border-b border-border bg-primary/5">
+                    <th className="px-6 py-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest">KPI</th>
+                    <th className="px-6 py-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest text-right">Mois précédent</th>
+                    <th className="px-6 py-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest text-right">Mois actuel</th>
+                    <th className="px-6 py-4 text-[8px] font-black text-muted-foreground uppercase tracking-widest text-right">Évolution</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-blue-500/5">
+                <tbody className="divide-y divide-border">
                   {rows.map((row) => (
-                    <tr key={row.kpi} className="hover:bg-blue-500/5 transition-colors">
+                    <tr key={row.kpi} className="hover:bg-primary/5 transition-colors">
                       <td className="px-6 py-4">
-                        <span className="text-[10px] font-black text-white uppercase">{row.kpi}</span>
+                        <span className="text-[10px] font-black text-foreground uppercase">{row.kpi}</span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <span className="text-sm font-bold text-slate-400">
+                        <span className="text-sm font-bold text-muted-foreground">
                           {row.previous.toLocaleString()}{row.unit}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <span className="text-sm font-bold text-white">
+                        <span className="text-sm font-bold text-foreground">
                           {row.current.toLocaleString()}{row.unit}
                         </span>
                       </td>
@@ -237,10 +237,10 @@ export default function QualityComparison() {
           </div>
 
           {/* Comparison Chart */}
-          <div className="bg-[#1E293B] border border-blue-500/10 p-6 rounded-[32px]">
+          <div className="bg-card border border-border p-6 rounded-3xl">
             <div className="flex items-center gap-3 mb-6">
-              <ArrowLeftRight className="w-5 h-5 text-orange-400" />
-              <h3 className="font-black text-[10px] uppercase tracking-widest text-white">
+              <ArrowLeftRight className="w-5 h-5 text-amber-400" />
+              <h3 className="font-black text-[10px] uppercase tracking-widest text-foreground">
                 Graphique comparatif
               </h3>
             </div>
@@ -252,7 +252,7 @@ export default function QualityComparison() {
                 <Tooltip contentStyle={chartTheme.tooltipStyle} />
                 <Legend />
                 <Bar dataKey="previous" fill="#64748B" name="Mois précédent" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="current" fill="#F97316" name="Mois actuel" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="current" fill="#06b6d4" name="Mois actuel" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

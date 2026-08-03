@@ -54,10 +54,10 @@ export default function QualityPerformance() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full text-gray-400">
+      <div className="flex items-center justify-center h-full text-muted-foreground">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Chargement...</p>
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Chargement...</p>
         </div>
       </div>
     );
@@ -86,16 +86,16 @@ export default function QualityPerformance() {
     <div className="space-y-8 p-6 animate-in fade-in duration-700">
       <div className="flex items-center gap-3">
         <TrendingUp className="w-6 h-6 text-emerald-400" />
-        <h2 className="text-xl font-bold text-white">Performance Mensuelle</h2>
+        <h2 className="text-xl font-bold text-foreground">Performance Mensuelle</h2>
       </div>
 
       <div className="flex items-center gap-4">
-        <label className="text-sm font-bold uppercase text-gray-300 whitespace-nowrap">Agent</label>
+        <label className="text-sm font-bold uppercase text-muted-foreground whitespace-nowrap">Agent</label>
         <div className="relative w-64">
           <select
             value={selectedAgentId ?? ''}
             onChange={(e) => setSelectedAgentId(Number(e.target.value))}
-            className="w-full bg-[#0F172A] border border-blue-500/20 rounded-2xl p-3 text-sm font-medium text-white appearance-none focus:outline-none focus:border-blue-500 transition-all cursor-pointer"
+            className="w-full bg-background/50 border border-border rounded-2xl p-3 text-sm font-medium text-foreground appearance-none focus:outline-none focus:border-primary/50 transition-all cursor-pointer"
           >
             <option value="" disabled>
               Choisir un agent...
@@ -106,15 +106,15 @@ export default function QualityPerformance() {
               </option>
             ))}
           </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
         </div>
       </div>
 
       {fetching && (
-        <div className="flex items-center justify-center py-8 text-gray-400">
+        <div className="flex items-center justify-center py-8 text-muted-foreground">
           <div className="flex items-center gap-3">
             <div className="w-6 h-6 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Chargement des données...</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Chargement des données...</p>
           </div>
         </div>
       )}
@@ -141,10 +141,10 @@ export default function QualityPerformance() {
             })}
           </div>
 
-          <div className="bg-[#1E293B] border border-blue-500/10 p-6 rounded-[32px]">
+          <div className="bg-card border border-border p-6 rounded-3xl">
             <div className="flex items-center gap-3 mb-6">
               <CalendarCheck className="w-5 h-5 text-emerald-400" />
-              <h3 className="font-black text-[10px] uppercase tracking-widest text-white">
+              <h3 className="font-black text-[10px] uppercase tracking-widest text-foreground">
                 Évolution journalière — Mois courant
               </h3>
             </div>
