@@ -57,6 +57,8 @@ export default function DashboardPage() {
   const [searchClient, setSearchClient] = useState("");
   const [selectedAgent, setSelectedAgent] = useState("");
   const [selectedProject, setSelectedProject] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [formData, setFormData] = useState({
     username: '', password: '', name: '', role: 'agent', email: ''
   });
@@ -222,7 +224,25 @@ export default function DashboardPage() {
       selectedProject === "" ||
       item.project_type === selectedProject;
 
-    return clientMatch && agentMatch && projectMatch;
+    const from = dateFrom ? new Date(`${dateFrom}T00:00:00`) : null;
+    const to = dateTo ? new Date(`${dateTo}T23:59:59`) : null;
+    const hasDateFilter = !!(from || to);
+    const itemDate = item.appointment_date
+      ? new Date(item.appointment_date)
+      : item.created_at
+        ? new Date(item.created_at)
+        : null;
+    let dateMatch = true;
+    if (hasDateFilter) {
+      if (!itemDate || isNaN(itemDate.getTime())) {
+        dateMatch = false;
+      } else {
+        if (from && itemDate < from) dateMatch = false;
+        if (to && itemDate > to) dateMatch = false;
+      }
+    }
+
+    return clientMatch && agentMatch && projectMatch && dateMatch;
   });
 
   const statusBadge = (status?: string) => {
@@ -555,6 +575,32 @@ export default function DashboardPage() {
                 <option key={project} value={project}>{project}</option>
               ))}
             </select>
+
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-border bg-background/50 text-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              title="Date de début"
+            />
+
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-border bg-background/50 text-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              title="Date de fin"
+            />
+
+            {(dateFrom || dateTo) && (
+              <button
+                onClick={() => { setDateFrom(""); setDateTo(""); }}
+                className="px-3 py-2 rounded-xl border border-border bg-background/50 text-xs font-bold text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors cursor-pointer"
+                title="Réinitialiser les dates"
+              >
+                ✕
+              </button>
+            )}
           </div>
         </div>
         <div className="overflow-x-auto">
