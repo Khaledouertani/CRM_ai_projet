@@ -46,7 +46,6 @@ import ImportFile from './pages/admin/importfile';
 import FichierAcharge from './pages/admin/FichierAcharge';
 import AlertsPage from './pages/admin/AlertsPage';
 import SalaryPage from './pages/admin/SalaryPage';
-import PermissionsPage from './pages/admin/PermissionsPage';
 
 
 // AI
@@ -63,9 +62,7 @@ import QualityComparison from './pages/quality/QualityComparison';
 import QualityPerformance from './pages/quality/QualityPerformance';
 import ManualEvaluationPage from './pages/quality/ManualEvaluationPage';
 import AgentTrendPage from './pages/quality/AgentTrendPage';
-import QualityAttendance from './pages/quality/QualityAttendance';
 import QualityCalendarPage from './pages/quality/QualityCalendarPage';
-import QualityAppointmentsPage from './pages/quality/QualityAppointmentsPage';
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
@@ -138,7 +135,6 @@ function AppRoutes() {
 
 <Route path="/admin/dashboard" element={<DashboardPage />} />
 <Route path="/admin/realtime" element={<RealTimePage />} />
-<Route path="/admin/pointage" element={<QualityAttendance />} />
 <Route path="/admin/performance" element={<AdminPerformancePage />} />
 <Route path="/admin/map" element={<MapPage />} />
 <Route path="/admin/leads" element={<LeadsPage />} />
@@ -164,7 +160,6 @@ function AppRoutes() {
 <Route path="/admin/import-leads/FichierAcharge" element={<FichierAcharge />} />
       <Route path="/admin/alerts" element={<AlertsPage />} />
       <Route path="/admin/salaries" element={<SalaryPage />} />
-      <Route path="/admin/permissions" element={<PermissionsPage />} />
       <Route path="/admin/calls" element={<CallWorkspace />} />
 
     </Route>
@@ -177,10 +172,8 @@ function AppRoutes() {
       <Route path="/qualite/comparison" element={<QualityComparison />} />
       <Route path="/qualite/performance" element={<QualityPerformance />} />
         <Route path="/qualite/trends" element={<AgentTrendPage />} />
-      <Route path="/qualite/pointage" element={<QualityAttendance />} />
       <Route path="/qualite/evaluation" element={<ManualEvaluationPage />} />
       <Route path="/qualite/calendar" element={<QualityCalendarPage />} />
-      <Route path="/qualite/appointments" element={<QualityAppointmentsPage />} />
       <Route path="/qualite/chatbot" element={<ChatbotPage />} />
       <Route path="/qualite/analysis" element={<AnalysisPage />} />
         <Route path="/qualite/messages" element={<AdminMessagesPage />} />

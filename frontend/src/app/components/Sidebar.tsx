@@ -12,14 +12,12 @@ import {
   Bell,
   Mic,
   Activity,
-  Clock,
   Target,
   Mail,
   ChevronLeft,
   ChevronRight,
   BarChart3,
   Banknote,
-  Shield,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { usePermissions } from '../contexts/PermissionContext';
@@ -97,8 +95,6 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       label: 'PRINCIPAL',
       items: [
         { icon: Activity, label: 'Supervision Live', path: '/admin/realtime', accent: 'green' },
-        { icon: Clock, label: 'Pointage & Présences', path: '/admin/pointage', accent: 'blue' },
-        { icon: Shield, label: 'Permissions', path: '/admin/permissions', accent: 'purple', requiredPermission: 'Roles.View' },
       ],
     },
     {
@@ -139,9 +135,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         { icon: Users, label: 'Détails Agents', path: '/qualite/agents', accent: 'blue' },
         { icon: TrendingUp, label: 'Performance Mensuelle', path: '/qualite/performance', accent: 'green' },
         { icon: BarChart3, label: 'Comparaison de rendement', path: '/qualite/comparison', accent: 'orange' },
-        { icon: Clock, label: 'Pointage', path: '/qualite/pointage', accent: 'blue' },
         { icon: Calendar, label: 'Calendrier', path: '/qualite/calendar', accent: 'green' },
-        { icon: Calendar, label: 'Agenda Confirmation', path: '/qualite/appointments', accent: 'orange' },
         { icon: Mic, label: 'Analyse', path: '/qualite/analysis', accent: 'blue' }
       ],
     },

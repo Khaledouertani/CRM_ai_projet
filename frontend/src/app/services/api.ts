@@ -747,28 +747,6 @@ export const getAttendanceStatus = async (): Promise<any> => {
   if (!response.ok) throw new Error('Failed to get attendance status');
   return response.json();
 };
-export const updateAttendance = async (
-  id: number,
-  data: any
-) => {
-  const response = await fetch(
-    `${API_BASE}/attendance/update/${id}`,
-    {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders()
-      },
-      body: JSON.stringify(data)
-    }
-  );
-  if (!response.ok) {
-    let detail = 'Failed to update attendance';
-    try { const e = await response.json(); detail = e.error || e.detail || detail; } catch { }
-    throw new Error(detail);
-  }
-  return response.json();
-};
 
 export const getAttendanceReport = async (): Promise<any> => {
   const response = await fetch(`${API_BASE}/attendance/report`, {
@@ -779,18 +757,6 @@ export const getAttendanceReport = async (): Promise<any> => {
   return response.json();
 
 };
-export const getAttendanceTeamStatus = async (): Promise<any> => {
-  const response = await fetch(`${API_BASE}/attendance/team-status`, { headers: getAuthHeaders() });
-  if (!response.ok) throw new Error('Failed to get team status');
-  return response.json();
-};
-
-export const getAttendanceTeamReport = async (): Promise<any> => {
-  const response = await fetch(`${API_BASE}/attendance/team-report`, { headers: getAuthHeaders() });
-  if (!response.ok) throw new Error('Failed to get team report');
-  return response.json();
-};
-
 export const getAttendanceTeamDetail = async (): Promise<any[]> => {
   const response = await fetch(`${API_BASE}/attendance/team-detail`, { headers: getAuthHeaders() });
   if (!response.ok) throw new Error('Failed to get team detail');
@@ -1140,23 +1106,6 @@ export const getMyPermissions = async (): Promise<{ permissions: string[]; role:
   return response.json();
 };
 
-export const getAllRolePermissions = async (): Promise<any[]> => {
-  const response = await fetch(`${AUTH_BASE}/roles/permissions`, {
-    headers: getAuthHeaders(),
-  });
-  if (!response.ok) throw new Error('Failed to get role permissions');
-  return response.json();
-};
-
-export const setRolePermission = async (role: string, permission: string, granted: boolean): Promise<void> => {
-  const response = await fetch(`${AUTH_BASE}/roles/permissions`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-    body: JSON.stringify({ role, permission, granted }),
-  });
-  if (!response.ok) throw new Error('Failed to set role permission');
-};
-
 export const api = {
   // Auth
   login,
@@ -1168,7 +1117,6 @@ export const api = {
   updateUser,
   forgotPassword,
   resetPassword,
-  updateAttendance,
 
 
   // Calls
@@ -1238,8 +1186,6 @@ export const api = {
   endBreak,
   getAttendanceStatus,
   getAttendanceReport,
-  getAttendanceTeamStatus,
-  getAttendanceTeamReport,
   getAttendanceTeamDetail,
   saveQualityEvaluation,
   getAgentEvaluations,
@@ -1274,8 +1220,6 @@ export const api = {
 
   // Permissions
   getMyPermissions,
-  getAllRolePermissions,
-  setRolePermission,
 };
 
 export default api;
