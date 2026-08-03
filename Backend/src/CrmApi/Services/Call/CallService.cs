@@ -3,6 +3,7 @@ using CrmApi.DTOs.Call;
 using CrmApi.Models.Entities;
 using CrmApi.Repositories;
 using CrmApi.Services.Ai;
+using CrmApi.Services.Attendance;
 using Microsoft.EntityFrameworkCore;
 
 using AiAnonymizeDto = CrmApi.DTOs.Ai.AnonymizeDto;
@@ -14,12 +15,14 @@ public class CallService : ICallService
     private readonly ApplicationDbContext _context;
     private readonly IUnitOfWork _uow;
     private readonly IAiService _aiService;
+    private readonly IAttendanceService _attendanceService;
 
-    public CallService(ApplicationDbContext context, IUnitOfWork uow, IAiService aiService)
+    public CallService(ApplicationDbContext context, IUnitOfWork uow, IAiService aiService, IAttendanceService attendanceService)
     {
         _context = context;
         _uow = uow;
         _aiService = aiService;
+        _attendanceService = attendanceService;
     }
 
     public async Task<CallsResponseDto> GetCallsAsync(int userId, string role, string? agentName, string? sentiment, int limit, int offset)
@@ -122,6 +125,14 @@ public class CallService : ICallService
         };
         await _uow.Calls.AddAsync(call);
         await _uow.SaveChangesAsync();
+
+        // Auto pointage temps réel : premier appel de la journée = pointage d'entrée automatique
+        if (user?.Role == UserRole.Agent)
+        {
+            try { await _attendanceService.ClockInAsync(userId); }
+            catch { /* le pointage manuel reste disponible en cas d'échec */ }
+        }
+
         return (true, call.Id, "Call saved with RGPD anonymization");
     }
 

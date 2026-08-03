@@ -3,6 +3,7 @@ using CrmApi.DTOs.Call;
 using CrmApi.Models.Entities;
 using CrmApi.Repositories;
 using CrmApi.Services.Ai;
+using CrmApi.Services.Attendance;
 using CrmApi.Services.Call;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -16,6 +17,7 @@ public class CallServiceTests
     private readonly ApplicationDbContext _context;
     private readonly Mock<IUnitOfWork> _mockUow;
     private readonly Mock<IAiService> _mockAi;
+    private readonly Mock<IAttendanceService> _mockAttendance;
     private readonly CallService _sut;
 
     public CallServiceTests()
@@ -26,7 +28,8 @@ public class CallServiceTests
         _context = new ApplicationDbContext(options);
         _mockUow = new Mock<IUnitOfWork>();
         _mockAi = new Mock<IAiService>();
-        _sut = new CallService(_context, _mockUow.Object, _mockAi.Object);
+        _mockAttendance = new Mock<IAttendanceService>();
+        _sut = new CallService(_context, _mockUow.Object, _mockAi.Object, _mockAttendance.Object);
     }
 
     [Fact]
