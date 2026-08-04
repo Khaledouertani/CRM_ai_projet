@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
+import { useAutoClockIn } from '../hooks/useAutoClockIn';
 
 export type CallState = 'idle' | 'calling' | 'cooldown';
 
@@ -34,7 +35,10 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     if (cooldownRef.current) { clearInterval(cooldownRef.current); cooldownRef.current = null; }
   }, []);
 
+  const autoClockIn = useAutoClockIn();
+
   const startCall = useCallback(() => {
+    autoClockIn();
     setCallState('calling');
     setCallDuration(0);
     setIsOnHold(false);
@@ -43,7 +47,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     timerRef.current = setInterval(() => {
       setCallDuration(d => d + 1);
     }, 1000);
-  }, [clearTimers]);
+  }, [autoClockIn, clearTimers]);
 
   const endCall = useCallback(() => {
     setCallState('cooldown');

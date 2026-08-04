@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Phone, PhoneOff, X, Delete, Trash2 } from 'lucide-react';
 import { saveCall } from '../../services/api';
+import { useAutoClockIn } from '../../hooks/useAutoClockIn';
 import toast from 'react-hot-toast';
 
 interface PhoneDialerPanelProps {
@@ -50,6 +51,8 @@ export function PhoneDialerPanel({ isOpen, onClose }: PhoneDialerPanelProps) {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const callStartRef = useRef<Date | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  const autoClockIn = useAutoClockIn();
 
   // Close on outside click (only when idle)
   useEffect(() => {
@@ -108,6 +111,7 @@ export function PhoneDialerPanel({ isOpen, onClose }: PhoneDialerPanelProps) {
   const handleCall = useCallback(() => {
     if (!number.trim()) return;
 
+    autoClockIn();
     setDialerState('calling');
     callStartRef.current = new Date();
     setCallDuration(0);
@@ -122,7 +126,7 @@ export function PhoneDialerPanel({ isOpen, onClose }: PhoneDialerPanelProps) {
       icon: '📞',
       duration: 2000,
     });
-  }, [number]);
+  }, [number, autoClockIn]);
 
   // ── Hang up & save to database ────────────────────────────
   const handleHangUp = useCallback(async () => {
