@@ -4,6 +4,7 @@ public class CreateEvaluationDto
 {
     public int AgentId { get; set; }
     public string? CallRef { get; set; }
+    public DateTime? CallDate { get; set; }
     public float? GlobalScore { get; set; }
     public string? Decision { get; set; }
     public string? Commentaires { get; set; }

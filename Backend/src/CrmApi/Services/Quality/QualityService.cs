@@ -18,7 +18,8 @@ public class QualityService : IQualityService
         var evaluation = new Models.Entities.ManualEvaluation
         {
             AgentId = dto.AgentId, EvaluatorId = evaluatorId, CallRef = dto.CallRef, GlobalScore = dto.GlobalScore ?? 0,
-            Decision = dto.Decision, Commentaires = dto.Commentaires, ScoresJson = dto.Scores != null ? JsonSerializer.Serialize(dto.Scores) : null
+            Decision = dto.Decision, Commentaires = dto.Commentaires, ScoresJson = dto.Scores != null ? JsonSerializer.Serialize(dto.Scores) : null,
+            EvaluationDate = dto.CallDate.HasValue ? DateTime.SpecifyKind(dto.CallDate.Value, DateTimeKind.Utc) : DateTime.UtcNow
         };
         _context.ManualEvaluations.Add(evaluation);
         await _context.SaveChangesAsync();
