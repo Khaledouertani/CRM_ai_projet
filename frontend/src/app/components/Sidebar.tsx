@@ -18,6 +18,7 @@ import {
   ChevronRight,
   BarChart3,
   Banknote,
+  ClipboardCheck,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { usePermissions } from '../contexts/PermissionContext';
@@ -149,6 +150,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     {
       label: 'ÉVALUATION',
       items: [
+        { icon: ClipboardCheck, label: "Fiche d'Évaluation", path: '/qualite/evaluation', accent: 'orange' },
         { icon: MessageCircle, label: 'Chatbot IA', path: '/qualite/chatbot', accent: 'blue' },
       ],
     },
