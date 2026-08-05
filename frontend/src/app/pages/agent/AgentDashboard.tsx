@@ -35,14 +35,14 @@ const PAUSE_BG: Record<string, string> = {
 };
 
 const PAUSE_TEXT: Record<string, string> = {
-  amber: 'text-amber-600',
-  orange: 'text-orange-600',
-  emerald: 'text-emerald-600',
-  blue: 'text-blue-600',
-  purple: 'text-purple-600',
-  indigo: 'text-indigo-600',
-  teal: 'text-teal-600',
-  rose: 'text-rose-600',
+  amber: 'text-amber-400',
+  orange: 'text-orange-400',
+  emerald: 'text-emerald-400',
+  blue: 'text-blue-400',
+  purple: 'text-purple-400',
+  indigo: 'text-indigo-400',
+  teal: 'text-teal-400',
+  rose: 'text-rose-400',
 };
 
 const PAUSE_HOVER_BG: Record<string, string> = {

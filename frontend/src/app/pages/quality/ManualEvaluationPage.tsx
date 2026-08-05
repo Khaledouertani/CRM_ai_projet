@@ -224,9 +224,9 @@ export default function ManualEvaluationPage() {
             </h3>
             <div className="grid grid-cols-1 gap-3">
               {[
-                { id: 'conforme', label: 'Conforme', color: 'bg-emerald-500', icon: CheckCircle2 },
-                { id: 'coaching', label: 'À Coacher', color: 'bg-amber-500', icon: MessageSquare },
-                { id: 'non-conforme', label: 'Non-Conforme', color: 'bg-rose-500', icon: AlertCircle },
+                { id: 'conforme', label: 'Conforme', color: 'bg-emerald-500', icon: CheckCircle2, active: 'border-emerald-500 bg-emerald-500/5', iconActive: 'text-emerald-500' },
+                { id: 'coaching', label: 'À Coacher', color: 'bg-amber-500', icon: MessageSquare, active: 'border-amber-500 bg-amber-500/5', iconActive: 'text-amber-500' },
+                { id: 'non-conforme', label: 'Non-Conforme', color: 'bg-rose-500', icon: AlertCircle, active: 'border-rose-500 bg-rose-500/5', iconActive: 'text-rose-500' },
               ].map((d) => (
                 <button
                   key={d.id}
@@ -234,13 +234,13 @@ export default function ManualEvaluationPage() {
                   onClick={() => setFormData({...formData, decision: d.id})}
                   className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${
                     formData.decision === d.id 
-                    ? `border-${d.id === 'conforme' ? 'emerald' : d.id === 'coaching' ? 'amber' : 'rose'}-500 bg-${d.id === 'conforme' ? 'emerald' : d.id === 'coaching' ? 'amber' : 'rose'}-500/5` 
+                    ? d.active
                     : 'border-transparent bg-muted/30 hover:bg-muted/50'
                   }`}
                 >
                   <d.icon className={`w-5 h-5 ${
                     formData.decision === d.id 
-                    ? `text-${d.id === 'conforme' ? 'emerald' : d.id === 'coaching' ? 'amber' : 'rose'}-500` 
+                    ? d.iconActive
                     : 'text-slate-400'
                   }`} />
                   <span className={`text-[10px] font-black uppercase tracking-widest ${

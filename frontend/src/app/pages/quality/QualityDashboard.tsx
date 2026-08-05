@@ -6,7 +6,7 @@ import {
   ShieldCheck, CheckCircle2, AlertCircle,
   Calendar, TrendingDown, Clock, BellRing,
   X, ChevronDown, ChevronUp, CalendarCheck,
-  Eye, Activity, BarChart2, Filter
+  Eye, Activity, BarChart2, Filter, AlertTriangle, Info
 } from 'lucide-react';
 
 import {
@@ -37,10 +37,10 @@ const alertDot: Record<AlertType, string> = {
   warning: 'bg-amber-500',
   info: 'bg-primary',
 };
-const alertIcon: Record<AlertType, string> = {
-  critical: '🔴',
-  warning: '🟡',
-  info: '🔵',
+const alertIcon: Record<AlertType, React.ElementType> = {
+  critical: AlertCircle,
+  warning: AlertTriangle,
+  info: Info,
 };
 
 type TeamColor = 'emerald' | 'amber' | 'slate';
@@ -516,12 +516,14 @@ export default function QualityDashboard() {
                 <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Aucune alerte • Tout est normal</p>
               </div>
             ) : (
-              filteredAlerts.map(alert => (
+              filteredAlerts.map(alert => {
+                const AlertIcon = alertIcon[alert.type];
+                return (
                 <div key={alert.id} className={`relative flex items-start gap-4 p-5 rounded-2xl border transition-all ${alertStyle[alert.type]} ${!alert.read ? 'ring-1 ring-inset ring-primary/20' : 'opacity-70'}`}>
                   {!alert.read && <div className={`absolute top-4 right-14 w-2 h-2 rounded-full ${alertDot[alert.type]} animate-pulse`} />}
-                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-lg shrink-0 ${alert.type === 'critical' ? 'bg-rose-500/20' : alert.type === 'warning' ? 'bg-amber-500/20' : 'bg-primary/20'
+                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${alert.type === 'critical' ? 'bg-rose-500/20' : alert.type === 'warning' ? 'bg-amber-500/20' : 'bg-primary/20'
                     }`}>
-                    {alertIcon[alert.type]}
+                    <AlertIcon className={`w-5 h-5 ${alert.type === 'critical' ? 'text-rose-400' : alert.type === 'warning' ? 'text-amber-400' : 'text-primary'}`} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -539,8 +541,8 @@ export default function QualityDashboard() {
                     </button>
                   </div>
                 </div>
-              ))
-            )}
+                );
+              }))}
           </div>
 
           <div className="grid grid-cols-3 gap-4">

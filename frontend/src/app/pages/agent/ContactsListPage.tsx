@@ -27,11 +27,11 @@ interface Contact {
 // ── Helper: ligne info en mode lecture ────────────────────────────────────────
 function InfoRow({ icon, label, value, highlight }: { icon: React.ReactNode; label: string; value: string; highlight?: boolean }) {
   return (
-    <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl ${highlight ? 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50' : 'bg-gray-50 dark:bg-gray-800/50'}`}>
+    <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl ${highlight ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-muted/30'}`}>
       <span className="shrink-0">{icon}</span>
       <div className="min-w-0">
-        <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none mb-0.5">{label}</p>
-        <p className={`text-sm font-semibold truncate ${highlight ? 'text-emerald-700 dark:text-emerald-300' : 'text-gray-900 dark:text-gray-100'}`}>{value}</p>
+        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-0.5">{label}</p>
+        <p className={`text-sm font-semibold truncate ${highlight ? 'text-emerald-400' : 'text-foreground'}`}>{value}</p>
       </div>
     </div>
   );
@@ -167,9 +167,9 @@ export default function ContactsListPage() {
   const getStatusColor = (status: string) => {
     switch(status) {
       case 'actif': return 'bg-gradient-to-r from-emerald-500 to-teal-500';
-      case 'inactif': return 'bg-gradient-to-r from-gray-500 to-gray-600';
-      case 'nouveau': return 'bg-gradient-to-r from-blue-500 to-indigo-500';
-      default: return 'bg-gradient-to-r from-gray-500 to-gray-600';
+      case 'inactif': return 'bg-gradient-to-r from-muted to-muted';
+      case 'nouveau': return 'bg-gradient-to-r from-primary to-indigo-500';
+      default: return 'bg-gradient-to-r from-muted to-muted';
     }
   };
 
@@ -191,71 +191,71 @@ export default function ContactsListPage() {
   };
 
   const ContactCard = ({ contact }: { contact: Contact }) => (
-    <div className="group bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-[1.02]">
+    <div className="group bg-card rounded-2xl border border-border hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-[1.02]">
       <div className={`h-1 ${getStatusColor(contact.status)}`} />
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">
+            <div className="w-12 h-12 bg-gradient-to-br from-primary to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">
               {contact.company.charAt(0)}
             </div>
             <div>
-              <h3 className="font-bold text-gray-900 dark:text-gray-100">{contact.company}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{contact.contact}</p>
+              <h3 className="font-bold text-foreground">{contact.company}</h3>
+              <p className="text-sm text-muted-foreground">{contact.contact}</p>
             </div>
           </div>
           <button 
             onClick={() => toggleFavorite(contact.id)}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+            className="p-2 hover:bg-accent rounded-xl transition-all"
           >
             {favorites.includes(contact.id) ? 
               <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" /> : 
-              <StarOff className="w-5 h-5 text-gray-400" />
+              <StarOff className="w-5 h-5 text-muted-foreground" />
             }
           </button>
         </div>
 
         <div className="space-y-2 mb-4">
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <Briefcase className="w-4 h-4 text-blue-500" />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Briefcase className="w-4 h-4 text-primary" />
             {contact.role}
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <Building className="w-4 h-4 text-blue-500" />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Building className="w-4 h-4 text-primary" />
             {contact.industry}
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <MapPin className="w-4 h-4 text-blue-500" />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <MapPin className="w-4 h-4 text-primary" />
             {contact.city}
           </div>
         </div>
 
         <div className="flex flex-col gap-2 mb-4">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500 dark:text-gray-400">Dernier contact</span>
-            <span className="font-medium text-gray-900 dark:text-gray-100">{contact.lastContact}</span>
+            <span className="text-muted-foreground">Dernier contact</span>
+            <span className="font-medium text-foreground">{contact.lastContact}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500 dark:text-gray-400">Affaires en cours</span>
-            <span className="font-medium text-emerald-600 dark:text-emerald-400">{contact.deals}</span>
+            <span className="text-muted-foreground">Affaires en cours</span>
+            <span className="font-medium text-emerald-400">{contact.deals}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500 dark:text-gray-400">CA généré</span>
-            <span className="font-medium text-blue-600 dark:text-blue-400">{contact.revenue.toLocaleString()} €</span>
+            <span className="text-muted-foreground">CA généré</span>
+            <span className="font-medium text-primary">{contact.revenue.toLocaleString()} €</span>
           </div>
         </div>
 
         <div className="flex gap-2">
           <button
             onClick={() => handleCall(contact)}
-            className="flex-1 px-3 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl text-sm font-medium hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+            className="flex-1 px-3 py-2 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-xl text-sm font-medium hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
           >
             <Phone className="w-4 h-4" />
             Appeler
           </button>
           <button
             onClick={() => handleOpenModal(contact)}
-            className="px-3 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+            className="px-3 py-2 bg-muted/30 text-foreground/80 rounded-xl text-sm font-medium hover:bg-accent transition-all duration-200"
           >
             <Eye className="w-4 h-4" />
           </button>
@@ -265,38 +265,38 @@ export default function ContactsListPage() {
   );
 
   const ContactRow = ({ contact }: { contact: Contact }) => (
-    <tr className="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all duration-200 group">
+    <tr className="border-b border-border hover:bg-accent transition-all duration-200 group">
       <td className="p-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
             {contact.company.charAt(0)}
           </div>
           <div>
-            <p className="font-medium text-gray-900 dark:text-gray-100">{contact.company}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">{contact.industry}</p>
+            <p className="font-medium text-foreground">{contact.company}</p>
+            <p className="text-xs text-muted-foreground">{contact.industry}</p>
           </div>
         </div>
       </td>
       <td className="p-4">
         <div>
-          <p className="font-medium text-gray-900 dark:text-gray-100">{contact.contact}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{contact.role}</p>
+          <p className="font-medium text-foreground">{contact.contact}</p>
+          <p className="text-sm text-muted-foreground">{contact.role}</p>
         </div>
       </td>
       <td className="p-4">
-        <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-          <Phone className="w-4 h-4 text-blue-500" />
+        <div className="flex items-center gap-2 text-foreground/80">
+          <Phone className="w-4 h-4 text-primary" />
           {contact.phone}
         </div>
       </td>
       <td className="p-4">
-        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+        <div className="flex items-center gap-2 text-muted-foreground">
           <Mail className="w-4 h-4" />
           {contact.email}
         </div>
       </td>
       <td className="p-4">
-        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+        <div className="flex items-center gap-2 text-muted-foreground">
           <MapPin className="w-4 h-4" />
           {contact.city}
         </div>
@@ -310,7 +310,7 @@ export default function ContactsListPage() {
         <div className="flex gap-2">
           <button
             onClick={() => handleCall(contact)}
-            className="p-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:shadow-lg transition-all duration-200"
+            className="p-2 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-lg hover:shadow-lg transition-all duration-200"
             title="Appeler"
           >
             <Phone className="w-4 h-4" />
@@ -320,7 +320,7 @@ export default function ContactsListPage() {
             className={`p-2 rounded-lg transition-all duration-200 ${
               favorites.includes(contact.id) 
                 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600' 
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                : 'bg-muted/30 text-muted-foreground hover:bg-accent'
             }`}
             title={favorites.includes(contact.id) ? "Retirer des favoris" : "Ajouter aux favoris"}
           >
@@ -328,7 +328,7 @@ export default function ContactsListPage() {
           </button>
           <button
             onClick={() => handleOpenModal(contact)}
-            className="p-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+            className="p-2 bg-muted/30 text-muted-foreground rounded-lg hover:bg-accent transition-all duration-200"
             title="Voir détails"
           >
             <Eye className="w-4 h-4" />
@@ -347,7 +347,7 @@ export default function ContactsListPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-8 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-muted/15 via-card to-muted/15 dark:from-background dark:via-background dark:to-background p-8 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-10 h-10 text-primary animate-spin mx-auto mb-4" />
           <p className="text-muted-foreground font-medium">Chargement des contacts...</p>
@@ -382,28 +382,28 @@ export default function ContactsListPage() {
         }
       `}</style>
 
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-8">
+      <div className="min-h-screen bg-gradient-to-br from-muted/15 via-card to-muted/15 dark:from-background dark:via-background dark:to-background p-8">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Notification */}
           {showNotification && (
             <div className="fixed top-4 right-4 z-50 animate-slideIn">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-4 border-l-4 border-blue-500">
+              <div className="bg-card rounded-xl shadow-2xl p-4 border-l-4 border-primary">
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="w-5 h-5 text-blue-500" />
-                  <p className="text-gray-900 dark:text-gray-100">{notificationMessage}</p>
+                  <CheckCircle className="w-5 h-5 text-primary" />
+                  <p className="text-foreground">{notificationMessage}</p>
                 </div>
               </div>
             </div>
           )}
 
           {/* Header */}
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 p-6">
+          <div className="bg-card rounded-2xl shadow-xl border border-border p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   Liste des Contacts
                 </h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-1">Gérez votre réseau professionnel efficacement</p>
+                <p className="text-muted-foreground mt-1">Gérez votre réseau professionnel efficacement</p>
               </div>
               
          <div className="flex gap-2">
@@ -422,20 +422,20 @@ export default function ContactsListPage() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+              <div className="bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 rounded-xl p-4 border border-primary/20">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">Total Contacts</p>
-                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{stats.total}</p>
+                    <p className="text-sm text-primary font-medium">Total Contacts</p>
+                    <p className="text-2xl font-bold text-primary">{stats.total}</p>
                   </div>
-                  <User className="w-8 h-8 text-blue-500 opacity-50" />
+                  <User className="w-8 h-8 text-primary opacity-50" />
                 </div>
               </div>
               <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-4 border border-emerald-200 dark:border-emerald-800">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">Contacts Actifs</p>
-                    <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">{stats.actifs}</p>
+                    <p className="text-sm text-emerald-400 font-medium">Contacts Actifs</p>
+                    <p className="text-2xl font-bold text-emerald-400">{stats.actifs}</p>
                   </div>
                   <TrendingUp className="w-8 h-8 text-emerald-500 opacity-50" />
                 </div>
@@ -462,26 +462,26 @@ export default function ContactsListPage() {
           </div>
 
           {/* Filters & Search */}
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 p-6">
+          <div className="bg-card rounded-2xl shadow-xl border border-border p-6">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type="text"
                   placeholder="Rechercher par nom, société, ville ou rôle..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-gray-500 font-medium shadow-sm"
+                  className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground font-medium shadow-sm"
                 />
               </div>
               
               <div className="flex gap-3">
                 <div className="relative">
-                  <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="pl-9 pr-8 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none cursor-pointer"
+                    className="pl-9 pr-8 py-2.5 bg-card border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer"
                   >
                     {statuses.map(status => (
                       <option key={status} value={status}>
@@ -492,11 +492,11 @@ export default function ContactsListPage() {
                 </div>
 
                 <div className="relative">
-                  <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <select
                     value={filterIndustry}
                     onChange={(e) => setFilterIndustry(e.target.value)}
-                    className="pl-9 pr-8 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none cursor-pointer"
+                    className="pl-9 pr-8 py-2.5 bg-card border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer"
                   >
                     {industries.map(industry => (
                       <option key={industry} value={industry}>
@@ -506,16 +506,16 @@ export default function ContactsListPage() {
                   </select>
                 </div>
 
-                <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
+                <div className="flex gap-1 p-1 bg-muted/30 rounded-xl">
                   <button
                     onClick={() => setViewMode('grid')}
-                    className={`p-2 rounded-lg transition-all duration-200 ${viewMode === 'grid' ? 'bg-white dark:bg-gray-900 shadow-md text-blue-600' : 'text-gray-600 dark:text-gray-400'}`}
+                    className={`p-2 rounded-lg transition-all duration-200 ${viewMode === 'grid' ? 'bg-card shadow-md text-primary' : 'text-muted-foreground'}`}
                   >
                     <Grid className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => setViewMode('list')}
-                    className={`p-2 rounded-lg transition-all duration-200 ${viewMode === 'list' ? 'bg-white dark:bg-gray-900 shadow-md text-blue-600' : 'text-gray-600 dark:text-gray-400'}`}
+                    className={`p-2 rounded-lg transition-all duration-200 ${viewMode === 'list' ? 'bg-card shadow-md text-primary' : 'text-muted-foreground'}`}
                   >
                     <List className="w-5 h-5" />
                   </button>
@@ -532,18 +532,18 @@ export default function ContactsListPage() {
               ))}
             </div>
           ) : (
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden animate-fadeIn">
+            <div className="bg-card rounded-2xl shadow-xl border border-border overflow-hidden animate-fadeIn">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50">
+                  <thead className="bg-gradient-to-r from-muted/20 to-muted/5">
                     <tr>
-                      <th className="text-left p-4 text-gray-600 dark:text-gray-400 font-semibold">Société</th>
-                      <th className="text-left p-4 text-gray-600 dark:text-gray-400 font-semibold">Contact</th>
-                      <th className="text-left p-4 text-gray-600 dark:text-gray-400 font-semibold">Téléphone</th>
-                      <th className="text-left p-4 text-gray-600 dark:text-gray-400 font-semibold">Email</th>
-                      <th className="text-left p-4 text-gray-600 dark:text-gray-400 font-semibold">Ville</th>
-                      <th className="text-left p-4 text-gray-600 dark:text-gray-400 font-semibold">Statut</th>
-                      <th className="text-left p-4 text-gray-600 dark:text-gray-400 font-semibold">Actions</th>
+                      <th className="text-left p-4 text-muted-foreground font-semibold">Société</th>
+                      <th className="text-left p-4 text-muted-foreground font-semibold">Contact</th>
+                      <th className="text-left p-4 text-muted-foreground font-semibold">Téléphone</th>
+                      <th className="text-left p-4 text-muted-foreground font-semibold">Email</th>
+                      <th className="text-left p-4 text-muted-foreground font-semibold">Ville</th>
+                      <th className="text-left p-4 text-muted-foreground font-semibold">Statut</th>
+                      <th className="text-left p-4 text-muted-foreground font-semibold">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -557,18 +557,18 @@ export default function ContactsListPage() {
           )}
 
           {filteredContacts.length === 0 && (
-            <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800">
-              <div className="inline-flex p-4 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
-                <Search className="w-8 h-8 text-gray-400" />
+            <div className="text-center py-12 bg-card rounded-2xl border border-border">
+              <div className="inline-flex p-4 bg-muted/30 rounded-full mb-4">
+                <Search className="w-8 h-8 text-muted-foreground" />
               </div>
-              <p className="text-gray-500 dark:text-gray-400">Aucun contact trouvé</p>
+              <p className="text-muted-foreground">Aucun contact trouvé</p>
               <button 
                 onClick={() => {
                   setSearchTerm('');
                   setFilterStatus('all');
                   setFilterIndustry('all');
                 }}
-                className="mt-4 text-blue-600 dark:text-blue-400 hover:underline"
+                className="mt-4 text-primary hover:underline"
               >
                 Effacer les filtres
               </button>
@@ -580,21 +580,21 @@ export default function ContactsListPage() {
       {/* Modal Détails / Édition Contact */}
       {showDetailsModal && selectedContact && editData && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-slideIn">
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-slideIn">
             {/* Header barre couleur */}
             <div className={`h-1.5 ${getStatusColor(editData.status)}`} />
 
             {/* Header titre */}
-            <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100 dark:border-gray-800">
+            <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                <div className="w-14 h-14 bg-gradient-to-br from-primary to-indigo-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
                   {editData.company.charAt(0)}
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                  <h2 className="text-xl font-bold text-foreground">
                     {editMode ? 'Modifier la fiche' : editData.company}
                   </h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-muted-foreground">
                     {editMode ? 'Tous les champs sont modifiables' : editData.contact}
                   </p>
                 </div>
@@ -603,7 +603,7 @@ export default function ContactsListPage() {
                 {!editMode && (
                   <button
                     onClick={() => setEditMode(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl text-sm font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all"
+                    className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl text-sm font-semibold hover:bg-primary/20 transition-all"
                   >
                     <Edit className="w-4 h-4" />
                     Modifier
@@ -611,9 +611,9 @@ export default function ContactsListPage() {
                 )}
                 <button
                   onClick={() => { setShowDetailsModal(false); setEditMode(false); }}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                  className="p-2 hover:bg-accent rounded-xl transition-all"
                 >
-                  <X className="w-5 h-5 text-gray-500" />
+                  <X className="w-5 h-5 text-muted-foreground" />
                 </button>
               </div>
             </div>
@@ -626,26 +626,26 @@ export default function ContactsListPage() {
                   {/* Société & Contact */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">Société *</label>
+                      <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Société *</label>
                       <div className="relative">
-                        <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
+                        <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
                         <input
                           type="text"
                           value={editData.company}
                           onChange={e => handleFieldChange('company', e.target.value)}
-                          className="w-full pl-9 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                          className="w-full pl-9 pr-4 py-2.5 bg-muted/30 border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">Nom du contact *</label>
+                      <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Nom du contact *</label>
                       <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
                         <input
                           type="text"
                           value={editData.contact}
                           onChange={e => handleFieldChange('contact', e.target.value)}
-                          className="w-full pl-9 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                          className="w-full pl-9 pr-4 py-2.5 bg-muted/30 border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                         />
                       </div>
                     </div>
@@ -654,26 +654,26 @@ export default function ContactsListPage() {
                   {/* Rôle & Secteur */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">Fonction / Rôle</label>
+                      <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Fonction / Rôle</label>
                       <div className="relative">
-                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
+                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
                         <input
                           type="text"
                           value={editData.role}
                           onChange={e => handleFieldChange('role', e.target.value)}
-                          className="w-full pl-9 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                          className="w-full pl-9 pr-4 py-2.5 bg-muted/30 border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">Secteur d'activité</label>
+                      <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Secteur d'activité</label>
                       <div className="relative">
-                        <Award className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
+                        <Award className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
                         <input
                           type="text"
                           value={editData.industry}
                           onChange={e => handleFieldChange('industry', e.target.value)}
-                          className="w-full pl-9 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                          className="w-full pl-9 pr-4 py-2.5 bg-muted/30 border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                         />
                       </div>
                     </div>
@@ -682,7 +682,7 @@ export default function ContactsListPage() {
                   {/* TÉLÉPHONE & EMAIL */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">Téléphone *</label>
+                      <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Téléphone *</label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
                         <input
@@ -690,19 +690,19 @@ export default function ContactsListPage() {
                           value={editData.phone}
                           readOnly
                           placeholder="+33 6 XX XX XX XX"
-                          className="w-full pl-9 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-2 border-emerald-400/60 dark:border-emerald-600/60 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
+                          className="w-full pl-9 pr-4 py-2.5 bg-muted/30 border-2 border-emerald-400/60 dark:border-emerald-600/60 rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">Email</label>
+                      <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Email</label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
                         <input
                           type="email"
                           value={editData.email}
                           onChange={e => handleFieldChange('email', e.target.value)}
-                          className="w-full pl-9 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                          className="w-full pl-9 pr-4 py-2.5 bg-muted/30 border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                         />
                       </div>
                     </div>
@@ -715,7 +715,7 @@ export default function ContactsListPage() {
   </label>
 
   <select
-    className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 text-white placeholder:text-gray-400 rounded-xl"
+    className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 text-white placeholder:text-muted-foreground rounded-xl"
   >
     <option>Isolation</option>
     <option>PAC</option>
@@ -725,23 +725,23 @@ export default function ContactsListPage() {
 </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">Ville</label>
+                      <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Ville</label>
                       <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
+                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
                         <input
                           type="text"
                           value={editData.city}
                           onChange={e => handleFieldChange('city', e.target.value)}
-                          className="w-full pl-9 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                          className="w-full pl-9 pr-4 py-2.5 bg-muted/30 border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">Statut</label>
+                      <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Statut</label>
                       <select
                         value={editData.status}
                         onChange={e => handleFieldChange('status', e.target.value)}
-                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                        className="w-full px-4 py-2.5 bg-muted/30 border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                       >
                         <option value="actif">Actif</option>
                         <option value="inactif">Inactif</option>
@@ -750,7 +750,7 @@ export default function ContactsListPage() {
                     </div>
                   </div>
 
-                 <div className="bg-gray-900 border border-gray-700 rounded-xl p-4">
+                 <div className="bg-muted/20 border border-border rounded-xl p-4">
 
   <h3 className="font-bold text-white mb-3">
     Qualification Client
@@ -786,23 +786,23 @@ export default function ContactsListPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">Affaires en cours</label>
+                      <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Affaires en cours</label>
                       <input
                         type="number"
                         min={0}
                         value={editData.deals}
                         onChange={e => handleFieldChange('deals', Number(e.target.value))}
-                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                        className="w-full px-4 py-2.5 bg-muted/30 border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">CA Généré (€)</label>
+                      <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">CA Généré (€)</label>
                       <input
                         type="number"
                         min={0}
                         value={editData.revenue}
                         onChange={e => handleFieldChange('revenue', Number(e.target.value))}
-                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                        className="w-full px-4 py-2.5 bg-muted/30 border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                       />
                     </div>
                   </div>
@@ -812,27 +812,27 @@ export default function ContactsListPage() {
                 <div className="space-y-5">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-3">
-                      <InfoRow icon={<Briefcase className="w-4 h-4 text-blue-500" />} label="Fonction" value={editData.role} />
-                      <InfoRow icon={<Building className="w-4 h-4 text-blue-500" />} label="Secteur" value={editData.industry} />
-                      <InfoRow icon={<MapPin className="w-4 h-4 text-blue-500" />} label="Ville" value={editData.city} />
+                      <InfoRow icon={<Briefcase className="w-4 h-4 text-primary" />} label="Fonction" value={editData.role} />
+                      <InfoRow icon={<Building className="w-4 h-4 text-primary" />} label="Secteur" value={editData.industry} />
+                      <InfoRow icon={<MapPin className="w-4 h-4 text-primary" />} label="Ville" value={editData.city} />
                     </div>
                     <div className="space-y-3">
                       <InfoRow icon={<Phone className="w-4 h-4 text-emerald-500" />} label="Téléphone" value={editData.phone} highlight />
-                      <InfoRow icon={<Mail className="w-4 h-4 text-blue-500" />} label="Email" value={editData.email} />
-                      <InfoRow icon={<Clock className="w-4 h-4 text-blue-500" />} label="Dernier contact" value={editData.lastContact} />
+                      <InfoRow icon={<Mail className="w-4 h-4 text-primary" />} label="Email" value={editData.email} />
+                      <InfoRow icon={<Clock className="w-4 h-4 text-primary" />} label="Dernier contact" value={editData.lastContact} />
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl p-4">
-                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Activité commerciale</h3>
+                  <div className="bg-gradient-to-br from-muted/20 to-muted/5 rounded-xl p-4">
+                    <h3 className="font-semibold text-foreground mb-3">Activité commerciale</h3>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Affaires en cours</p>
-                        <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{editData.deals}</p>
+                        <p className="text-sm text-muted-foreground">Affaires en cours</p>
+                        <p className="text-2xl font-bold text-emerald-400">{editData.deals}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">CA généré</p>
-                        <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{editData.revenue.toLocaleString()} €</p>
+                        <p className="text-sm text-muted-foreground">CA généré</p>
+                        <p className="text-2xl font-bold text-primary">{editData.revenue.toLocaleString()} €</p>
                       </div>
                     </div>
                   </div>
@@ -841,7 +841,7 @@ export default function ContactsListPage() {
             </div>
 
             {/* Footer actions */}
-            <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 flex gap-3">
+            <div className="px-6 py-4 border-t border-border flex gap-3">
               {editMode ? (
                 <>
                   <button
@@ -853,7 +853,7 @@ export default function ContactsListPage() {
                   </button>
                   <button
                     onClick={() => { setEditData({ ...selectedContact }); setEditMode(false); }}
-                    className="px-4 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-semibold text-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+                    className="px-4 py-2.5 bg-muted/30 text-foreground/80 rounded-xl font-semibold text-sm hover:bg-accent transition-all"
                   >
                     Annuler
                   </button>
@@ -862,12 +862,12 @@ export default function ContactsListPage() {
                 <>
                   <button
                     onClick={() => handleCall(editData)}
-                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-semibold text-sm hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-xl font-semibold text-sm hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
                   >
                     <Phone className="w-4 h-4" />
                     Appeler
                   </button>
-                  <button className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-semibold text-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-all flex items-center justify-center gap-2">
+                  <button className="flex-1 px-4 py-2.5 bg-muted/30 text-foreground/80 rounded-xl font-semibold text-sm hover:bg-accent transition-all flex items-center justify-center gap-2">
                     <Mail className="w-4 h-4" />
                     Email
                   </button>
@@ -879,7 +879,7 @@ export default function ContactsListPage() {
       )}
       {showCreateModal && (
   <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-    <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-lg">
+    <div className="bg-card rounded-2xl p-6 w-full max-w-lg">
 
       <h2 className="text-xl font-bold mb-4">
         Nouveau Contact
@@ -929,7 +929,7 @@ export default function ContactsListPage() {
 
         <button
           onClick={() => setShowCreateModal(false)}
-          className="px-4 py-2 bg-gray-200 rounded-xl"
+          className="px-4 py-2 bg-muted rounded-xl"
         >
           Annuler
         </button>

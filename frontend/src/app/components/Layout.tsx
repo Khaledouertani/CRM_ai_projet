@@ -67,7 +67,7 @@ export function Layout() {
                 <Outlet />
               </div>
             ) : (
-              <div className="max-w-7xl mx-auto w-full animate-fade-in-up">
+              <div key={location.pathname} className="max-w-7xl mx-auto w-full animate-fade-in-up">
                 <Outlet />
               </div>
             )}
