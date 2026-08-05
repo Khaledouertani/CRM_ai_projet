@@ -162,6 +162,38 @@ public class AnalyticsService : IAnalyticsService
         }).ToListAsync();
     }
 
+    public async Task<List<CallsTodayDto>> GetCallsTodayAsync()
+    {
+        var today = DateTime.UtcNow.Date;
+        var calls = await _context.Calls.AsNoTracking()
+            .Where(c => c.CallDate.HasValue && c.CallDate.Value.Date == today)
+            .OrderByDescending(c => c.CallDate)
+            .ToListAsync();
+
+        var leadIds = calls.Where(c => c.LeadId.HasValue).Select(c => c.LeadId!.Value).Distinct().ToList();
+        var leads = await _context.Leads.AsNoTracking()
+            .Where(l => leadIds.Contains(l.Id))
+            .ToDictionaryAsync(l => l.Id);
+
+        return calls.Select(c =>
+        {
+            var lead = c.LeadId.HasValue && leads.ContainsKey(c.LeadId.Value) ? leads[c.LeadId.Value] : null;
+            return new CallsTodayDto
+            {
+                CallId = c.Id,
+                AgentName = c.AgentName,
+                CallDate = c.CallDate,
+                CallDuration = c.CallDuration,
+                Status = c.Status,
+                Resultat = c.Performance ?? c.Sentiment,
+                ScorePercentage = c.ScorePercentage,
+                Client = lead?.ContactName ?? c.PostalCode ?? "N/A",
+                Project = lead?.CampaignName ?? "",
+                PostalCode = c.PostalCode
+            };
+        }).ToList();
+    }
+
     public async Task<List<object>> GetPointageAsync()
     {
         var today = DateTime.UtcNow.Date;
@@ -195,6 +227,7 @@ public class AnalyticsService : IAnalyticsService
     public async Task<List<object>> GetLiveAgentsAsync()
     {
         var today = DateTime.UtcNow.Date;
+        var now = DateTime.UtcNow;
         var users = await _context.Users.AsNoTracking()
             .Where(u => u.Role == Models.Entities.UserRole.Agent)
             .ToListAsync();
@@ -211,7 +244,21 @@ public class AnalyticsService : IAnalyticsService
         var agentCallCounts = await _context.Calls.AsNoTracking()
             .Where(c => c.CallDate.HasValue && c.CallDate.Value.Date == today)
             .GroupBy(c => c.AgentName)
-            .Select(g => new { Name = g.Key, Count = g.Count(), AvgScore = Math.Round(g.Average(c => c.ScorePercentage), 1) })
+            .Select(g => new { Name = g.Key, Count = g.Count(), AvgScore = Math.Round(g.Average(c => c.ScorePercentage), 1), LastCall = g.Max(c => c.CallDate) })
+            .ToListAsync();
+
+        var qualityScores = await _context.ManualEvaluations.AsNoTracking()
+            .Where(e => e.EvaluationDate.Date == today)
+            .GroupBy(e => e.AgentId)
+            .Select(g => new { AgentId = g.Key, AvgScore = Math.Round(g.Average(e => e.GlobalScore), 1) })
+            .ToListAsync();
+
+        var agentProjects = await _context.Campaigns.AsNoTracking()
+            .Where(c => !c.IsDeleted && c.Status == Models.Entities.CampaignStatus.Active)
+            .SelectMany(c => c.CampaignAgents)
+            .Where(ca => ca.IsActive)
+            .GroupBy(ca => ca.UserId)
+            .Select(g => new { UserId = g.Key, Project = g.Select(ca => ca.Campaign!.Name).FirstOrDefault() })
             .ToListAsync();
 
         return users.Select(u =>
@@ -219,6 +266,25 @@ public class AnalyticsService : IAnalyticsService
             var att = latestByUser.FirstOrDefault(a => a.UserId == u.Id);
             var openBreak = att?.Breaks?.Where(b => b.EndTime == null).OrderByDescending(b => b.Id).FirstOrDefault();
             var callData = agentCallCounts.FirstOrDefault(c => c.Name == u.Name);
+            var quality = qualityScores.FirstOrDefault(q => q.AgentId == u.Id);
+            var project = agentProjects.FirstOrDefault(p => p.UserId == u.Id);
+
+            var workMinutes = 0.0;
+            var breakMinutes = 0.0;
+            if (att != null)
+            {
+                var end = att.ClockOut ?? now;
+                workMinutes = (end - att.ClockIn).TotalMinutes;
+                breakMinutes = att.Breaks.Sum(b => b.DurationMinutes > 0 ? b.DurationMinutes :
+                    (b.EndTime.HasValue ? (b.EndTime.Value - b.StartTime).TotalMinutes : (now - b.StartTime).TotalMinutes));
+            }
+
+            var scoreIa = callData?.AvgScore ?? 0;
+            var scoreQualite = quality?.AvgScore ?? 0;
+            var scoreGlobal = callData != null && quality != null
+                ? Math.Round((scoreIa + scoreQualite) / 2, 1)
+                : Math.Max(scoreIa, scoreQualite);
+
             return (object)new
             {
                 id = u.Id,
@@ -226,8 +292,18 @@ public class AnalyticsService : IAnalyticsService
                 status = att?.Status ?? "offline",
                 calls = callData?.Count ?? 0,
                 idleTime = 0,
-                score = callData?.AvgScore ?? 0,
-                breakType = openBreak?.Type ?? ""
+                score = scoreGlobal,
+                score_ia = scoreIa,
+                score_qualite = scoreQualite,
+                breakType = openBreak?.Type ?? "",
+                clock_in = att?.ClockIn,
+                work_duration_minutes = att != null ? (int)Math.Max(0, workMinutes - breakMinutes) : 0,
+                break_start = openBreak?.StartTime,
+                break_duration_minutes = openBreak != null ? (int)Math.Max(0, (now - openBreak.StartTime).TotalMinutes) : 0,
+                total_break_minutes = (int)Math.Max(0, breakMinutes),
+                project = project?.Project ?? "",
+                last_activity = callData?.LastCall,
+                clock_out = att?.ClockOut
             };
         }).ToList();
     }

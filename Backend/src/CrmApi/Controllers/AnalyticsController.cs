@@ -88,6 +88,14 @@ public class AnalyticsController : ControllerBase
         catch (Exception ex) { return Problem(ex.Message); }
     }
 
+    [HttpGet("calls-today")]
+    public async Task<IActionResult> GetCallsToday()
+    {
+        if (!UserContextHelper.IsAdminOrQualite(User)) return Forbid();
+        try { return Ok(await _analyticsService.GetCallsTodayAsync()); }
+        catch (Exception ex) { return Problem(ex.Message); }
+    }
+
     [HttpGet("comparison")]
     public async Task<IActionResult> GetComparison()
     {

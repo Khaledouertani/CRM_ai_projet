@@ -125,6 +125,20 @@ public class CallsLogDto
     public string? Qualification { get; set; }
 }
 
+public class CallsTodayDto
+{
+    public int CallId { get; set; }
+    public string? AgentName { get; set; }
+    public DateTime? CallDate { get; set; }
+    public int? CallDuration { get; set; }
+    public string? Status { get; set; }
+    public string? Resultat { get; set; }
+    public float ScorePercentage { get; set; }
+    public string? Client { get; set; }
+    public string? Project { get; set; }
+    public string? PostalCode { get; set; }
+}
+
 public class ComparisonDto
 {
     public ComparisonPeriodDto Day { get; set; } = new();

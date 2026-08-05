@@ -676,6 +676,14 @@ export const getLiveAgents = async (): Promise<any[]> => {
   return response.json();
 };
 
+export const getCallsToday = async (): Promise<any[]> => {
+  const response = await fetch(`${API_BASE}/analytics/calls-today`, {
+    headers: getAuthHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to get calls today');
+  return response.json();
+};
+
 export const getGlobalComparison = async (): Promise<any> => {
   const response = await fetch(`${API_BASE}/analytics/comparison`, {
     headers: getAuthHeaders(),
@@ -1146,6 +1154,7 @@ export const api = {
   getConversations,
   getMessages,
   getLiveAgents,
+  getCallsToday,
   getGlobalComparison,
   sendMessage,
   markMessageAsRead,

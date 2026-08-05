@@ -1,23 +1,54 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Activity, Clock, AlertTriangle, Users, Phone, TrendingUp,
   Zap, CheckCircle2, XCircle, Coffee, RefreshCw, UserCheck,
-  ArrowUpRight, ArrowDownRight, Headphones, Brain, Target
+  ArrowUpRight, ArrowDownRight, Headphones, Brain, Target,
+  ChevronRight, User as UserIcon, ExternalLink, CalendarDays,
+  Briefcase, Timer, DoorOpen, DoorClosed, BarChart3
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, BarChart, Bar, Legend
+  ResponsiveContainer
 } from 'recharts';
 import api from '../../services/api';
 import { useChartTheme } from '../../hooks/useChartTheme';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from '../../components/ui/dialog';
+import { Badge } from '../../components/ui/badge';
+import { Skeleton } from '../../components/ui/skeleton';
 
 interface AgentLive {
   id: number;
   name: string;
-  status: 'active' | 'inactive' | 'break';
+  status: 'active' | 'inactive' | 'break' | 'offline';
   calls: number;
   idleTime: number;
   score?: number;
+  score_ia?: number;
+  score_qualite?: number;
+  breakType?: string;
+  clock_in?: string;
+  work_duration_minutes?: number;
+  break_start?: string;
+  break_duration_minutes?: number;
+  total_break_minutes?: number;
+  project?: string;
+  last_activity?: string;
+  clock_out?: string;
+}
+
+interface CallToday {
+  call_id: number;
+  agent_name?: string;
+  call_date?: string;
+  call_duration?: number;
+  status?: string;
+  resultat?: string;
+  score_percentage?: number;
+  client?: string;
+  project?: string;
+  postal_code?: string;
 }
 
 interface HourlyPoint {
@@ -30,6 +61,7 @@ const statusConfig = {
   active: { color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/30', dot: 'bg-emerald-500', label: 'Actif', icon: CheckCircle2 },
   inactive: { color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/30', dot: 'bg-red-500 animate-pulse', label: 'Inactif', icon: XCircle },
   break: { color: 'text-yellow-400', bg: 'bg-yellow-500/10 border-yellow-500/30', dot: 'bg-yellow-500', label: 'Pause', icon: Coffee },
+  offline: { color: 'text-slate-400', bg: 'bg-slate-500/10 border-slate-500/30', dot: 'bg-slate-500', label: 'Hors ligne', icon: XCircle },
 };
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -48,25 +80,50 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+const formatDuration = (minutes?: number) => {
+  if (minutes == null || minutes <= 0) return '—';
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  return h > 0 ? `${h}h ${m.toString().padStart(2, '0')}` : `${m} min`;
+};
+
+const formatTime = (iso?: string) => {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+};
+
+const formatDateTime = (iso?: string) => {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+};
+
+const statusLabel = (status: string, breakType?: string) => {
+  if (status === 'break') return `Pause ${breakType ? '· ' + breakType : ''}`;
+  if (status === 'active') return 'En poste';
+  if (status === 'offline') return 'Hors ligne';
+  return 'Inactif';
+};
+
 export default function RealTimePage() {
   const chartTheme = useChartTheme();
   const [loading, setLoading] = useState(true);
   const [agents, setAgents] = useState<AgentLive[]>([]);
+  const [callsToday, setCallsToday] = useState<CallToday[]>([]);
   const [hourlyData, setHourlyData] = useState<HourlyPoint[]>([]);
   const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [modalKey, setModalKey] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [live, overview] = await Promise.allSettled([
+      const [live, overview, calls] = await Promise.allSettled([
         api.getLiveAgents(),
         api.getAnalyticsOverview(),
+        api.getCallsToday().catch(() => []),
       ]);
       if (live.status === 'fulfilled') setAgents(live.value || []);
       if (overview.status === 'fulfilled' && overview.value?.hourly) {
@@ -78,19 +135,214 @@ export default function RealTimePage() {
           }))
         );
       }
+      if (calls.status === 'fulfilled') setCallsToday(calls.value || []);
     } catch (err) {
       console.error("Live fetch error:", err);
     } finally {
       setLoading(false);
       setLastRefresh(new Date());
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 15000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
 
   const activeAgents = agents.filter(a => a.status === 'active');
-  const inactiveAgents = agents.filter(a => a.status === 'inactive');
+  const inactiveAgents = agents.filter(a => a.status === 'inactive' || a.status === 'offline');
   const onBreakAgents = agents.filter(a => a.status === 'break');
   const totalCalls = agents.reduce((s, a) => s + a.calls, 0);
   const avgScore = agents.length ? Math.round(agents.reduce((s, a) => s + (a.score || 0), 0) / agents.length) : 0;
+
+  const kpis = [
+    {
+      key: 'active', icon: Users, label: 'Agents Actifs', value: activeAgents.length,
+      sub: `/ ${agents.length} total`, color: 'from-emerald-500/20 to-emerald-600/5',
+      iconColor: 'text-emerald-400', border: 'border-emerald-500/20'
+    },
+    {
+      key: 'calls', icon: Phone, label: 'Appels du Jour', value: callsToday.length || totalCalls,
+      sub: `${callsToday.length} appel(s) aujourd'hui`, color: 'from-blue-500/20 to-blue-600/5',
+      iconColor: 'text-blue-400', border: 'border-blue-500/20', up: true
+    },
+    {
+      key: 'inactive', icon: AlertTriangle, label: 'Agents Inactifs', value: inactiveAgents.length,
+      sub: inactiveAgents.length > 0 ? 'Action requise' : 'Aucun problème',
+      color: inactiveAgents.length > 0 ? 'from-red-500/20 to-red-600/5' : 'from-slate-500/10 to-slate-600/5',
+      iconColor: inactiveAgents.length > 0 ? 'text-red-400' : 'text-muted-foreground',
+      border: inactiveAgents.length > 0 ? 'border-red-500/20' : 'border-border'
+    },
+    {
+      key: 'break', icon: Coffee, label: 'Agents en Pause', value: onBreakAgents.length,
+      sub: onBreakAgents.length > 0 ? 'En pause actuellement' : 'Aucun agent en pause',
+      color: 'from-yellow-500/20 to-yellow-600/5',
+      iconColor: 'text-yellow-400', border: 'border-yellow-500/20'
+    },
+    {
+      key: 'score', icon: Target, label: 'Score Moyen', value: `${avgScore}%`,
+      sub: avgScore >= 75 ? '✅ Bon niveau' : '⚠️ À améliorer',
+      color: 'from-purple-500/20 to-purple-600/5',
+      iconColor: 'text-purple-400', border: 'border-purple-500/20'
+    },
+  ];
+
+  const modalContent = () => {
+    switch (modalKey) {
+      case 'active':
+        return (
+          <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+            {activeAgents.length === 0 && <EmptyState msg="Aucun agent actif actuellement." />}
+            {activeAgents.map(a => (
+              <div key={a.id} className="flex flex-wrap items-center gap-3 p-4 bg-muted/40 border border-border rounded-xl">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/40 to-indigo-600/40 flex items-center justify-center text-xs font-black">
+                  {a.name.substring(0, 2).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-foreground text-sm truncate">{a.name}</p>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-semibold text-muted-foreground mt-0.5">
+                    <span className="inline-flex items-center gap-1"><Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30">En poste</Badge></span>
+                    {a.project && <span className="inline-flex items-center gap-1"><Briefcase className="w-3 h-3" /> {a.project}</span>}
+                  </div>
+                </div>
+                <div className="text-right text-[11px] font-semibold text-muted-foreground">
+                  <p>🕐 {formatTime(a.clock_in)}</p>
+                  <p className="text-foreground font-bold mt-0.5">{formatDuration(a.work_duration_minutes)}</p>
+                </div>
+                <button
+                  onClick={() => window.location.href = '/admin/agents?user=' + a.id}
+                  className="ml-auto shrink-0 inline-flex items-center gap-1.5 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-black rounded-lg transition-colors border border-primary/30"
+                >
+                  <UserIcon className="w-3.5 h-3.5" /> Profil
+                </button>
+              </div>
+            ))}
+          </div>
+        );
+      case 'inactive':
+        return (
+          <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+            {inactiveAgents.length === 0 && <EmptyState msg="Aucun agent inactif. 🎉" />}
+            {inactiveAgents.map(a => (
+              <div key={a.id} className="flex flex-wrap items-center gap-3 p-4 bg-muted/40 border border-border rounded-xl">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-red-500/40 to-red-600/40 flex items-center justify-center text-xs font-black">
+                  {a.name.substring(0, 2).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-foreground text-sm truncate">{a.name}</p>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-semibold text-muted-foreground mt-0.5">
+                    {a.project && <span className="inline-flex items-center gap-1"><Briefcase className="w-3 h-3" /> {a.project}</span>}
+                  </div>
+                </div>
+                <div className="text-right text-[11px] font-semibold text-muted-foreground">
+                  <p>Dernière activité: {formatDateTime(a.last_activity)}</p>
+                  <p className="mt-0.5">Sortie: {formatTime(a.clock_out)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      case 'break':
+        return (
+          <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+            {onBreakAgents.length === 0 && <EmptyState msg="Aucun agent en pause actuellement." />}
+            {onBreakAgents.map(a => (
+              <div key={a.id} className="flex flex-wrap items-center gap-3 p-4 bg-muted/40 border border-border rounded-xl">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-yellow-500/40 to-yellow-600/40 flex items-center justify-center text-xs font-black">
+                  {a.name.substring(0, 2).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-foreground text-sm truncate">{a.name}</p>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-semibold text-muted-foreground mt-0.5">
+                    <Badge className="bg-yellow-500/10 text-yellow-400 border-yellow-500/30">
+                      {a.breakType ? `Pause ${a.breakType}` : 'Pause'}
+                    </Badge>
+                    {a.project && <span className="inline-flex items-center gap-1"><Briefcase className="w-3 h-3" /> {a.project}</span>}
+                  </div>
+                </div>
+                <div className="text-right text-[11px] font-semibold text-muted-foreground">
+                  <p>Début: {formatTime(a.break_start)}</p>
+                  <p className="text-amber-400 font-bold mt-0.5">Durée: {formatDuration(a.break_duration_minutes)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      case 'calls':
+        return (
+          <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+            {callsToday.length === 0 && <EmptyState msg="Aucun appel enregistré aujourd'hui." />}
+            {callsToday.map(c => (
+              <div key={c.call_id} className="flex flex-wrap items-center gap-3 p-4 bg-muted/40 border border-border rounded-xl">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500/40 to-blue-600/40 flex items-center justify-center">
+                  <Phone className="w-4 h-4 text-blue-300" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-foreground text-sm truncate">{c.client || 'Client N/A'} <span className="text-muted-foreground font-semibold">· {c.agent_name}</span></p>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-semibold text-muted-foreground mt-0.5">
+                    <span className="inline-flex items-center gap-1"><CalendarDays className="w-3 h-3" /> {formatDateTime(c.call_date)}</span>
+                    <span className="inline-flex items-center gap-1"><Timer className="w-3 h-3" /> {c.call_duration != null ? `${c.call_duration}s` : '—'}</span>
+                    {c.project && <span className="inline-flex items-center gap-1"><Briefcase className="w-3 h-3" /> {c.project}</span>}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <Badge className="bg-primary/10 text-primary border-primary/30">{c.resultat || c.status || 'Terminé'}</Badge>
+                  {c.score_percentage != null && <p className="text-[11px] font-bold text-muted-foreground mt-1">Score {c.score_percentage}%</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      case 'score':
+        return (
+          <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+            {agents.length === 0 && <EmptyState msg="Aucune donnée de score disponible." />}
+            {[...agents]
+              .sort((a, b) => (b.score || 0) - (a.score || 0))
+              .map(a => {
+                const trend = (a.score || 0) >= 80 ? 'up' : (a.score || 0) >= 65 ? 'stable' : 'down';
+                return (
+                  <div key={a.id} className="flex flex-wrap items-center gap-3 p-4 bg-muted/40 border border-border rounded-xl">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500/40 to-purple-600/40 flex items-center justify-center text-xs font-black">
+                      {a.name.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-foreground text-sm truncate">{a.name}</p>
+                      <div className="flex items-center gap-1.5 mt-0.5 text-[11px] font-bold">
+                        {trend === 'up' ? <ArrowUpRight className="w-3.5 h-3.5 text-emerald-400" /> :
+                          trend === 'down' ? <ArrowDownRight className="w-3.5 h-3.5 text-red-400" /> :
+                          <TrendingUp className="w-3.5 h-3.5 text-yellow-400" />}
+                        <span className={trend === 'up' ? 'text-emerald-400' : trend === 'down' ? 'text-red-400' : 'text-yellow-400'}>
+                          {trend === 'up' ? 'En hausse' : trend === 'down' ? 'En baisse' : 'Stable'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex gap-4 text-center">
+                      <div>
+                        <p className="text-lg font-black text-blue-400">{a.score_ia || 0}%</p>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase">IA</p>
+                      </div>
+                      <div>
+                        <p className="text-lg font-black text-emerald-400">{a.score_qualite || 0}%</p>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Qualité</p>
+                      </div>
+                      <div>
+                        <p className="text-lg font-black text-foreground">{a.score || 0}%</p>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Global</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const modalTitle = kpis.find(k => k.key === modalKey)?.label || '';
 
   return (
     <div className="space-y-6">
@@ -111,60 +363,49 @@ export default function RealTimePage() {
         <button
           onClick={fetchData}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-xl text-sm font-bold hover:bg-muted transition-all disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-card border border-border rounded-xl text-sm font-bold hover:bg-muted transition-all disabled:opacity-50 cursor-pointer"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           Actualiser
         </button>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          {
-            icon: Users, label: 'Agents Actifs', value: activeAgents.length,
-            sub: `/ ${agents.length} total`, color: 'from-emerald-500/20 to-emerald-600/5',
-            iconColor: 'text-emerald-400', border: 'border-emerald-500/20'
-          },
-          {
-            icon: Phone, label: 'Appels du Jour', value: totalCalls,
-            sub: '+12% vs hier', color: 'from-blue-500/20 to-blue-600/5',
-            iconColor: 'text-blue-400', border: 'border-blue-500/20', up: true
-          },
-          {
-            icon: AlertTriangle, label: 'Agents Inactifs', value: inactiveAgents.length,
-            sub: inactiveAgents.length > 0 ? 'Action requise' : 'Aucun problème',
-            color: inactiveAgents.length > 0 ? 'from-red-500/20 to-red-600/5' : 'from-slate-500/10 to-slate-600/5',
-            iconColor: inactiveAgents.length > 0 ? 'text-red-400' : 'text-muted-foreground',
-            border: inactiveAgents.length > 0 ? 'border-red-500/20' : 'border-border'
-          },
-          {
-            icon: Target, label: 'Score Moyen', value: `${avgScore}%`,
-            sub: avgScore >= 75 ? '✅ Bon niveau' : '⚠️ À améliorer',
-            color: 'from-purple-500/20 to-purple-600/5',
-            iconColor: 'text-purple-400', border: 'border-purple-500/20'
-          },
-        ].map((kpi, i) => {
+      {/* KPI Cards - clickables */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        {kpis.map((kpi, i) => {
           const Icon = kpi.icon;
           return (
-            <div key={i} className={`relative overflow-hidden bg-gradient-to-br ${kpi.color} border ${kpi.border} rounded-2xl p-5 shadow-sm`}>
+            <button
+              key={kpi.key}
+              onClick={() => setModalKey(kpi.key)}
+              className={`relative overflow-hidden bg-gradient-to-br ${kpi.color} border ${kpi.border} rounded-2xl p-5 shadow-sm text-left transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:border-foreground/20 cursor-pointer group`}
+            >
               <div className="flex items-start justify-between mb-3">
-                <div className={`w-10 h-10 rounded-xl bg-card/60 flex items-center justify-center shadow-inner ${kpi.iconColor}`}>
+                <div className={`w-10 h-10 rounded-xl bg-card/60 flex items-center justify-center shadow-inner ${kpi.iconColor} group-hover:scale-110 transition-transform`}>
                   <Icon className="w-5 h-5" />
                 </div>
-                {kpi.up !== undefined && (
-                  <span className={`flex items-center gap-0.5 text-[11px] font-bold ${kpi.up ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {kpi.up ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                  </span>
-                )}
+                <ChevronRight className="w-4 h-4 text-muted-foreground/50 group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
               </div>
               <div className="text-3xl font-black text-foreground">{kpi.value}</div>
               <div className="text-xs font-bold text-muted-foreground mt-0.5">{kpi.label}</div>
               <div className="text-[11px] font-semibold text-muted-foreground/60 mt-1">{kpi.sub}</div>
-            </div>
+            </button>
           );
         })}
       </div>
+
+      {/* Modal détails */}
+      <Dialog open={modalKey !== null} onOpenChange={(open) => !open && setModalKey(null)}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-primary" />
+              {modalTitle} — Détails
+            </DialogTitle>
+          </DialogHeader>
+          {modalContent()}
+        </DialogContent>
+      </Dialog>
 
       {/* Chart + AI Recommandations */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -229,7 +470,7 @@ export default function RealTimePage() {
                 <span className="text-xs font-black text-emerald-400 uppercase tracking-wide">Top performer</span>
               </div>
               <p className="text-xs font-medium text-muted-foreground">
-                {activeAgents.sort((a, b) => (b.score || 0) - (a.score || 0))[0]?.name || 'Aucun'} est le plus performant aujourd'hui — score {activeAgents.sort((a, b) => (b.score || 0) - (a.score || 0))[0]?.score || 0}%.
+                {[...agents].sort((a, b) => (b.score || 0) - (a.score || 0))[0]?.name || 'Aucun'} est le plus performant aujourd'hui — score {[...agents].sort((a, b) => (b.score || 0) - (a.score || 0))[0]?.score || 0}%.
               </p>
             </div>
             <div className="p-3.5 bg-purple-500/10 border border-purple-500/30 rounded-xl">
@@ -286,7 +527,7 @@ export default function RealTimePage() {
                     <td className="px-4 py-4">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black border ${cfg.bg} ${cfg.color}`}>
                         <div className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-                        {agent.status === 'break' && (agent as any).breakType ? `Pause ${(agent as any).breakType}` : cfg.label}
+                        {statusLabel(agent.status, agent.breakType)}
                       </span>
                     </td>
                     <td className="px-4 py-4 text-center">
@@ -306,14 +547,14 @@ export default function RealTimePage() {
                       </div>
                     </td>
                     <td className="px-4 py-4 text-center">
-                      {agent.status === 'inactive' ? (
+                      {agent.status === 'inactive' || agent.status === 'offline' ? (
                         <span className="text-red-400 font-bold text-sm">{agent.idleTime} min</span>
                       ) : (
                         <span className="text-muted-foreground text-xs">—</span>
                       )}
                     </td>
                     <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
-                      {agent.status === 'inactive' ? (
+                      {agent.status === 'inactive' || agent.status === 'offline' ? (
                         <button
                           onClick={async () => {
                             try {
@@ -321,14 +562,14 @@ export default function RealTimePage() {
                               alert("Relance envoyée à " + agent.name);
                             } catch { alert("Erreur lors de l'envoi"); }
                           }}
-                          className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-lg transition-colors shadow-sm shadow-red-500/20"
+                          className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-lg transition-colors shadow-sm shadow-red-500/20 cursor-pointer"
                         >
                           Relancer
                         </button>
                       ) : (
                         <button
                           onClick={() => window.location.href = '/admin/messages?user=' + agent.id}
-                          className="px-3 py-1.5 bg-muted hover:bg-muted/80 text-foreground text-xs font-bold rounded-lg transition-colors border border-border"
+                          className="px-3 py-1.5 bg-muted hover:bg-muted/80 text-foreground text-xs font-bold rounded-lg transition-colors border border-border cursor-pointer"
                         >
                           Contacter
                         </button>
@@ -356,13 +597,19 @@ export default function RealTimePage() {
               </p>
             </div>
           </div>
-          <button className="shrink-0 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-black rounded-xl transition-colors shadow-md shadow-red-500/20 ml-4">
+          <button className="shrink-0 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-black rounded-xl transition-colors shadow-md shadow-red-500/20 ml-4 cursor-pointer">
             Agir maintenant
           </button>
         </div>
-
-
       )}
+    </div>
+  );
+}
+
+function EmptyState({ msg }: { msg: string }) {
+  return (
+    <div className="p-10 text-center border border-dashed border-border rounded-2xl">
+      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{msg}</p>
     </div>
   );
 }
