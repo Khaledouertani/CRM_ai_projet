@@ -19,6 +19,7 @@ import {
   BarChart3,
   Banknote,
   ClipboardCheck,
+  Clock,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { usePermissions } from '../contexts/PermissionContext';
@@ -96,6 +97,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       label: 'PRINCIPAL',
       items: [
         { icon: Activity, label: 'Supervision Live', path: '/admin/realtime', accent: 'green' },
+        { icon: Clock, label: 'Pointage', path: '/admin/pointage', accent: 'orange' },
       ],
     },
     {

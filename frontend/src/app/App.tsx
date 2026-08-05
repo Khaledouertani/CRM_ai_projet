@@ -46,6 +46,7 @@ import ImportFile from './pages/admin/importfile';
 import FichierAcharge from './pages/admin/FichierAcharge';
 import AlertsPage from './pages/admin/AlertsPage';
 import SalaryPage from './pages/admin/SalaryPage';
+import PointagePage from './pages/admin/PointagePage';
 
 
 // AI
@@ -134,7 +135,8 @@ function AppRoutes() {
 <Route element={<AdminRoute><Layout /></AdminRoute>}>
 
 <Route path="/admin/dashboard" element={<DashboardPage />} />
-<Route path="/admin/realtime" element={<RealTimePage />} />
+      <Route path="/admin/realtime" element={<RealTimePage />} />
+      <Route path="/admin/pointage" element={<PointagePage />} />
 <Route path="/admin/performance" element={<AdminPerformancePage />} />
 <Route path="/admin/map" element={<MapPage />} />
 <Route path="/admin/leads" element={<LeadsPage />} />
