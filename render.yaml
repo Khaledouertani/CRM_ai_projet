@@ -12,8 +12,9 @@ services:
     name: crm-backend
     runtime: docker
     repo: https://github.com/Khaledouertani/CRM_ai_projet
-    branch: main
-    dockerfilePath: ./BackendDotNet/Dockerfile
+    branch: feature/khaled
+    dockerfilePath: ./Backend/Dockerfile
+    dockerContext: ./Backend
     plan: free
     healthCheckPath: /api/health
     envVars:
@@ -40,7 +41,8 @@ staticSites:
   - type: static
     name: crm-frontend
     repo: https://github.com/Khaledouertani/CRM_ai_projet
-    branch: main
+    branch: feature/khaled
+    rootDir: frontend
     buildCommand: npm ci && npm run build
     publishPath: dist
     buildFilter:

@@ -19,38 +19,38 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Restore BackendDotNet
-        run: dotnet restore BackendDotNet/CrmApi.sln
+      - name: Restore Backend
+        run: dotnet restore Backend/CrmApi.sln
 
       - name: Build main project
-        run: dotnet build BackendDotNet/src/CrmApi/CrmApi.csproj --configuration Release --no-restore
+        run: dotnet build Backend/src/CrmApi/CrmApi.csproj --configuration Release --no-restore
 
       - name: Build test project
-        run: dotnet build BackendDotNet/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-restore
+        run: dotnet build Backend/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-restore
 
       - name: Run Unit Tests
-        run: dotnet test BackendDotNet/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --verbosity normal
+        run: dotnet test Backend/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --verbosity normal
 
       - name: Run Integration Tests
-        run: dotnet test BackendDotNet/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Integration" --verbosity normal
+        run: dotnet test Backend/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Integration" --verbosity normal
 
       - name: Run Security Tests
-        run: dotnet test BackendDotNet/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Security" --verbosity normal
+        run: dotnet test Backend/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Security" --verbosity normal
 
       - name: Run Database Tests
-        run: dotnet test BackendDotNet/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Database" --verbosity normal
+        run: dotnet test Backend/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Database" --verbosity normal
 
       - name: Run Service Tests
-        run: dotnet test BackendDotNet/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Services" --verbosity normal
+        run: dotnet test Backend/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Services" --verbosity normal
 
       - name: Collect Code Coverage
-        run: dotnet test BackendDotNet/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage" --settings BackendDotNet/coverlet.runsettings
+        run: dotnet test Backend/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage" --settings Backend/coverlet.runsettings
 
       - name: Upload Coverage
         uses: actions/upload-artifact@v4
         with:
           name: backend-coverage
-          path: BackendDotNet/tests/CrmApi.Tests/TestResults/**/coverage.cobertura.xml
+          path: Backend/tests/CrmApi.Tests/TestResults/**/coverage.cobertura.xml
 
   frontend-build:
     name: Frontend Build & Test
@@ -132,13 +132,13 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Restore & build backend
-        working-directory: ./BackendDotNet
+        working-directory: ./Backend
         run: |
           dotnet restore CrmApi.sln
           dotnet build src/CrmApi/CrmApi.csproj --configuration Release --no-restore
 
       - name: Start backend
-        working-directory: ./BackendDotNet/src/CrmApi
+        working-directory: ./Backend/src/CrmApi
         env:
           ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=pfe_crm_ia;Username=postgres;Password=postgres"
           ASPNETCORE_URLS: "http://0.0.0.0:5190"
@@ -206,7 +206,7 @@ jobs:
         continue-on-error: true
         run: |
           dotnet tool install --global security-scan 2>/dev/null || true
-          dotnet security-scan BackendDotNet/src/CrmApi/CrmApi.csproj 2>/dev/null || security-scan BackendDotNet/src/CrmApi/CrmApi.csproj 2>/dev/null || echo "Security scan tool not available for this runtime"
+          dotnet security-scan Backend/src/CrmApi/CrmApi.csproj 2>/dev/null || security-scan Backend/src/CrmApi/CrmApi.csproj 2>/dev/null || echo "Security scan tool not available for this runtime"
 
       - name: Run npm audit
         continue-on-error: true
@@ -227,7 +227,7 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Check NuGet vulnerabilities
-        run: dotnet list BackendDotNet/src/CrmApi/CrmApi.csproj package --vulnerable
+        run: dotnet list Backend/src/CrmApi/CrmApi.csproj package --vulnerable
 
       - name: Check npm vulnerabilities
         continue-on-error: true

@@ -1,12 +1,12 @@
-const { test, expect } = require('@playwright/test');
+import { test, expect } from '@playwright/test';
 
 const BASE = 'http://localhost:5173';
 
 test.describe('Attendance Flow', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(`${BASE}/login`);
-    await page.fill('input[placeholder*="utilisateur" i]', 'sana.b');
-    await page.fill('input[type="password"]', 'agent');
+    await page.fill('#username', 'sana.b');
+    await page.fill('#password', 'agent');
     await page.click('button[type="submit"]');
     await page.waitForURL(/agent\/dashboard/);
   });

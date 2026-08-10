@@ -157,6 +157,8 @@ Backend/TestResults/
 
 # Frontend test & coverage
 frontend/coverage/
+frontend/test-results/
+frontend/playwright-report/
 
 # Performance tests
 performance-tests/

@@ -136,7 +136,9 @@ export default function CallWorkspace() {
         getCalls({ limit: 100 }),
         getStats(),
       ]);
-      if (callsData.status === 'fulfilled') setCalls(callsData.value.calls || []);
+      if (callsData.status === 'fulfilled') {
+        setCalls((callsData.value.calls || []).map(c => ({ ...c, id: c.call_id })));
+      }
       if (statsData.status === 'fulfilled') setStats(statsData.value);
     } catch (err) {
       console.error('Failed to fetch call data:', err);
