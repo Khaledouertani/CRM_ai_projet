@@ -188,7 +188,7 @@ export function MessageInput({
         </div>
       </div>
       <div className="text-center mt-3">
-        <span className="text-[11px] text-slate-500 font-medium">
+        <span className="text-[11px] text-muted-foreground font-medium">
           Entrée pour envoyer &bull; Maj + Entrée pour nouvelle ligne
         </span>
       </div>

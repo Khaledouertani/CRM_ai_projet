@@ -294,7 +294,7 @@ export default function AgentQualityDetail() {
         <button 
           onClick={simulateAIPrefill}
           disabled={isPreFilling}
-          className="px-6 py-3.5 bg-gradient-to-r from-primary to-indigo-600 rounded-2xl flex items-center gap-3 shadow-lg shadow-primary/25 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 group"
+          className="px-6 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl flex items-center gap-3 shadow-lg shadow-emerald-500/25 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 group"
         >
           {isPreFilling ? <Activity className="w-4 h-4 animate-spin text-white" /> : <Sparkles className="w-4 h-4 text-white group-hover:animate-pulse" />}
           <span className="text-[10px] font-black text-white uppercase tracking-widest">Assistant IA : Pré-remplir la fiche</span>
@@ -409,7 +409,7 @@ export default function AgentQualityDetail() {
           <div className="mt-8 flex items-center gap-4">
             <button 
               onClick={handleSave}
-              className="flex-1 py-3 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg shadow-primary/25 hover:opacity-90 transition-all active:scale-95"
+              className="flex-1 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/25 hover:opacity-90 transition-all active:scale-95"
             >
               <Save className="w-4 h-4" /> Enregistrer l'Évaluation
             </button>

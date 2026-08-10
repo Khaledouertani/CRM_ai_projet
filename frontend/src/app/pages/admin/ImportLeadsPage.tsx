@@ -155,7 +155,7 @@ function DistributionPanel({
         <select
           value={config.mode}
           onChange={e => onChange({ mode: e.target.value })}
-          className="w-full px-3 py-2 bg-white dark:bg-slate-900 border-none rounded-lg focus:outline-none text-slate-900 font-bold text-xs uppercase tracking-widest shadow-md"
+          className="w-full px-3 py-2 bg-white dark:bg-slate-900 border-none rounded-lg focus:outline-none text-slate-900 dark:text-foreground font-bold text-xs uppercase tracking-widest shadow-md"
         >
           <option value="round-robin">Round-robin (équilibré)</option>
           <option value="random">Aléatoire</option>
@@ -173,12 +173,12 @@ function DistributionPanel({
             value={config.perAgent}
             min={1}
             onChange={e => onChange({ perAgent: Number(e.target.value) })}
-            className="w-24 px-3 py-2 bg-white dark:bg-slate-900 border-none rounded-lg focus:outline-none text-slate-900 font-black shadow-md"
+            className="w-24 px-3 py-2 bg-white dark:bg-slate-900 border-none rounded-lg focus:outline-none text-slate-900 dark:text-foreground font-black shadow-md"
           />
           <select
             value={config.perAgentUnit}
             onChange={e => onChange({ perAgentUnit: e.target.value })}
-            className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border-none rounded-lg focus:outline-none text-slate-900 font-bold text-xs uppercase tracking-widest shadow-md"
+            className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border-none rounded-lg focus:outline-none text-slate-900 dark:text-foreground font-bold text-xs uppercase tracking-widest shadow-md"
           >
             <option value="day">par jour</option>
             <option value="session">par session</option>
@@ -192,7 +192,7 @@ function DistributionPanel({
         <select
           value={config.team}
           onChange={e => onChange({ team: e.target.value })}
-          className="w-full px-3 py-2 bg-white dark:bg-slate-900 border-none rounded-lg focus:outline-none text-slate-900 font-bold text-xs uppercase tracking-widest shadow-md"
+          className="w-full px-3 py-2 bg-white dark:bg-slate-900 border-none rounded-lg focus:outline-none text-slate-900 dark:text-foreground font-bold text-xs uppercase tracking-widest shadow-md"
         >
           <option value="">Toutes les équipes</option>
           <option value="a">Équipe A</option>
@@ -207,7 +207,7 @@ function DistributionPanel({
         <select
           value={config.priority}
           onChange={e => onChange({ priority: e.target.value })}
-          className="w-full px-3 py-2 bg-white dark:bg-slate-900 border-none rounded-lg focus:outline-none text-slate-900 font-bold text-xs uppercase tracking-widest shadow-md"
+          className="w-full px-3 py-2 bg-white dark:bg-slate-900 border-none rounded-lg focus:outline-none text-slate-900 dark:text-foreground font-bold text-xs uppercase tracking-widest shadow-md"
         >
           <option value="high">Haute (dialer en premier)</option>
           <option value="normal">Normale</option>
@@ -232,7 +232,7 @@ function DistributionPanel({
             <select
               value={config.dedup}
               onChange={e => onChange({ dedup: e.target.value })}
-              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border-none rounded-lg focus:outline-none text-slate-900 font-bold text-xs uppercase tracking-widest shadow-md"
+              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border-none rounded-lg focus:outline-none text-slate-900 dark:text-foreground font-bold text-xs uppercase tracking-widest shadow-md"
             >
               <option value="ignore">Ignorer les doublons</option>
               <option value="update">Mettre à jour les existants</option>
@@ -259,13 +259,13 @@ function DistributionPanel({
               type="date"
               value={config.schedDate}
               onChange={e => onChange({ schedDate: e.target.value })}
-              className="flex-1 px-3 py-2 bg-input-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground text-sm"
+              className="flex-1 px-3 py-2 bg-input dark:bg-input/40 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground text-sm"
             />
             <input
               type="time"
               value={config.schedTime}
               onChange={e => onChange({ schedTime: e.target.value })}
-              className="w-28 px-3 py-2 bg-input-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground text-sm"
+              className="w-28 px-3 py-2 bg-input dark:bg-input/40 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground text-sm"
             />
           </div>
         )}
@@ -505,7 +505,7 @@ export default function ImportLeadsPage() {
                 <button 
                   onClick={onUpload}
                   disabled={isUploading}
-                  className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-3 bg-success text-gray-900 dark:text-white rounded-xl font-bold hover:opacity-90 transition-all shadow-lg"
+                  className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-3 bg-success text-success-foreground rounded-xl font-bold hover:opacity-90 transition-all shadow-lg"
                 >
                   {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
                   {isUploading ? "Importation en cours..." : "LANCER L'IMPORTATION RÉELLE"}

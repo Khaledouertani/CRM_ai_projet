@@ -19,16 +19,26 @@ describe('ThemeContext', () => {
     document.documentElement.classList.remove('dark');
   });
 
-  it('should default to light theme', () => {
+  it('should default to dark theme', () => {
     render(
       <ThemeProvider>
         <TestComponent />
       </ThemeProvider>
     );
-    expect(screen.getByTestId('theme').textContent).toBe('light');
+    expect(screen.getByTestId('theme').textContent).toBe('dark');
   });
 
-  it('should toggle to dark theme', async () => {
+  it('should apply the dark class and persist it', () => {
+    render(
+      <ThemeProvider>
+        <TestComponent />
+      </ThemeProvider>
+    );
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(localStorage.getItem('theme')).toBe('dark');
+  });
+
+  it('should stay dark on toggle', async () => {
     render(
       <ThemeProvider>
         <TestComponent />

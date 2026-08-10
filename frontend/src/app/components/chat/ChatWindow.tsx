@@ -132,7 +132,7 @@ export function ChatWindow({
                     </div>
                     <div className={`relative px-4 py-3 rounded-2xl shadow-md transition-all group-hover:shadow-lg ${
                       isMe
-                        ? 'bg-gradient-to-br from-primary to-indigo-600 text-primary-foreground rounded-tr-sm'
+                        ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-tr-sm'
                         : 'bg-muted border border-border text-foreground rounded-tl-sm'
                     } ${msg.is_urgent ? 'ring-2 ring-destructive/30 border-destructive/20' : ''}`}>
                       {msg.is_urgent ? (
@@ -141,8 +141,8 @@ export function ChatWindow({
                         </div>
                       ) : null}
                       <p className="text-[13px] leading-relaxed whitespace-pre-wrap break-words font-medium">{msg.content}</p>
-                      <div className={`flex items-center gap-1.5 mt-2 text-[10px] font-semibold opacity-60 ${
-                        isMe ? 'text-primary-foreground' : 'text-muted-foreground'
+                      <div className={`flex items-center gap-1.5 mt-2 text-[10px] font-semibold opacity-80 ${
+                        isMe ? 'text-white/80' : 'text-muted-foreground'
                       }`}>
                         {formatTime(msg.created_at)}
                         {isMe && (

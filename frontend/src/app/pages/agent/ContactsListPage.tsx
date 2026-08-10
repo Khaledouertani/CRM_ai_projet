@@ -69,6 +69,51 @@ export default function ContactsListPage() {
     }
   }, []);
 
+  // Verrouillage du scroll de la page quand un modal est ouvert (conserve la position)
+  useEffect(() => {
+    if (showCreateModal || showDetailsModal) {
+      const original = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = original; };
+    }
+  }, [showCreateModal, showDetailsModal]);
+
+  // Fermer le modal Nouveau Contact avec la touche Échap
+  useEffect(() => {
+    if (!showCreateModal) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowCreateModal(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showCreateModal]);
+
+  // Création d'un contact (sauvegarde locale + notification)
+  const handleCreateContact = () => {
+    if (!newContact.contact.trim()) {
+      showNotificationMessage('Veuillez saisir le nom du contact');
+      return;
+    }
+    const contact = {
+      id: Date.now(),
+      company: newContact.contact.trim(),
+      contact: newContact.contact.trim(),
+      role: '',
+      phone: newContact.phone.trim(),
+      email: newContact.email.trim(),
+      city: '',
+      industry: '',
+      status: 'nouveau',
+      lastContact: new Date().toISOString().split('T')[0],
+      deals: 0,
+      revenue: 0,
+    };
+    setContactsList(prev => [...prev, contact]);
+    setNewContact({ contact: '', phone: '', email: '' });
+    setShowCreateModal(false);
+    showNotificationMessage('Contact ajouté avec succès !');
+  };
+
   const loadContacts = async () => {
     setLoading(true);
     try {
@@ -248,7 +293,7 @@ export default function ContactsListPage() {
         <div className="flex gap-2">
           <button
             onClick={() => handleCall(contact)}
-            className="flex-1 px-3 py-2 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-xl text-sm font-medium hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+            className="flex-1 px-3 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-sm font-medium hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
           >
             <Phone className="w-4 h-4" />
             Appeler
@@ -310,7 +355,7 @@ export default function ContactsListPage() {
         <div className="flex gap-2">
           <button
             onClick={() => handleCall(contact)}
-            className="p-2 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-lg hover:shadow-lg transition-all duration-200"
+            className="p-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg hover:shadow-lg transition-all duration-200"
             title="Appeler"
           >
             <Phone className="w-4 h-4" />
@@ -409,10 +454,10 @@ export default function ContactsListPage() {
          <div className="flex gap-2">
   <button
     onClick={() => setShowCreateModal(true)}
-    
-    className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-medium"
+    className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold text-sm shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:-translate-y-[1px] active:scale-95 transition-all cursor-pointer"
   >
-    + Nouveau Contact
+    <User className="w-4 h-4" />
+    Nouveau Contact
   </button>
 </div>
   
@@ -862,7 +907,7 @@ export default function ContactsListPage() {
                 <>
                   <button
                     onClick={() => handleCall(editData)}
-                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-xl font-semibold text-sm hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold text-sm hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
                   >
                     <Phone className="w-4 h-4" />
                     Appeler
@@ -878,112 +923,96 @@ export default function ContactsListPage() {
         </div>
       )}
       {showCreateModal && (
-  <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-    <div className="bg-card rounded-2xl p-6 w-full max-w-lg">
-
-      <h2 className="text-xl font-bold mb-4">
-        Nouveau Contact
-      </h2>
-
-      <div className="space-y-3">
-
-        
-        <input
-  placeholder="Nom"
-  value={newContact.contact}
-  onChange={(e) =>
-    setNewContact({
-      ...newContact,
-      contact: e.target.value
-    })
-  }
-  className="w-full p-3 rounded-xl border"
-/>
-<input
-  placeholder="Téléphone"
-  value={newContact.phone}
-  onChange={(e) =>
-    setNewContact({
-      ...newContact,
-      phone: e.target.value
-    })
-  }
-  className="w-full p-3 rounded-xl border"
-/>
-
-       <input
-  placeholder="Email"
-  value={newContact.email}
-  onChange={(e) =>
-    setNewContact({
-      ...newContact,
-      email: e.target.value
-    })
-  }
-  className="w-full p-3 rounded-xl border"
-/>
-
-      </div>
-
-      <div className="flex justify-end gap-2 mt-4">
-
-        <button
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn"
           onClick={() => setShowCreateModal(false)}
-          className="px-4 py-2 bg-muted rounded-xl"
         >
-          Annuler
-        </button>
+          <div
+            className="bg-card rounded-2xl w-full max-w-lg overflow-hidden border border-border shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 py-5 border-b border-border flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-foreground">
+                  Nouveau Contact
+                </h2>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Ajoutez un prospect à votre liste
+                </p>
+              </div>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="p-2 rounded-xl bg-muted/30 text-foreground/70 hover:bg-accent hover:text-foreground transition-all"
+                aria-label="Fermer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-        <button
-  onClick={() => {
+            <div className="px-6 py-5 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Nom du contact</label>
+                <input
+                  placeholder="Ex. Mohamed Ben Salah"
+                  value={newContact.contact}
+                  onChange={(e) =>
+                    setNewContact({
+                      ...newContact,
+                      contact: e.target.value
+                    })
+                  }
+                  className="w-full px-4 py-2.5 bg-muted/30 border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Téléphone</label>
+                <input
+                  placeholder="06 00 00 00 00"
+                  value={newContact.phone}
+                  onChange={(e) =>
+                    setNewContact({
+                      ...newContact,
+                      phone: e.target.value
+                    })
+                  }
+                  className="w-full px-4 py-2.5 bg-muted/30 border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Email</label>
+                <input
+                  type="email"
+                  placeholder="contact@entreprise.com"
+                  value={newContact.email}
+                  onChange={(e) =>
+                    setNewContact({
+                      ...newContact,
+                      email: e.target.value
+                    })
+                  }
+                  className="w-full px-4 py-2.5 bg-muted/30 border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                />
+              </div>
+            </div>
 
-    const contact = {
-  id: Date.now(),
-  company: newContact.contact,
-  contact: newContact.contact,
-  role: "",
-  phone: newContact.phone,
-  email: newContact.email,
-  city: "",
-  industry: "",
-  status: "nouveau",
-  lastContact: new Date().toISOString().split("T")[0],
-  deals: 0,
-  revenue: 0
-};
-
-setContactsList(prev => [...prev, contact]);
-
-setNewContact({
-  contact: '',
-  phone: '',
-  email: ''
-});
-
-setShowCreateModal(false);
-
-showNotificationMessage(
-  "Contact ajouté avec succès !"
-);
-
-    setContactsList(prev => [...prev, contact]);
-
-    setShowCreateModal(false);
-
-    showNotificationMessage(
-      "Contact ajouté avec succès !"
-    );
-
-  }}
-  className="px-4 py-2 bg-emerald-600 text-white rounded-xl"
->
-  Enregistrer
-</button>
-      </div>
-
-    </div>
-  </div>
-)}
+            <div className="px-6 py-4 border-t border-border flex justify-end gap-3">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="px-4 py-2.5 bg-muted/30 text-foreground/80 rounded-xl font-semibold text-sm hover:bg-accent transition-all"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleCreateContact}
+                className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold text-sm hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                <CheckCircle className="w-4 h-4" />
+                Enregistrer le contact
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

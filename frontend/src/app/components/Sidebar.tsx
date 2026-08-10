@@ -171,16 +171,18 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-5 border-b border-sidebar-border shrink-0">
         {!collapsed && (
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-gradient-to-br from-primary to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-primary/25 animate-float">
-              <Sparkles className="w-4 h-4 text-primary-foreground" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 via-indigo-600 to-violet-700 rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 ring-1 ring-white/20 animate-float">
+              <Sparkles className="w-5 h-5 text-white drop-shadow-md" />
             </div>
-            <div>
-              <span className="font-black text-[15px] tracking-tight text-sidebar-foreground">AI</span>
-              <span className="font-black text-[15px] tracking-tight text-primary"> CRM</span>
-              <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground leading-none mt-0.5">
-                Pro v2.0
+            <div className="leading-none">
+              <div className="flex items-baseline gap-1">
+                <span className="font-black text-[17px] tracking-tight text-white drop-shadow-sm">AI</span>
+                <span className="font-black text-[17px] tracking-tight text-gradient-primary">CRM</span>
               </div>
+              <span className="mt-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30 text-[8px] font-black uppercase tracking-widest">
+                ★ Pro v2.0
+              </span>
             </div>
           </div>
         )}
@@ -213,10 +215,10 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-2 py-3 scrollbar-crm">
-        {sections.map((section) => (
-          <div key={section.label} className="mb-4">
+        {sections.map((section, sectionIdx) => (
+          <div key={section.label} className={`mb-3 ${sectionIdx > 0 ? 'pt-3 mt-1 border-t border-sidebar-border/70' : ''}`}>
             {!collapsed && section.label && (
-              <h3 className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
+              <h3 className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
                 {section.label}
               </h3>
             )}
@@ -235,9 +237,12 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                           ? item.accent
                             ? `bg-gradient-to-r ${accentClass} border font-semibold shadow-sm`
                             : 'bg-sidebar-primary text-sidebar-primary-foreground font-semibold shadow-md shadow-primary/20'
-                          : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                          : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                         }`}
                     >
+                      {active && !collapsed && (
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary" />
+                      )}
                       <Icon
                         className={`w-[18px] h-[18px] flex-shrink-0 transition-transform duration-200 group-hover:scale-110 ${active && item.accent ? accentColors[item.accent].split(' ')[2] : ''
                           }`}
@@ -259,16 +264,16 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       {/* Footer – User profile & logout */}
       <div className="border-t border-sidebar-border px-2 py-3 shrink-0">
-        {!collapsed ? (
-          <div className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-sidebar-accent transition-colors group">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-primary-foreground text-xs font-black shadow-md shrink-0">
+{!collapsed ? (
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-sidebar-accent/50 ring-1 ring-sidebar-border hover:bg-sidebar-accent transition-colors group">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-[11px] font-black shadow-md ring-2 ring-white/10 shrink-0">
               {user?.name?.substring(0, 2).toUpperCase() || 'U'}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-sidebar-foreground truncate">
+            <div className="flex-1 min-w-0 leading-tight">
+              <p className="text-[13px] font-bold text-sidebar-foreground truncate drop-shadow-sm">
                 {user?.name || user?.username}
               </p>
-              <p className="text-[10px] font-semibold text-muted-foreground capitalize">
+              <p className="text-[9px] font-black uppercase tracking-widest text-emerald-400">
                 {user?.role === 'admin'
                   ? 'Administrateur'
                   : user?.role === 'qualite'

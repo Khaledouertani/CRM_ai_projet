@@ -292,6 +292,7 @@ export default function PointagePage() {
                 <th className="text-left px-4 py-3 text-xs font-black text-muted-foreground uppercase tracking-widest">Sortie</th>
                 <th className="text-left px-4 py-3 text-xs font-black text-muted-foreground uppercase tracking-widest">Pause</th>
                 <th className="text-left px-4 py-3 text-xs font-black text-muted-foreground uppercase tracking-widest">Statut</th>
+                <th className="text-right px-4 py-3 text-xs font-black text-muted-foreground uppercase tracking-widest">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -305,7 +306,7 @@ export default function PointagePage() {
                 ))
               ) : pageItems.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center">
+                  <td colSpan={7} className="px-6 py-10 text-center">
                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                       Aucun enregistrement trouvé{search || statusFilter !== 'all' || dateFilter ? ' pour ces filtres' : ''}
                     </p>
@@ -332,6 +333,11 @@ export default function PointagePage() {
                       : '—'}
                   </td>
                   <td className="px-4 py-4"><StatusBadge status={h.status} /></td>
+                  <td className="px-4 py-4 text-right">
+                    <button className="px-3 py-1.5 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-lg text-xs font-bold transition-all shadow-sm">
+                      Modifier
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -417,7 +417,7 @@ export default function DashboardPage() {
                      - Recommandation: Concentrer les effectifs sur le créneau de l'après-midi.`;
                   alert(report);
                 }}
-                className="w-full py-2.5 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/25 hover:opacity-90 hover:-translate-y-[1px] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/25 hover:opacity-90 hover:-translate-y-[1px] transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 Générer Rapport IA <Zap className="w-3 h-3" />
               </button>
@@ -646,7 +646,7 @@ export default function DashboardPage() {
               </button>
               <button
                 onClick={handleSubmit}
-                className="px-6 py-2.5 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/25 hover:opacity-90 transition-all cursor-pointer"
+                className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/25 hover:opacity-90 transition-all cursor-pointer"
               >
                 {editingAgent ? 'Sauvegarder' : 'Créer l\'agent'}
               </button>

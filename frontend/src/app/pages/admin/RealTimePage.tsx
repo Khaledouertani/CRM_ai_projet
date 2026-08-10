@@ -378,17 +378,24 @@ export default function RealTimePage() {
             <button
               key={kpi.key}
               onClick={() => setModalKey(kpi.key)}
-              className={`relative overflow-hidden bg-gradient-to-br ${kpi.color} border ${kpi.border} rounded-2xl p-5 shadow-sm text-left transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:border-foreground/20 cursor-pointer group`}
+              className={`relative overflow-hidden bg-gradient-to-br ${kpi.color} border ${kpi.border} rounded-2xl p-6 shadow-lg text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-foreground/30 cursor-pointer group backdrop-blur-xl`}
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className={`w-10 h-10 rounded-xl bg-card/60 flex items-center justify-center shadow-inner ${kpi.iconColor} group-hover:scale-110 transition-transform`}>
-                  <Icon className="w-5 h-5" />
-                </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground/50 group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Icon className="w-20 h-20 transform rotate-12" />
               </div>
-              <div className="text-3xl font-black text-foreground">{kpi.value}</div>
-              <div className="text-xs font-bold text-muted-foreground mt-0.5">{kpi.label}</div>
-              <div className="text-[11px] font-semibold text-muted-foreground/60 mt-1">{kpi.sub}</div>
+              <div className="relative z-10 flex flex-col h-full justify-between">
+                <div className="flex items-start justify-between mb-4">
+                  <div className={`w-12 h-12 rounded-2xl bg-card/80 flex items-center justify-center shadow-inner ${kpi.iconColor} group-hover:scale-110 transition-transform duration-300`}>
+                    <Icon className="w-6 h-6" />
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground/50 group-hover:text-foreground group-hover:translate-x-1 transition-all duration-300" />
+                </div>
+                <div>
+                  <div className="text-4xl font-black text-foreground tracking-tight drop-shadow-sm mb-1">{kpi.value}</div>
+                  <div className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{kpi.label}</div>
+                  <div className="text-[11px] font-semibold text-muted-foreground/80 mt-2 bg-background/50 inline-block px-2 py-1 rounded-md">{kpi.sub}</div>
+                </div>
+              </div>
             </button>
           );
         })}

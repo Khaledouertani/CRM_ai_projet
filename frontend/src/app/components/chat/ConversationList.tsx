@@ -45,7 +45,7 @@ export function ConversationList({
     <div className="w-80 flex-shrink-0 h-full min-h-0 bg-card border-r border-border flex flex-col overflow-hidden">
       <div className="p-4 shrink-0">
         <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Rechercher une conversation..."
@@ -109,7 +109,7 @@ export function ConversationList({
           ))}
 
           {!loading && (conversations || []).length === 0 && (
-            <div className="flex flex-col items-center justify-center py-12 text-slate-600">
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <Search className="w-8 h-8 mb-3 opacity-40" />
               <p className="text-xs font-medium">Aucune conversation</p>
             </div>

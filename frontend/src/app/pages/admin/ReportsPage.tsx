@@ -216,7 +216,7 @@ export default function ReportsPage() {
   }
 
   const EXPORT_BUTTONS = [
-    { key: 'calls', label: 'Appels PDF', icon: PhoneIncoming, action: exportCallsPdf, color: 'from-[#7c3aed] to-indigo-600' },
+    { key: 'calls', label: 'Appels PDF', icon: PhoneIncoming, action: exportCallsPdf, color: 'from-emerald-500 to-teal-600' },
     { key: 'agents', label: 'Agents PDF', icon: Users, action: exportAgentsPdf, color: 'from-emerald-500 to-teal-600' },
     { key: 'quality', label: 'Qualité PDF', icon: ShieldCheck, action: exportQualityPdf, color: 'from-blue-500 to-cyan-600' },
     { key: 'attendance', label: 'Pointage PDF', icon: Calendar, action: exportAttendancePdf, color: 'from-amber-500 to-orange-600' },

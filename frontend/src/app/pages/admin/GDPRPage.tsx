@@ -67,7 +67,7 @@ export default function GDPRPage() {
           <button 
             onClick={handleAnonymize}
             disabled={loading}
-            className="px-8 py-3 bg-destructive text-gray-900 dark:text-white rounded-xl font-bold flex items-center gap-2 mx-auto hover:opacity-90 transition-all disabled:opacity-50"
+            className="px-8 py-3 bg-destructive text-destructive-foreground rounded-xl font-bold flex items-center gap-2 mx-auto hover:opacity-90 transition-all disabled:opacity-50"
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
             {loading ? "Traitement en cours..." : "Lancer l'anonymisation massive"}

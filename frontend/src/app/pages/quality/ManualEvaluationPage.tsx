@@ -325,7 +325,7 @@ export default function ManualEvaluationPage() {
                 <button 
                   type="submit"
                   disabled={loading}
-                  className="px-10 py-4 bg-gradient-to-r from-primary to-indigo-600 hover:opacity-90 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-lg shadow-primary/25 transition-all active:scale-95 disabled:opacity-50"
+                  className="px-10 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:opacity-90 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-lg shadow-emerald-500/25 transition-all active:scale-95 disabled:opacity-50"
                 >
                   {loading ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

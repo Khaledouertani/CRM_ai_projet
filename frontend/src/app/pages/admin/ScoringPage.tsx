@@ -251,7 +251,7 @@ export default function ScoringPage() {
             </div>
             <div className="p-6 bg-muted/20 border-t border-border flex justify-end gap-3">
                <button onClick={() => setSelectedAlert(null)} className="px-6 py-2.5 bg-card border border-border text-foreground rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-muted transition-all">Fermer</button>
-               <button className="px-6 py-2.5 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:opacity-90 transition-all">Contacter l'agent</button>
+               <button className="px-6 py-2.5 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition-all">Contacter l'agent</button>
             </div>
           </div>
         </div>
@@ -276,7 +276,7 @@ export default function ScoringPage() {
            <button 
              onClick={handleSave} 
              disabled={saving || totalWeight !== 100}
-             className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20 hover:opacity-90 transition-all disabled:opacity-50"
+             className="flex items-center gap-2 px-6 py-2.5 bg-emerald-500 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition-all disabled:opacity-50"
            >
              <Save className="w-4 h-4" />
              {saving ? 'Synchronisation...' : 'Enregistrer'}
@@ -315,7 +315,7 @@ export default function ScoringPage() {
                             type="number"
                             value={weights[key]}
                             onChange={e => setWeights(p => ({ ...p, [key]: +e.target.value }))}
-                            className="w-14 px-2 py-1 bg-muted/40 border border-border rounded-lg text-center font-black text-slate-900"
+                            className="w-14 px-2 py-1 bg-muted/40 border border-border rounded-lg text-center font-black text-foreground"
                           />
                           <span className="text-muted-foreground">%</span>
                        </div>
@@ -645,10 +645,10 @@ text-primary
 opacity-100
 transition-all
 duration-300
-hover:bg-primary
+hover:bg-emerald-500
 hover:text-white
 hover:shadow-lg
-hover:shadow-primary/30
+hover:shadow-emerald-500/30
 "
                     >
                        Inspecter l'appel

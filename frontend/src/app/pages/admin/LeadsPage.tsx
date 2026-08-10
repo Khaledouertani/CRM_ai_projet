@@ -112,7 +112,7 @@ export default function LeadsPage() {
            />
            <button 
              onClick={() => document.getElementById('import-leads')?.click()}
-             className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:opacity-90 transition-all shadow-lg shadow-primary/20"
+             className="flex items-center gap-2 px-6 py-2.5 bg-emerald-500 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:opacity-90 transition-all shadow-lg shadow-emerald-500/20"
            >
              <Database className="w-4 h-4" />
              Importer CSV
@@ -133,7 +133,7 @@ export default function LeadsPage() {
                link.click();
                document.body.removeChild(link);
              }}
-             className="flex items-center gap-2 px-6 py-2.5 bg-card border border-border text-foreground rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-muted transition-all"
+             className="flex items-center gap-2 px-6 py-2.5 bg-emerald-500 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20"
            >
              <Download className="w-4 h-4" />
              Exporter
@@ -173,7 +173,7 @@ export default function LeadsPage() {
                 placeholder="Rechercher par nom ou téléphone..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-muted/40 border border-transparent rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                className="w-full pl-10 pr-4 py-2.5 bg-muted/40 border border-transparent rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
               />
             </div>
             <div className="flex items-center gap-2 bg-muted/40 px-4 py-2.5 rounded-xl border border-transparent">
@@ -183,9 +183,9 @@ export default function LeadsPage() {
                 onChange={e => setStatusFilter(e.target.value)}
 
               >
-                <option value="all" className="text-slate-900">Tous les Statuts</option>
+                <option value="all" className="text-slate-900 dark:text-foreground">Tous les Statuts</option>
                 {qualificationOptions.map(opt => (
-                  <option key={opt} value={opt} className="text-slate-900">{opt}</option>
+                  <option key={opt} value={opt} className="text-slate-900 dark:text-foreground">{opt}</option>
                 ))}
               </select>
             </div>
@@ -239,7 +239,7 @@ export default function LeadsPage() {
                               </div>
                            </td>
                            <td className="px-6 py-5 text-right">
-                              <button className="p-2 rounded-lg hover:bg-primary hover:text-white transition-all text-muted-foreground">
+                              <button className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all shadow-sm">
                                  <ChevronRight className="w-4 h-4" />
                               </button>
                            </td>

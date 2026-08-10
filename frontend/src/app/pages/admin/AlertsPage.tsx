@@ -123,9 +123,27 @@ export default function AlertsPage() {
                     <Input
                       type="number"
                       defaultValue={rule.threshold_value}
-                      className="w-20"
+                      className="w-20 font-mono"
                       id={`threshold-${rule.id}`}
                     />
+                    <Button
+                      size="sm"
+                      className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20 shadow-lg"
+                      onClick={() => {
+                        const val = (document.getElementById(`threshold-${rule.id}`) as HTMLInputElement).value;
+                        handleUpdate(rule.id, Number(val));
+                      }}
+                    >
+                      <Save className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-emerald-500 text-emerald-500 hover:bg-emerald-500/10"
+                      onClick={() => alert('Historique détaillé bientôt disponible')}
+                    >
+                      <Clock className="w-4 h-4" />
+                    </Button>
                     <Button
                       size="sm"
                       variant="destructive"

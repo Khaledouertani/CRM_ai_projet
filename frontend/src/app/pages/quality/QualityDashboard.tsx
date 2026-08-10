@@ -249,7 +249,7 @@ export default function QualityDashboard() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`relative px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${activeTab === tab.id
-                ? 'bg-gradient-to-r from-primary to-indigo-600 text-white shadow-lg shadow-primary/25'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25'
                 : 'bg-card text-muted-foreground border border-border hover:border-primary/40 hover:text-foreground'
               }`}
           >
@@ -493,10 +493,10 @@ export default function QualityDashboard() {
                   key={f}
                   onClick={() => setAlertFilter(f)}
                   className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${alertFilter === f
-                      ? f === 'all' ? 'bg-gradient-to-r from-primary to-indigo-600 text-white'
+                      ? f === 'all' ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white'
                         : f === 'critical' ? 'bg-rose-600 text-white'
                           : f === 'warning' ? 'bg-amber-600 text-white'
-                            : 'bg-gradient-to-r from-primary to-indigo-600 text-white'
+                            : 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white'
                       : 'bg-muted/40 text-muted-foreground border border-border'
                     }`}
                 >
@@ -769,7 +769,7 @@ export default function QualityDashboard() {
                       </div>
 
                       <div className="flex gap-3 mt-5">
-                        <button onClick={() => navigate('/qualite/agents')} className="flex-1 py-2.5 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:opacity-90 transition-all cursor-pointer">
+                        <button onClick={() => navigate('/qualite/agents')} className="flex-1 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:opacity-90 transition-all cursor-pointer">
                           Évaluer cet agent
                         </button>
                         <button onClick={() => navigate('/qualite/trends')} className="px-4 py-2.5 bg-card border border-primary/20 text-primary rounded-xl font-black text-[9px] uppercase tracking-widest hover:border-primary transition-all">

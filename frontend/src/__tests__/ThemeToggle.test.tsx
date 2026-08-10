@@ -21,20 +21,20 @@ describe('ThemeToggle', () => {
     document.documentElement.classList.remove('dark');
   });
 
-  it('should toggle theme on click', async () => {
+  it('should keep dark theme on click', async () => {
     render(
       <ThemeProvider>
         <TestComponent />
       </ThemeProvider>
     );
 
-    expect(screen.getByTestId('current-theme').textContent).toBe('light');
+    expect(screen.getByTestId('current-theme').textContent).toBe('dark');
 
     await userEvent.click(screen.getByTestId('toggle-theme'));
     expect(screen.getByTestId('current-theme').textContent).toBe('dark');
   });
 
-  it('should persist theme in localStorage', async () => {
+  it('should persist dark theme in localStorage', async () => {
     render(
       <ThemeProvider>
         <TestComponent />

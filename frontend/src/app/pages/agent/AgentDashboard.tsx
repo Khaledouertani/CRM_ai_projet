@@ -337,7 +337,7 @@ export default function AgentDashboard() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-primary/25 hover:-translate-y-[1px] active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-emerald-500/25 hover:-translate-y-[1px] active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
         >
           <Save className="w-4 h-4" />
           {saving ? 'Sauvegarde...' : 'Sauvegarder'}
@@ -346,54 +346,60 @@ export default function AgentDashboard() {
 
         <AttendanceManager />
 
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
-          <div className="glass-card-hover p-6 relative overflow-hidden group bg-gradient-to-br from-indigo-500 to-indigo-700 text-white border-indigo-500/30">
-            <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-white/10 group-hover:scale-150 transition-transform duration-500" />
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-md">
-                <Phone className="w-5 h-5 text-white" />
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 stagger-children">
+          <div className="relative overflow-hidden rounded-3xl p-6 group bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 text-white shadow-xl shadow-indigo-600/30 ring-1 ring-white/15 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-indigo-600/40 hover:brightness-110 cursor-default animate-fade-in-up">
+            <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br from-cyan-300/30 to-transparent opacity-70 group-hover:scale-150 transition-transform duration-700 blur-2xl" />
+            <div className="relative flex items-center justify-between mb-5">
+              <div className="p-3 bg-white/15 backdrop-blur-md rounded-2xl ring-1 ring-white/20 shadow-inner shadow-lg shadow-white/10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+                <Phone className="w-5 h-5 text-white drop-shadow-md" />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-60 text-white">Quotidien</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-white/70">Quotidien</span>
             </div>
-            <h3 className="text-sm font-black uppercase tracking-tighter opacity-80 text-white">Appels du jour</h3>
-            <p className="text-4xl font-black tracking-tighter mt-1 text-white tabular-nums">{totalCalls}</p>
+            <h3 className="text-sm font-black uppercase tracking-tighter text-white/90">Appels du jour</h3>
+            <p className="text-4xl font-black tracking-tighter mt-1.5 text-white drop-shadow-md tabular-nums">{totalCalls}</p>
+            <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 ring-1 ring-white/20 text-[10px] font-black text-white">
+              <TrendingUp className="w-3 h-3" /> Film direct
+            </div>
           </div>
 
-          <div className="glass-card p-5 bg-gradient-to-br from-emerald-500 to-emerald-700 border-emerald-500/30">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-md">
-                <CheckCircle className="w-5 h-5 text-white" />
+          <div className="relative overflow-hidden rounded-3xl p-6 group bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600 text-white shadow-xl shadow-emerald-500/30 ring-1 ring-white/15 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-emerald-500/40 cursor-pointer animate-fade-in-up">
+            <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br from-teal-300/30 to-transparent opacity-70 group-hover:scale-150 transition-transform duration-700 blur-2xl" />
+            <div className="relative flex items-center justify-between mb-4">
+              <div className="p-3 bg-white/15 backdrop-blur-md rounded-2xl ring-1 ring-white/20 shadow-inner transition-transform duration-300 group-hover:scale-110">
+                <CheckCircle className="w-5 h-5 text-white drop-shadow-md" />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-wider opacity-60 text-white">Réussite</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-white/70">Réussite</span>
             </div>
-            <h3 className="text-sm font-black uppercase tracking-tighter opacity-80 text-white">Conversions</h3>
-            <p className="text-4xl font-black tracking-tight mt-1 text-white tabular-nums">{positiveCalls}</p>
-            <p className="text-[10px] font-black uppercase mt-2 inline-flex items-center gap-1 bg-white/20 px-2.5 py-1 rounded-full text-white">
+            <h3 className="text-sm font-black uppercase tracking-tighter text-white/90">Conversions</h3>
+            <p className="text-4xl font-black tracking-tight mt-1 text-white drop-shadow-md tabular-nums">{positiveCalls}</p>
+            <p className="text-[10px] font-black uppercase mt-3 inline-flex items-center gap-1 bg-white/15 backdrop-blur-sm px-2.5 py-1 rounded-full ring-1 ring-white/20 text-white">
               TAUX: {conversionRate}%
             </p>
           </div>
 
-          <div className="glass-card p-5 bg-gradient-to-br from-amber-500 to-amber-700 border-amber-500/30">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-md">
-                <Clock className="w-5 h-5 text-white" />
+          <div className="relative overflow-hidden rounded-3xl p-6 group bg-gradient-to-br from-amber-400 via-amber-500 to-orange-600 text-white shadow-xl shadow-amber-500/30 ring-1 ring-white/15 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-amber-500/40 cursor-pointer animate-fade-in-up">
+            <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br from-orange-300/30 to-transparent opacity-70 group-hover:scale-150 transition-transform duration-700 blur-2xl" />
+            <div className="relative flex items-center justify-between mb-4">
+              <div className="p-3 bg-white/15 backdrop-blur-md rounded-2xl ring-1 ring-white/20 shadow-inner transition-transform duration-300 group-hover:scale-110">
+                <Clock className="w-5 h-5 text-white drop-shadow-md" />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-wider opacity-60 text-white">Actif</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-white/70">Actif</span>
             </div>
-            <h3 className="text-sm font-black uppercase tracking-tighter opacity-80 text-white">Temps productif</h3>
-            <p className="text-3xl font-black tracking-tight mt-1 text-white tabular-nums">{workDuration}</p>
+            <h3 className="text-sm font-black uppercase tracking-tighter text-white/90">Temps productif</h3>
+            <p className="text-3xl font-black tracking-tight mt-1.5 text-white drop-shadow-md tabular-nums">{workDuration}</p>
           </div>
 
-          <div className="glass-card p-5 bg-gradient-to-br from-rose-500 to-rose-700 border-rose-500/30">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-md">
-                <TrendingUp className="w-5 h-5 text-white" />
+          <div className="relative overflow-hidden rounded-3xl p-6 group bg-gradient-to-br from-rose-400 via-rose-500 to-pink-600 text-white shadow-xl shadow-rose-500/30 ring-1 ring-white/15 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-rose-500/40 cursor-pointer animate-fade-in-up">
+            <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br from-pink-300/30 to-transparent opacity-70 group-hover:scale-150 transition-transform duration-700 blur-2xl" />
+            <div className="relative flex items-center justify-between mb-4">
+              <div className="p-3 bg-white/15 backdrop-blur-md rounded-2xl ring-1 ring-white/20 shadow-inner transition-transform duration-300 group-hover:scale-110">
+                <TrendingUp className="w-5 h-5 text-white drop-shadow-md" />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-wider opacity-60 text-white">Niveau</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-white/70">Niveau</span>
             </div>
-            <h3 className="text-sm font-black uppercase tracking-tighter opacity-80 text-white">Score Qualité</h3>
-            <p className="text-4xl font-black tracking-tight mt-1 text-white tabular-nums">{avgScore > 0 ? `${Math.round(avgScore)}/100` : '—'}</p>
-</div>
+            <h3 className="text-sm font-black uppercase tracking-tighter text-white/90">Score Qualité</h3>
+            <p className="text-4xl font-black tracking-tighter mt-1.5 text-white drop-shadow-md tabular-nums">{avgScore > 0 ? `${Math.round(avgScore)}/100` : '—'}</p>
+          </div>
         </div>
 
         {hourlyData.length > 0 && (

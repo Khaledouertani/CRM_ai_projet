@@ -47,18 +47,18 @@
 }
 
 .dark {
-  --background: #070b14;
+  --background: #0a1228;
   --foreground: #e2e8f0;
-  --card: #0e1420;
+  --card: #101a33;
   --card-foreground: #e2e8f0;
   --primary: #818cf8;
   --primary-rgb: 129, 140, 248;
   --primary-foreground: #0b1020;
   --secondary: #a5b4fc;
   --secondary-foreground: #0b1020;
-  --muted: #131a28;
-  --muted-foreground: #7c8ba1;
-  --accent: #171f31;
+  --muted: #152140;
+  --muted-foreground: #8fa3c0;
+  --accent: #1a2b4f;
   --accent-foreground: #c7d2fe;
   --destructive: #f87171;
   --destructive-foreground: #000000;
@@ -68,22 +68,26 @@
   --warning-foreground: #000000;
   --info: #22d3ee;
   --info-foreground: #000000;
-  --border: rgba(148, 163, 184, 0.12);
-  --input: #0e1420;
+  --border: rgba(122, 152, 225, 0.24);
+  --input: #16224a;
   --ring: #818cf8;
-  --sidebar-background: #0a0f1a;
+  --sidebar-background: #0c1428;
   --sidebar-foreground: #cbd5e1;
   --sidebar-primary: #818cf8;
   --sidebar-primary-foreground: #0b1020;
-  --sidebar-accent: #131a28;
+  --sidebar-accent: #152140;
   --sidebar-accent-foreground: #c7d2fe;
-  --sidebar-border: rgba(148, 163, 184, 0.1);
+  --sidebar-border: rgba(122, 152, 225, 0.22);
   --color-chart-1: #818cf8;
   --color-chart-2: #22d3ee;
   --color-chart-3: #fbbf24;
   --color-chart-4: #34d399;
   --color-chart-5: #f87171;
   --color-glow: rgba(129, 140, 248, 0.4);
+}
+
+html.dark, html.dark body, html.dark input, html.dark select, html.dark textarea {
+  color-scheme: dark;
 }
 
 /* Base Styles */
