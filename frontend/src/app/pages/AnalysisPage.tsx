@@ -290,10 +290,14 @@ export default function AnalysisPage() {
               <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-4">Indicateurs Comportementaux</h3>
                 <div className="space-y-3">
+                   <ScoreProgress label="Accueil" value={result.score_accueil || 0} color="bg-primary" />
+                   <ScoreProgress label="Energie" value={result.score_energie || 0} color="bg-primary" />
+                   <ScoreProgress label="Voix" value={result.score_voix || 0} color="bg-primary" />
                    <ScoreProgress label="Écoute active" value={result.score_ecoute || 0} color="bg-primary" />
-                   <ScoreProgress label="Persuasion" value={result.score_persuasion || 0} color="bg-primary" />
-                   <ScoreProgress label="Empathie" value={result.score_empathie || 0} color="bg-emerald-500" />
-                   <ScoreProgress label="Argumentation" value={result.score_argumentation || 0} color="bg-amber-500" />
+                   <ScoreProgress label="Client" value={result.score_client || 0} color="bg-emerald-500" />
+                   <ScoreProgress label="Opérateur" value={result.score_operateur || 0} color="bg-amber-500" />
+                   <ScoreProgress label="Efficacité" value={result.score_efficacite || 0} color="bg-amber-500" />
+                   <ScoreProgress label="Conclusion" value={result.score_conclusion || 0} color="bg-emerald-500" />
                 </div>
               </div>
             </>

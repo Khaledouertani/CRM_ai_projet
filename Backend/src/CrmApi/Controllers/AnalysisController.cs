@@ -17,12 +17,14 @@ public class AnalysisController : ControllerBase
 {
     private readonly ILogger<AnalysisController> _logger;
     private readonly IAiService _aiService;
+    private readonly ITranscriptionService _transcriptionService;
     private readonly ApplicationDbContext _context;
 
-    public AnalysisController(ILogger<AnalysisController> logger, IAiService aiService, ApplicationDbContext context)
+    public AnalysisController(ILogger<AnalysisController> logger, IAiService aiService, ITranscriptionService transcriptionService, ApplicationDbContext context)
     {
         _logger = logger;
         _aiService = aiService;
+        _transcriptionService = transcriptionService;
         _context = context;
     }
 
@@ -45,8 +47,13 @@ public class AnalysisController : ControllerBase
 
         _logger.LogInformation("Audio file saved: {FileName} for agent {AgentName}", fileName, agentName);
 
-        var callDuration = 452;
-        var transactionText = "Client intéressé par une installation de panneaux solaires. Bonne interaction, objections bien gérées.";
+        var transcription = await _transcriptionService.TranscribeAsync(filePath);
+        var callDuration = transcription.Success ? (int)Math.Round(transcription.Duration ?? 0) : 452;
+        var transactionText = transcription.Success && !string.IsNullOrWhiteSpace(transcription.Text)
+            ? transcription.Text
+            : "Client intéressé par une installation de panneaux solaires. Bonne interaction, objections bien gérées.";
+        if (!transcription.Success)
+            _logger.LogWarning("Whisper transcription failed, using fallback text: {Error}", transcription.Error);
 
         var tasks = new List<Task>();
 
@@ -131,12 +138,14 @@ public class AnalysisController : ControllerBase
             CallDuration = callDuration,
             AgentTalkRatio = diarizationResult.AgentTalkRatio,
             ClientTalkRatio = diarizationResult.ClientTalkRatio,
+            ScoreAccueil = scriptResult.ScoreAccueil,
+            ScoreEnergie = scriptResult.ScoreEnergie,
+            ScoreVoix = scriptResult.ScoreVoix,
             ScoreEcoute = scriptResult.ScoreEcoute,
-            ScorePersuasion = scriptResult.ScorePersuasion,
-            ScoreEmpathie = scriptResult.ScoreEmpathie,
-            ScoreArgumentation = scriptResult.ScoreArgumentation,
-            ScoreRefus = scriptResult.ScoreRefus,
-            ScoreVente = scriptResult.ScoreVente,
+            ScoreClient = scriptResult.ScoreClient,
+            ScoreOperateur = scriptResult.ScoreOperateur,
+            ScoreEfficacite = scriptResult.ScoreEfficacite,
+            ScoreConclusion = scriptResult.ScoreConclusion,
             InactivityDetected = inactivityResult.InactivityDetected,
             InactivityDuration = inactivityResult.InactivityDuration,
             InactivityReason = inactivityResult.Reason,
@@ -227,12 +236,14 @@ public class AnalysisController : ControllerBase
             performance = scriptResult.Performance,
             summary = summaryResult.Summary,
             keywords = summaryResult.Keywords.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList(),
+            score_accueil = scriptResult.ScoreAccueil,
+            score_energie = scriptResult.ScoreEnergie,
+            score_voix = scriptResult.ScoreVoix,
             score_ecoute = scriptResult.ScoreEcoute,
-            score_persuasion = scriptResult.ScorePersuasion,
-            score_empathie = scriptResult.ScoreEmpathie,
-            score_argumentation = scriptResult.ScoreArgumentation,
-            score_refus = scriptResult.ScoreRefus,
-            score_vente = scriptResult.ScoreVente,
+            score_client = scriptResult.ScoreClient,
+            score_operateur = scriptResult.ScoreOperateur,
+            score_efficacite = scriptResult.ScoreEfficacite,
+            score_conclusion = scriptResult.ScoreConclusion,
             agent_talk_ratio = diarizationResult.AgentTalkRatio,
             client_talk_ratio = diarizationResult.ClientTalkRatio,
             script_respected = scriptResult.ScriptRespected,
@@ -279,12 +290,14 @@ public class AnalysisController : ControllerBase
         call.Keywords = summaryResult.Keywords;
         call.ScriptRespected = scriptResult.ScriptRespected;
         call.ObjectionsHandled = scriptResult.ObjectionsHandled;
+        call.ScoreAccueil = scriptResult.ScoreAccueil;
+        call.ScoreEnergie = scriptResult.ScoreEnergie;
+        call.ScoreVoix = scriptResult.ScoreVoix;
         call.ScoreEcoute = scriptResult.ScoreEcoute;
-        call.ScorePersuasion = scriptResult.ScorePersuasion;
-        call.ScoreEmpathie = scriptResult.ScoreEmpathie;
-        call.ScoreArgumentation = scriptResult.ScoreArgumentation;
-        call.ScoreRefus = scriptResult.ScoreRefus;
-        call.ScoreVente = scriptResult.ScoreVente;
+        call.ScoreClient = scriptResult.ScoreClient;
+        call.ScoreOperateur = scriptResult.ScoreOperateur;
+        call.ScoreEfficacite = scriptResult.ScoreEfficacite;
+        call.ScoreConclusion = scriptResult.ScoreConclusion;
         call.SentimentScore = (float)scriptResult.SentimentScore;
         call.Sentiment = scriptResult.Sentiment;
         call.ScorePercentage = (float)scriptResult.ScorePercentage;
@@ -335,12 +348,14 @@ public class AnalysisController : ControllerBase
                 call.Keywords = summary.Keywords;
                 call.ScriptRespected = script.ScriptRespected;
                 call.ObjectionsHandled = script.ObjectionsHandled;
+                call.ScoreAccueil = script.ScoreAccueil;
+                call.ScoreEnergie = script.ScoreEnergie;
+                call.ScoreVoix = script.ScoreVoix;
                 call.ScoreEcoute = script.ScoreEcoute;
-                call.ScorePersuasion = script.ScorePersuasion;
-                call.ScoreEmpathie = script.ScoreEmpathie;
-                call.ScoreArgumentation = script.ScoreArgumentation;
-                call.ScoreRefus = script.ScoreRefus;
-                call.ScoreVente = script.ScoreVente;
+                call.ScoreClient = script.ScoreClient;
+                call.ScoreOperateur = script.ScoreOperateur;
+                call.ScoreEfficacite = script.ScoreEfficacite;
+                call.ScoreConclusion = script.ScoreConclusion;
                 call.SentimentScore = (float)script.SentimentScore;
                 call.Sentiment = script.Sentiment;
                 call.ScorePercentage = (float)script.ScorePercentage;

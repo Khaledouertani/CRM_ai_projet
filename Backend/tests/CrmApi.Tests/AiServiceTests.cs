@@ -4,6 +4,7 @@ using CrmApi.Services.Chat;
 using CrmApi.Data;
 using CrmApi.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Moq;
 using FluentAssertions;
 
@@ -24,7 +25,7 @@ public class AiServiceTests
         _mockChat = new Mock<IChatService>();
         _mockChat.Setup(x => x.SendMessageAsync(It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(new ChatResponseDto { Response = "ok" });
-        _sut = new AiService(context, _mockChat.Object);
+        _sut = new AiService(context, _mockChat.Object, Options.Create(new WeightsConfig()));
     }
 
     [Fact]
@@ -535,7 +536,9 @@ public class AiServiceTests
 
         var result = await _sut.AnalyzeScriptAsync(dto);
 
-        result.ScoreEcoute.Should().Be(5);
+        result.ScoreEcoute.Should().Be(50);
+        result.ScoreAccueil.Should().Be(50);
+        result.ScoreConclusion.Should().Be(50);
         result.ScorePercentage.Should().Be(50);
     }
 }

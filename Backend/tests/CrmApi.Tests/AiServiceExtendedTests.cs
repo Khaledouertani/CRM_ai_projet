@@ -2,8 +2,10 @@ using CrmApi.DTOs.Ai;
 using CrmApi.Services.Ai;
 using CrmApi.Services.Chat;
 using CrmApi.Data;
+using CrmApi.Helpers;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace CrmApi.Tests;
@@ -23,7 +25,7 @@ public class AiServiceExtendedTests
         _mockChat = new Mock<IChatService>();
         _mockChat.Setup(x => x.SendMessageAsync(It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(new ChatResponseDto { Response = "ok" });
-        _sut = new AiService(context, _mockChat.Object);
+        _sut = new AiService(context, _mockChat.Object, Options.Create(new WeightsConfig()));
     }
 
     [Fact]

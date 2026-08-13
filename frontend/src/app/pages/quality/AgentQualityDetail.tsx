@@ -77,7 +77,7 @@ export default function AgentQualityDetail() {
     voix: 4,
     ecoute: 5,
     client: 4,
-    ope: 3,
+    operateur: 3,
     efficacite: 3,
     conclusion: 2,
   });
@@ -194,7 +194,7 @@ export default function AgentQualityDetail() {
         voix: 4,
         ecoute: 5,
         client: 4,
-        ope: 4,
+        operateur: 4,
         efficacite: 3,
         conclusion: 3,
       });
@@ -382,7 +382,7 @@ export default function AgentQualityDetail() {
               { id: 'voix', label: 'Qualité Vocale', desc: 'Clarté, débit et volume' },
               { id: 'ecoute', label: 'Écoute Active', desc: 'Reformulation et non-interruption' },
               { id: 'client', label: 'Orientation Client', desc: 'Empathie et tact professionnel' },
-              { id: 'ope', label: 'C. Opérationnelles', desc: 'Exactitude des infos transmises' },
+              { id: 'operateur', label: 'C. Opérationnelles', desc: 'Exactitude des infos transmises' },
               { id: 'efficacite', label: 'Efficacité', desc: 'Gestion de l\'attente et pertinence' },
               { id: 'conclusion', label: 'Rebond & Conclusion', desc: 'Prise de congé professionnelle' },
             ].map((item) => (

@@ -17,6 +17,7 @@ public class AnalysisControllerIntegrationTests : ControllerTestBase, IDisposabl
     private readonly ApplicationDbContext _context;
     private readonly Mock<ILogger<AnalysisController>> _mockLogger;
     private readonly Mock<IAiService> _mockAi;
+    private readonly Mock<ITranscriptionService> _mockTranscription;
     private readonly AnalysisController _sut;
     private readonly AnalysisController _adminController;
 
@@ -30,11 +31,14 @@ public class AnalysisControllerIntegrationTests : ControllerTestBase, IDisposabl
 
         _mockLogger = new Mock<ILogger<AnalysisController>>(MockBehavior.Loose);
         _mockAi = new Mock<IAiService>(MockBehavior.Strict);
+        _mockTranscription = new Mock<ITranscriptionService>(MockBehavior.Strict);
+        _mockTranscription.Setup(s => s.TranscribeAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TranscriptionResultDto { Success = true, Text = "Bonjour, je suis intéressé par des panneaux solaires.", Language = "fr", Duration = 120 });
 
-        _sut = new AnalysisController(_mockLogger.Object, _mockAi.Object, _context);
+        _sut = new AnalysisController(_mockLogger.Object, _mockAi.Object, _mockTranscription.Object, _context);
         _sut.ControllerContext = CreateControllerContext(role: "agent");
 
-        _adminController = new AnalysisController(_mockLogger.Object, _mockAi.Object, _context);
+        _adminController = new AnalysisController(_mockLogger.Object, _mockAi.Object, _mockTranscription.Object, _context);
         _adminController.ControllerContext = CreateControllerContext(role: "admin");
     }
 
@@ -76,12 +80,14 @@ public class AnalysisControllerIntegrationTests : ControllerTestBase, IDisposabl
                 SentimentScore = 0.8,
                 ScorePercentage = 75,
                 Performance = "good",
+                ScoreAccueil = 7,
+                ScoreEnergie = 6,
+                ScoreVoix = 8,
                 ScoreEcoute = 7,
-                ScorePersuasion = 6,
-                ScoreEmpathie = 8,
-                ScoreArgumentation = 7,
-                ScoreRefus = 5,
-                ScoreVente = 6,
+                ScoreClient = 6,
+                ScoreOperateur = 7,
+                ScoreEfficacite = 6,
+                ScoreConclusion = 7,
                 ScriptRespected = true,
                 ObjectionsHandled = true,
                 CustomerIntent = "achat",

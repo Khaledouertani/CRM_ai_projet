@@ -11,14 +11,14 @@
     "voix": 10,
     "ecoute": 15,
     "client": 15,
-    "ope": 15,
+    "operateur": 15,
     "efficacite": 10,
     "conclusion": 10
   },
   "alerts": {
-    "min_score": 70,
-    "max_inactivity_minutes": 15,
-    "min_conversion_rate": 40,
+    "min_score": 40,
+    "max_inactivity_minutes": 30,
+    "min_conversion_rate": 10,
     "alert_email": "admin@crm.local",
     "alert_enabled": true
   },

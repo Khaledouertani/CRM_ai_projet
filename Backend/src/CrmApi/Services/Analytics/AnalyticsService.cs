@@ -45,12 +45,14 @@ public class AnalyticsService : IAnalyticsService
             Hourly = hourly,
             Radar = new List<RadarDataDto>
             {
+                new() { Critere = "Accueil", Score = calls.Count > 0 ? calls.Average(c => c.ScoreAccueil) : 0 },
+                new() { Critere = "Energie", Score = calls.Count > 0 ? calls.Average(c => c.ScoreEnergie) : 0 },
+                new() { Critere = "Voix", Score = calls.Count > 0 ? calls.Average(c => c.ScoreVoix) : 0 },
                 new() { Critere = "Ecoute", Score = calls.Count > 0 ? calls.Average(c => c.ScoreEcoute) : 0 },
-                new() { Critere = "Persuasion", Score = calls.Count > 0 ? calls.Average(c => c.ScorePersuasion) : 0 },
-                new() { Critere = "Empathie", Score = calls.Count > 0 ? calls.Average(c => c.ScoreEmpathie) : 0 },
-                new() { Critere = "Argumentation", Score = calls.Count > 0 ? calls.Average(c => c.ScoreArgumentation) : 0 },
-                new() { Critere = "Refus", Score = calls.Count > 0 ? calls.Average(c => c.ScoreRefus) : 0 },
-                new() { Critere = "Vente", Score = calls.Count > 0 ? calls.Average(c => c.ScoreVente) : 0 }
+                new() { Critere = "Client", Score = calls.Count > 0 ? calls.Average(c => c.ScoreClient) : 0 },
+                new() { Critere = "Operateur", Score = calls.Count > 0 ? calls.Average(c => c.ScoreOperateur) : 0 },
+                new() { Critere = "Efficacite", Score = calls.Count > 0 ? calls.Average(c => c.ScoreEfficacite) : 0 },
+                new() { Critere = "Conclusion", Score = calls.Count > 0 ? calls.Average(c => c.ScoreConclusion) : 0 }
             },
             CallsToday = callsToday,
             ActiveAgents = calls.Where(c => c.CallDate.HasValue && c.CallDate.Value.Date == today).Select(c => c.AgentName).Distinct().Count(),

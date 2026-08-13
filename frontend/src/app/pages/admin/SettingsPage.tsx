@@ -15,7 +15,7 @@ interface Weights {
   voix: number;
   ecoute: number;
   client: number;
-  ope: number;
+  operateur: number;
   efficacite: number;
   conclusion: number;
 }
@@ -26,7 +26,7 @@ const CRITERIA_LABELS: Record<keyof Weights, string> = {
   voix: 'Qualité vocale & Débit',
   ecoute: 'Écoute active & Reformulation',
   client: 'Orientation Client & Empathie',
-  ope: 'Compétences Opérationnelles',
+  operateur: 'Compétences Opérationnelles',
   efficacite: 'Efficacité & Wait Management',
   conclusion: 'Rebond & Conclusion'
 };
@@ -90,7 +90,7 @@ export default function SettingsPage() {
 
   const [iaWeights, setIaWeights] = useState<Weights>({
     accueil: 10, energie: 15, voix: 10, ecoute: 15,
-    client: 15, ope: 15, efficacite: 10, conclusion: 10
+    client: 15, operateur: 15, efficacite: 10, conclusion: 10
   });
   const [iaTotalWeight, setIaTotalWeight] = useState(100);
 

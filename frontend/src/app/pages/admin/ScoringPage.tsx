@@ -14,7 +14,7 @@ interface Weights {
   voix: number;
   ecoute: number;
   client: number;
-  ope: number;
+  operateur: number;
   efficacite: number;
   conclusion: number;
 }
@@ -49,7 +49,7 @@ const criteriaLabels: Record<keyof Weights, string> = {
   voix: 'Qualité vocale & Débit',
   ecoute: 'Écoute active & Reformulation',
   client: 'Orientation Client & Empathie',
-  ope: 'Compétences Opérationnelles',
+  operateur: 'Compétences Opérationnelles',
   efficacite: 'Efficacité & Wait Management',
   conclusion: 'Rebond & Conclusion'
 };
@@ -61,15 +61,15 @@ export default function ScoringPage() {
     voix: 10,
     ecoute: 15,
     client: 15,
-    ope: 15,
+    operateur: 15,
     efficacite: 10,
     conclusion: 10
   });
 
   const [alerts, setAlerts] = useState<AlertConfig>({
-    min_score: 70,
-    max_inactivity_minutes: 15,
-    min_conversion_rate: 40,
+    min_score: 40,
+    max_inactivity_minutes: 30,
+    min_conversion_rate: 10,
     alert_email: 'admin@local',
     alert_enabled: true
   });
@@ -141,7 +141,7 @@ export default function ScoringPage() {
         optimized.accueil = Math.max(5, weights.accueil - 2);
         optimized.efficacite = Math.max(5, weights.efficacite - 2);
       } else {
-        const boost = ['accueil', 'energie', 'voix', 'ecoute', 'client', 'ope', 'efficacite', 'conclusion'] as const;
+        const boost = ['accueil', 'energie', 'voix', 'ecoute', 'client', 'operateur', 'efficacite', 'conclusion'] as const;
         const topCriterion = boost.reduce((a, b) => weights[a] >= weights[b] ? a : b);
         optimized[topCriterion] = Math.min(25, weights[topCriterion] + 1);
         const minCriterion = boost.reduce((a, b) => weights[a] <= weights[b] ? a : b);
@@ -186,7 +186,7 @@ export default function ScoringPage() {
     { key: 'voix', label: 'Qualité vocale & Débit', impact: weights.voix, trend: 'down' as const, color: '#ef4444' },
     { key: 'ecoute', label: 'Écoute active & Reformulation', impact: weights.ecoute, trend: 'up' as const, color: '#10b981' },
     { key: 'client', label: 'Orientation Client & Empathie', impact: weights.client, trend: 'up' as const, color: '#f59e0b' },
-    { key: 'ope', label: 'Compétences Opérationnelles', impact: weights.ope, trend: 'stable' as const, color: '#8b5cf6' },
+    { key: 'operateur', label: 'Compétences Opérationnelles', impact: weights.operateur, trend: 'stable' as const, color: '#8b5cf6' },
     { key: 'efficacite', label: 'Efficacité & Wait Management', impact: weights.efficacite, trend: 'down' as const, color: '#ec4899' },
     { key: 'conclusion', label: 'Rebond & Conclusion', impact: weights.conclusion, trend: 'up' as const, color: '#06b6d4' },
   ];

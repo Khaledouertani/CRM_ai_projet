@@ -17,12 +17,14 @@ public class AnalysisResultDto
     public int CallDuration { get; set; }
     public double AgentTalkRatio { get; set; }
     public double ClientTalkRatio { get; set; }
+    public int ScoreAccueil { get; set; }
+    public int ScoreEnergie { get; set; }
+    public int ScoreVoix { get; set; }
     public int ScoreEcoute { get; set; }
-    public int ScorePersuasion { get; set; }
-    public int ScoreEmpathie { get; set; }
-    public int ScoreArgumentation { get; set; }
-    public int ScoreRefus { get; set; }
-    public int ScoreVente { get; set; }
+    public int ScoreClient { get; set; }
+    public int ScoreOperateur { get; set; }
+    public int ScoreEfficacite { get; set; }
+    public int ScoreConclusion { get; set; }
     public bool InactivityDetected { get; set; }
     public float InactivityDuration { get; set; }
     public string? InactivityReason { get; set; }

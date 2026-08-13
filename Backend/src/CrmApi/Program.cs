@@ -45,6 +45,7 @@ builder.Services.Configure<AppConfig>(builder.Configuration.GetSection("App"));
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 builder.Services.Configure<OllamaSettings>(builder.Configuration.GetSection("Ollama"));
 builder.Services.Configure<WeightsConfig>(builder.Configuration.GetSection("Weights"));
+builder.Services.Configure<WhisperSettings>(builder.Configuration.GetSection("Whisper"));
 builder.Services.Configure<AlertThresholds>(builder.Configuration.GetSection("Alerts"));
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -131,6 +132,7 @@ builder.Services.AddScoped<ILeadService, LeadService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddSingleton<WebSocketConnectionManager>();
 builder.Services.AddScoped<IAiService, AiService>();
+builder.Services.AddScoped<ITranscriptionService, TranscriptionService>();
 
 builder.Services.AddHttpClient("Ollama");
 

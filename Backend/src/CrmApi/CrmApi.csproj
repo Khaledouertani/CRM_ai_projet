@@ -21,5 +21,9 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="ai-scripts\**\*.py" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
 

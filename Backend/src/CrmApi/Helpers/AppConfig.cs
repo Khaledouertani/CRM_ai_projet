@@ -24,12 +24,25 @@ public class CorsSettings
 
 public class WeightsConfig
 {
-    public float Ecoute { get; set; } = 0.20f;
-    public float Persuasion { get; set; } = 0.20f;
-    public float Empathie { get; set; } = 0.15f;
-    public float Argumentation { get; set; } = 0.20f;
-    public float Refus { get; set; } = 0.10f;
-    public float Vente { get; set; } = 0.15f;
+    public float Accueil { get; set; } = 0.10f;
+    public float Energie { get; set; } = 0.15f;
+    public float Voix { get; set; } = 0.10f;
+    public float Ecoute { get; set; } = 0.15f;
+    public float Client { get; set; } = 0.15f;
+    public float Operateur { get; set; } = 0.15f;
+    public float Efficacite { get; set; } = 0.10f;
+    public float Conclusion { get; set; } = 0.10f;
+}
+
+public class WhisperSettings
+{
+    public bool Enabled { get; set; } = true;
+    public string PythonPath { get; set; } = "python";
+    public string ScriptPath { get; set; } = "ai-scripts/transcribe.py";
+    public string Model { get; set; } = "base";
+    public string Language { get; set; } = "fr";
+    public string Device { get; set; } = "auto";
+    public int TimeoutSeconds { get; set; } = 300;
 }
 
 public class AlertThresholds

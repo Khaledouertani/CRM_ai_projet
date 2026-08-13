@@ -139,12 +139,14 @@ export default function AnalyticsPage() {
                 <div className="flex justify-center items-center h-[320px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <RadarChart cx="50%" cy="50%" outerRadius="80%" data={overview.radar && overview.radar.length > 0 ? overview.radar : [
-                      { critere: 'Écoute', score: 0 },
-                      { critere: 'Persuasion', score: 0 },
-                      { critere: 'Empathie', score: 0 },
-                      { critere: 'Vente', score: 0 },
-                      { critere: 'Refus', score: 0 },
-                      { critere: 'Clarté', score: 0 },
+                      { critere: 'Accueil', score: 0 },
+                      { critere: 'Energie', score: 0 },
+                      { critere: 'Voix', score: 0 },
+                      { critere: 'Ecoute', score: 0 },
+                      { critere: 'Client', score: 0 },
+                      { critere: 'Operateur', score: 0 },
+                      { critere: 'Efficacite', score: 0 },
+                      { critere: 'Conclusion', score: 0 },
                     ]}>
                       <PolarGrid stroke="#334155" gridType="polygon" />
                       <PolarAngleAxis 

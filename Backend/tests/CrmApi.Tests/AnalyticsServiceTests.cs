@@ -26,8 +26,8 @@ public class AnalyticsServiceTests
     {
         var agentName = "Agent Test";
         _context.Calls.AddRange(
-            new Call { AgentName = agentName, CallDate = DateTime.UtcNow, ScorePercentage = 80f, Sentiment = "POSITIVE", Performance = "good", ScoreEcoute = 8, ScorePersuasion = 7, ScoreEmpathie = 9, ScoreArgumentation = 8, ScoreRefus = 6, ScoreVente = 7, AgentTalkRatio = 0.6f, ClientTalkRatio = 0.4f, CallDuration = 120 },
-            new Call { AgentName = agentName, CallDate = DateTime.UtcNow.AddHours(-2), ScorePercentage = 60f, Sentiment = "NEUTRAL", Performance = "average", ScoreEcoute = 6, ScorePersuasion = 5, ScoreEmpathie = 7, ScoreArgumentation = 6, ScoreRefus = 5, ScoreVente = 6, AgentTalkRatio = 0.5f, ClientTalkRatio = 0.5f, CallDuration = 90 }
+            new Call { AgentName = agentName, CallDate = DateTime.UtcNow, ScorePercentage = 80f, Sentiment = "POSITIVE", Performance = "good", ScoreAccueil = 8, ScoreEnergie = 7, ScoreVoix = 9, ScoreEcoute = 8, ScoreClient = 7, ScoreOperateur = 8, ScoreEfficacite = 7, ScoreConclusion = 8, AgentTalkRatio = 0.6f, ClientTalkRatio = 0.4f, CallDuration = 120 },
+            new Call { AgentName = agentName, CallDate = DateTime.UtcNow.AddHours(-2), ScorePercentage = 60f, Sentiment = "NEUTRAL", Performance = "average", ScoreAccueil = 6, ScoreEnergie = 5, ScoreVoix = 7, ScoreEcoute = 6, ScoreClient = 5, ScoreOperateur = 6, ScoreEfficacite = 5, ScoreConclusion = 6, AgentTalkRatio = 0.5f, ClientTalkRatio = 0.5f, CallDuration = 90 }
         );
         await _context.SaveChangesAsync();
 
@@ -38,7 +38,7 @@ public class AnalyticsServiceTests
         result.Sentiments.Should().ContainKey("POSITIVE");
         result.BestAgent.Should().Be(agentName);
         result.Hourly.Should().NotBeEmpty();
-        result.Radar.Should().HaveCount(6);
+        result.Radar.Should().HaveCount(8);
     }
 
     [Fact]

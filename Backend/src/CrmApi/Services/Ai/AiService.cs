@@ -4,6 +4,7 @@ using CrmApi.Helpers;
 using CrmApi.Models.Entities;
 using CrmApi.Services.Chat;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -13,11 +14,13 @@ public class AiService : IAiService
 {
     private readonly ApplicationDbContext _context;
     private readonly IChatService _chatService;
+    private readonly WeightsConfig _weights;
 
-    public AiService(ApplicationDbContext context, IChatService chatService)
+    public AiService(ApplicationDbContext context, IChatService chatService, IOptions<WeightsConfig> weightsOptions)
     {
         _context = context;
         _chatService = chatService;
+        _weights = weightsOptions.Value;
     }
 
     public Task<EligibilityResultDto> ScoreEligibilityAsync(EligibilityRequestDto dto)
@@ -326,14 +329,15 @@ public class AiService : IAiService
                 $"Analyse cette transcription d'appel commercial en français. " +
                 $"La qualification du projet est: {dto.Qualification}\n\n" +
                 $"Transcription:\n{dto.Transcript}\n\n" +
-                $"Évalue chaque critère de 0 à 10: écoute, persuasion, empathie, argumentation, gestion refus, vente. " +
-                $"Donne un score de sentiment (0=très négatif, 1=très positif), un score global (0-100). " +
+                $"Évalue chaque critère de 0 à 100: accueil, énergie, voix, écoute, client, opérateur, efficacité, conclusion. " +
+                $"Donne un score de sentiment (0=très négatif, 1=très positif). " +
                 $"Indique si le script a été respecté (oui/non), si les objections ont été gérées (oui/non), " +
                 $"l'intention du client, et les prochaines étapes.\n\n" +
                 $"Réponds UNIQUEMENT en JSON valide avec cette structure exacte:\n" +
-                $"{{\"score_ecoute\":0,\"score_persuasion\":0,\"score_empathie\":0,\"score_argumentation\":0," +
-                $"\"score_refus\":0,\"score_vente\":0,\"sentiment_score\":0.0,\"sentiment\":\"\",\"score_percentage\":0," +
-                $"\"performance\":\"\",\"script_respected\":true,\"objections_handled\":true,\"customer_intent\":\"\",\"next_steps\":\"\"}}",
+                $"{{\"score_accueil\":0,\"score_energie\":0,\"score_voix\":0,\"score_ecoute\":0," +
+                $"\"score_client\":0,\"score_operateur\":0,\"score_efficacite\":0,\"score_conclusion\":0," +
+                $"\"sentiment_score\":0.0,\"sentiment\":\"\",\"script_respected\":true," +
+                $"\"objections_handled\":true,\"customer_intent\":\"\",\"next_steps\":\"\"}}",
                 null, "admin", null
             );
 
@@ -346,20 +350,27 @@ public class AiService : IAiService
             if (parsed != null)
             {
                 var result = new ScriptAnalysisResultDto();
-                if (parsed.TryGetValue("score_ecoute", out var v)) result.ScoreEcoute = v.GetInt32();
-                if (parsed.TryGetValue("score_persuasion", out v)) result.ScorePersuasion = v.GetInt32();
-                if (parsed.TryGetValue("score_empathie", out v)) result.ScoreEmpathie = v.GetInt32();
-                if (parsed.TryGetValue("score_argumentation", out v)) result.ScoreArgumentation = v.GetInt32();
-                if (parsed.TryGetValue("score_refus", out v)) result.ScoreRefus = v.GetInt32();
-                if (parsed.TryGetValue("score_vente", out v)) result.ScoreVente = v.GetInt32();
+                if (parsed.TryGetValue("score_accueil", out var v)) result.ScoreAccueil = v.GetInt32();
+                if (parsed.TryGetValue("score_energie", out v)) result.ScoreEnergie = v.GetInt32();
+                if (parsed.TryGetValue("score_voix", out v)) result.ScoreVoix = v.GetInt32();
+                if (parsed.TryGetValue("score_ecoute", out v)) result.ScoreEcoute = v.GetInt32();
+                if (parsed.TryGetValue("score_client", out v)) result.ScoreClient = v.GetInt32();
+                if (parsed.TryGetValue("score_operateur", out v)) result.ScoreOperateur = v.GetInt32();
+                if (parsed.TryGetValue("score_efficacite", out v)) result.ScoreEfficacite = v.GetInt32();
+                if (parsed.TryGetValue("score_conclusion", out v)) result.ScoreConclusion = v.GetInt32();
                 if (parsed.TryGetValue("sentiment_score", out v)) result.SentimentScore = v.GetDouble();
-                if (parsed.TryGetValue("sentiment", out v)) result.Sentiment = v.GetString() ?? "NEUTRAL";
-                if (parsed.TryGetValue("score_percentage", out v)) result.ScorePercentage = v.GetDouble();
-                if (parsed.TryGetValue("performance", out v)) result.Performance = v.GetString() ?? "N/A";
+                if (parsed.TryGetValue("sentiment", out v)) result.Sentiment = NormalizeSentiment(v.GetString());
                 if (parsed.TryGetValue("script_respected", out v)) result.ScriptRespected = v.GetBoolean();
                 if (parsed.TryGetValue("objections_handled", out v)) result.ObjectionsHandled = v.GetBoolean();
                 if (parsed.TryGetValue("customer_intent", out v)) result.CustomerIntent = v.GetString();
                 if (parsed.TryGetValue("next_steps", out v)) result.NextSteps = v.GetString();
+
+                var (weightedScore, performance) = QualityScoreCalculator.Calculate(
+                    result.ScoreAccueil, result.ScoreEnergie, result.ScoreVoix, result.ScoreEcoute,
+                    result.ScoreClient, result.ScoreOperateur, result.ScoreEfficacite, result.ScoreConclusion,
+                    _weights);
+                result.ScorePercentage = weightedScore;
+                result.Performance = performance;
                 return result;
             }
         }
@@ -367,10 +378,23 @@ public class AiService : IAiService
 
         return new ScriptAnalysisResultDto
         {
-            ScoreEcoute = 5, ScorePersuasion = 5, ScoreEmpathie = 5,
-            ScoreArgumentation = 5, ScoreRefus = 5, ScoreVente = 5,
+            ScoreAccueil = 50, ScoreEnergie = 50, ScoreVoix = 50, ScoreEcoute = 50,
+            ScoreClient = 50, ScoreOperateur = 50, ScoreEfficacite = 50, ScoreConclusion = 50,
             SentimentScore = 0.5, Sentiment = "NEUTRAL", ScorePercentage = 50,
             Performance = "Moyen", ScriptRespected = true, ObjectionsHandled = false
+        };
+    }
+
+    private static string NormalizeSentiment(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "NEUTRAL";
+        var v = value.Trim().ToUpperInvariant();
+        return v switch
+        {
+            "POSITIF" or "POSITIVE" or "POSITIV" => "POSITIVE",
+            "NEGATIF" or "NEGATIVE" or "NEGATIV" => "NEGATIVE",
+            "NEUTRE" or "NEUTRAL" => "NEUTRAL",
+            _ => v
         };
     }
 
