@@ -104,6 +104,8 @@ __build__/
 # ------------------------- Model Files (if downloaded) -----------------
 models/
 !BackendDotNet/**/Models/
+!Backend/src/CrmApi/Models/
+!Backend/src/CrmApi/Models/**
 *.bin
 *.h5
 *.onnx
