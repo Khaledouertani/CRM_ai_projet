@@ -1,4 +1,5 @@
 using CrmApi.Data;
+using CrmApi.Models;
 
 namespace CrmApi.Repositories;
 

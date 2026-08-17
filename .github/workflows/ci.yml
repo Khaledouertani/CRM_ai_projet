@@ -1,15 +1,23 @@
 name: CI Pipeline
 
-on:
+"on":
   push:
     branches: [main, develop, feature/*]
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   backend-build:
     name: Backend Build & Test
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v4
@@ -29,19 +37,7 @@ jobs:
         run: dotnet build Backend/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-restore
 
       - name: Run Unit Tests
-        run: dotnet test Backend/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --verbosity normal
-
-      - name: Run Integration Tests
-        run: dotnet test Backend/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Integration" --verbosity normal
-
-      - name: Run Security Tests
-        run: dotnet test Backend/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Security" --verbosity normal
-
-      - name: Run Database Tests
-        run: dotnet test Backend/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Database" --verbosity normal
-
-      - name: Run Service Tests
-        run: dotnet test Backend/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Services" --verbosity normal
+        run: dotnet test Backend/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --verbosity minimal
 
       - name: Collect Code Coverage
         run: dotnet test Backend/tests/CrmApi.Tests/CrmApi.Tests.csproj --configuration Release --no-build --collect:"XPlat Code Coverage" --settings Backend/coverlet.runsettings
@@ -51,10 +47,12 @@ jobs:
         with:
           name: backend-coverage
           path: Backend/tests/CrmApi.Tests/TestResults/**/coverage.cobertura.xml
+          if-no-files-found: warn
 
   frontend-build:
     name: Frontend Build & Test
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: ./frontend
@@ -72,11 +70,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check TypeScript version
-        run: npx tsc --version
-
-      - name: Lint check
-        run: npx tsc --noEmit 2>&1
+      - name: Typecheck
+        run: npx tsc --noEmit
 
       - name: Build
         run: npm run build
@@ -89,10 +84,12 @@ jobs:
         with:
           name: frontend-coverage
           path: frontend/coverage/
+          if-no-files-found: warn
 
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:16-alpine
@@ -103,7 +100,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U postgres"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -145,54 +142,64 @@ jobs:
         run: |
           nohup dotnet run --configuration Release --no-build --project CrmApi.csproj > /tmp/backend.log 2>&1 &
           echo "Backend PID: $!"
-          for i in $(seq 1 30); do
+          for i in $(seq 1 60); do
             if curl -s http://localhost:5190/api/health > /dev/null 2>&1; then
               echo "Backend is healthy!"
-              break
+              exit 0
             fi
-            echo "Waiting for backend... ($i/30)"
+            echo "Waiting for backend... ($i/60)"
             sleep 2
           done
-          if ! curl -s http://localhost:5190/api/health > /dev/null 2>&1; then
-            echo "Backend failed to start. Logs:"
-            cat /tmp/backend.log
-            exit 1
-          fi
+          echo "Backend failed to start. Logs:"
+          cat /tmp/backend.log
+          exit 1
 
       - name: Start frontend
         working-directory: ./frontend
         run: |
           nohup npm run dev -- --host 0.0.0.0 > /tmp/frontend.log 2>&1 &
           echo "Frontend PID: $!"
-          for i in $(seq 1 15); do
+          for i in $(seq 1 30); do
             if curl -s http://localhost:5173 > /dev/null 2>&1; then
               echo "Frontend is ready!"
-              break
+              exit 0
             fi
-            echo "Waiting for frontend... ($i/15)"
+            echo "Waiting for frontend... ($i/30)"
             sleep 2
           done
+          echo "Frontend failed to start. Logs:"
+          cat /tmp/frontend.log
+          exit 1
 
       - name: Run Playwright tests
-        continue-on-error: true
         working-directory: ./frontend
         run: |
           if [ -d "e2e" ] && [ "$(ls -A e2e/ 2>/dev/null)" ]; then
-            npx playwright test --reporter=list,json 2>&1 || true
+            npx playwright test
           else
             echo "No e2e tests found. Skipping."
           fi
 
       - name: Upload Playwright report
+        if: always()
         uses: actions/upload-artifact@v4
-        if: failure()
         with:
           name: playwright-report
           path: frontend/playwright-report/
+          if-no-files-found: warn
+
+      - name: Upload backend logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-log
+          path: /tmp/backend.log
+          if-no-files-found: ignore
 
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v4
@@ -205,18 +212,13 @@ jobs:
       - name: Run .NET Security Scanner
         continue-on-error: true
         run: |
-          dotnet tool install --global security-scan 2>/dev/null || true
-          dotnet security-scan Backend/src/CrmApi/CrmApi.csproj 2>/dev/null || security-scan Backend/src/CrmApi/CrmApi.csproj 2>/dev/null || echo "Security scan tool not available for this runtime"
-
-      - name: Run npm audit
-        continue-on-error: true
-        run: |
-          cd frontend
-          npm audit --audit-level=high
+          dotnet tool install --global security-scan
+          dotnet security-scan Backend/src/CrmApi/CrmApi.csproj
 
   dependency-scan:
     name: Dependency Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v4
@@ -230,7 +232,6 @@ jobs:
         run: dotnet list Backend/src/CrmApi/CrmApi.csproj package --vulnerable
 
       - name: Check npm vulnerabilities
-        continue-on-error: true
         run: |
           cd frontend
-          npm audit
+          npm audit --audit-level=high
