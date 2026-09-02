@@ -10,7 +10,7 @@ export default defineConfig({
   workers: 1,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://localhost',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },

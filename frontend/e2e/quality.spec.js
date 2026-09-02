@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const BASE = 'http://localhost:5173';
+const BASE = 'http://localhost';
 
 test.describe('Quality Dashboard', () => {
   test('should access quality dashboard as qualite', async ({ page }) => {
