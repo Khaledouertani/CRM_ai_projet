@@ -3,7 +3,7 @@
  * Manages user state and authentication across the app
  */
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import api, { getToken, setToken, removeToken } from '../services/api';
 
 interface User {
@@ -31,6 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const loginInProgress = useRef(false);
 
   // Check if user is already logged in on mount
   useEffect(() => {
@@ -56,6 +57,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = useCallback(async (username: string, password: string) => {
+    if (loginInProgress.current) return;
+    loginInProgress.current = true;
     setIsLoading(true);
     setError(null);
 
@@ -70,6 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError(err.message || 'Login failed');
       throw err;
     } finally {
+      loginInProgress.current = false;
       setIsLoading(false);
     }
   }, []);
