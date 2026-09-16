@@ -57,7 +57,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = useCallback(async (username: string, password: string) => {
-    if (loginInProgress.current) return;
+    if (loginInProgress.current) {
+      throw new Error('Connexion déjà en cours.');
+    }
     loginInProgress.current = true;
     setIsLoading(true);
     setError(null);

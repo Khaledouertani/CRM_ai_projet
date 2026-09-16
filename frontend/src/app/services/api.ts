@@ -114,28 +114,44 @@ export class RateLimitError extends Error {
 // Auth API
 // ============================================================
 
+let loginAbortController: AbortController | null = null;
+
 export const login = async (username: string, password: string): Promise<LoginResponse> => {
-  const response = await fetch(`${AUTH_BASE}/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password }),
-  });
-
-  if (!response.ok) {
-    let detail = 'Login failed';
-    if (response.status === 429) {
-      const retryAfter = parseInt(response.headers.get('Retry-After') || '60', 10);
-      detail = 'Trop de tentatives. Veuillez patienter une minute avant de réessayer.';
-      throw new RateLimitError(detail, retryAfter);
-    }
-    try { const e = await response.json(); detail = e.detail || e.error || detail; } catch { }
-    throw new Error(detail);
+  if (loginAbortController) {
+    loginAbortController.abort();
   }
+  loginAbortController = new AbortController();
 
-  const result = await response.json();
-  // Store JWT token for subsequent authenticated requests
-  setToken(result.token);
-  return result;
+  try {
+    const response = await fetch(`${AUTH_BASE}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+      signal: loginAbortController.signal,
+    });
+
+    if (!response.ok) {
+      let detail = 'Login failed';
+      if (response.status === 429) {
+        const retryAfter = parseInt(response.headers.get('Retry-After') || '60', 10);
+        detail = 'Trop de tentatives. Veuillez patienter une minute avant de réessayer.';
+        throw new RateLimitError(detail, retryAfter);
+      }
+      try { const e = await response.json(); detail = e.detail || e.error || detail; } catch { }
+      throw new Error(detail);
+    }
+
+    const result = await response.json();
+    setToken(result.token);
+    return result;
+  } catch (err: any) {
+    if (err.name === 'AbortError') {
+      throw new Error('Login annulé — une autre requête est déjà en cours.');
+    }
+    throw err;
+  } finally {
+    loginAbortController = null;
+  }
 };
 
 export const getMe = async (): Promise<LoginResponse['user']> => {
