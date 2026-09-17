@@ -182,10 +182,11 @@ public class AnalyticsServiceTests
     [Fact]
     public async Task GetPointageAsync_ReturnsTodaysPointage()
     {
+        var today = DateTime.UtcNow.Date;
         var user = new User { Id = 1, Username = "agent1", Name = "Agent 1", Role = UserRole.Agent, Password = "hash", Email = "a@b.com", CreatedAt = DateTime.UtcNow };
         _context.Users.Add(user);
-        _context.Attendances.Add(new Attendance { UserId = 1, Date = DateTime.UtcNow.Date, ClockIn = DateTime.UtcNow.AddHours(-4), Status = "active", CreatedAt = DateTime.UtcNow.AddHours(-4) });
-        _context.Calls.Add(new Call { AgentName = "Agent 1", CallDate = DateTime.UtcNow.AddHours(-3), ScorePercentage = 80 });
+        _context.Attendances.Add(new Attendance { UserId = 1, Date = today, ClockIn = today.AddHours(8), Status = "active", CreatedAt = today.AddHours(8) });
+        _context.Calls.Add(new Call { AgentName = "Agent 1", CallDate = today.AddHours(10), ScorePercentage = 80 });
         await _context.SaveChangesAsync();
 
         var result = await _sut.GetPointageAsync();
@@ -210,10 +211,11 @@ public class AnalyticsServiceTests
     [Fact]
     public async Task GetLiveAgentsAsync_ReturnsOnlineAgents()
     {
+        var today = DateTime.UtcNow.Date;
         var user = new User { Id = 1, Username = "live1", Name = "Live Agent", Role = UserRole.Agent, Password = "hash", Email = "l@b.com", CreatedAt = DateTime.UtcNow };
         _context.Users.Add(user);
-        _context.Attendances.Add(new Attendance { UserId = 1, Date = DateTime.UtcNow.Date, ClockIn = DateTime.UtcNow.AddHours(-2), Status = "active", CreatedAt = DateTime.UtcNow.AddHours(-2) });
-        _context.Calls.Add(            new Call { AgentName = "Live Agent", CallDate = DateTime.UtcNow.AddHours(-1), ScorePercentage = 85f });
+        _context.Attendances.Add(new Attendance { UserId = 1, Date = today, ClockIn = today.AddHours(8), Status = "active", CreatedAt = today.AddHours(8) });
+        _context.Calls.Add(new Call { AgentName = "Live Agent", CallDate = today.AddHours(10), ScorePercentage = 85f });
         await _context.SaveChangesAsync();
 
         var result = await _sut.GetLiveAgentsAsync();
