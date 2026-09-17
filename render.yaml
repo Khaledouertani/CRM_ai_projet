@@ -12,7 +12,7 @@ services:
     name: crm-backend
     runtime: docker
     repo: https://github.com/Khaledouertani/CRM_ai_projet
-    branch: feature/khaled1
+    branch: feature/khaled
     dockerfilePath: ./Backend/Dockerfile
     dockerContext: ./Backend
     plan: free
@@ -35,13 +35,13 @@ services:
       - key: Jwt__ExpirationHours
         value: "24"
       - key: Cors__AllowedOrigins
-        value: "https://crm-frontend.onrender.com"
+        value: "https://crm-frontend.onrender.com,https://crm-frontend-8mf9.onrender.com"
 
 staticSites:
   - type: static
     name: crm-frontend
     repo: https://github.com/Khaledouertani/CRM_ai_projet
-    branch: feature/khaled1
+    branch: feature/khaled
     rootDir: frontend
     buildCommand: npm ci && npm run build
     publishPath: dist
