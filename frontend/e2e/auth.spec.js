@@ -21,7 +21,7 @@ test.describe('Authentication Flow', () => {
 
   test('should show error with invalid credentials', async ({ page }) => {
     await login(page, 'wrong', 'wrong');
-    await expect(page.getByText('Login failed')).toBeVisible();
+    await expect(page.getByText(/invalid credentials|identifiants incorrects/i)).toBeVisible();
   });
 
   test('should logout successfully', async ({ page }) => {
