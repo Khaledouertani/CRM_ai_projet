@@ -48,8 +48,27 @@ builder.Services.Configure<WeightsConfig>(builder.Configuration.GetSection("Weig
 builder.Services.Configure<WhisperSettings>(builder.Configuration.GetSection("Whisper"));
 builder.Services.Configure<AlertThresholds>(builder.Configuration.GetSection("Alerts"));
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrEmpty(connectionString))
+{
+    var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
+    var dbPort = Environment.GetEnvironmentVariable("DB_PORT");
+    var dbName = Environment.GetEnvironmentVariable("DB_NAME");
+    var dbUser = Environment.GetEnvironmentVariable("DB_USER");
+    var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
+
+    if (string.IsNullOrEmpty(dbHost) || string.IsNullOrEmpty(dbName) || string.IsNullOrEmpty(dbUser) || string.IsNullOrEmpty(dbPassword))
+    {
+        throw new InvalidOperationException("Database connection string 'DefaultConnection' is missing, and required environment variables (DB_HOST, DB_NAME, DB_USER, DB_PASSWORD) are not set.");
+    }
+
+    dbPort = string.IsNullOrEmpty(dbPort) ? "5432" : dbPort;
+    connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword};";
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
