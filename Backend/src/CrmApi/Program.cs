@@ -50,26 +50,51 @@ builder.Services.Configure<AlertThresholds>(builder.Configuration.GetSection("Al
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-if (string.IsNullOrEmpty(connectionString))
+if (string.IsNullOrWhiteSpace(connectionString))
 {
     var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
-    var dbPort = Environment.GetEnvironmentVariable("DB_PORT");
+    var dbPort = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
     var dbName = Environment.GetEnvironmentVariable("DB_NAME");
     var dbUser = Environment.GetEnvironmentVariable("DB_USER");
     var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
 
-    if (string.IsNullOrEmpty(dbHost) || string.IsNullOrEmpty(dbName) || string.IsNullOrEmpty(dbUser) || string.IsNullOrEmpty(dbPassword))
+    if (string.IsNullOrWhiteSpace(dbHost) ||
+        string.IsNullOrWhiteSpace(dbName) ||
+        string.IsNullOrWhiteSpace(dbUser) ||
+        string.IsNullOrWhiteSpace(dbPassword))
     {
-        throw new InvalidOperationException("Database connection string 'DefaultConnection' is missing, and required environment variables (DB_HOST, DB_NAME, DB_USER, DB_PASSWORD) are not set.");
+        throw new InvalidOperationException(
+            "Database connection configuration is missing.");
     }
 
-    dbPort = string.IsNullOrEmpty(dbPort) ? "5432" : dbPort;
-    connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword};";
+    connectionString =
+        $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword};";
+}
+else if (connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
+         connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+{
+    var uri = new Uri(connectionString);
+
+    var userInfo = uri.UserInfo.Split(':', 2);
+
+    var username = Uri.UnescapeDataString(userInfo[0]);
+    var password = userInfo.Length > 1
+        ? Uri.UnescapeDataString(userInfo[1])
+        : "";
+
+    var database = Uri.UnescapeDataString(
+        uri.AbsolutePath.TrimStart('/'));
+
+    connectionString =
+        $"Host={uri.Host};" +
+        $"Port={uri.Port};" +
+        $"Database={database};" +
+        $"Username={username};" +
+        $"Password={password};";
 }
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
-
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 builder.Services.AddControllers()
