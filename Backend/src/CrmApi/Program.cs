@@ -87,7 +87,7 @@ else if (connectionString.StartsWith("postgres://", StringComparison.OrdinalIgno
 var port = uri.Port > 0 ? uri.Port : 5432;
     connectionString =
         $"Host={uri.Host};" +
-        $"Port={Port};" +
+        $"Port={port};" +
         $"Database={database};" +
         $"Username={username};" +
         $"Password={password};";
