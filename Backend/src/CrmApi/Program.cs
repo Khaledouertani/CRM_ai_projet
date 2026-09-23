@@ -187,8 +187,8 @@ builder.Services.AddHostedService<CrmApi.Services.Followup.FollowupBackgroundSer
 builder.Services.AddHostedService<CrmApi.Services.InactivityAlertService>();
 
 var app = builder.Build();
-app.UseWebSockets();
 app.UseCors("AllowReact");
+app.UseWebSockets();
 
 // Register WebSocket endpoint for chat messages
 app.Map("/ws/messages/{userId}", async (Microsoft.AspNetCore.Http.HttpContext context, string userId) =>
